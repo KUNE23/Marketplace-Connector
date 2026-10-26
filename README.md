@@ -18,6 +18,7 @@ Fitur Utama
 
 Teknologi yang Digunakan
 **Frontend**
+
 • Teknologi: Vue 3 (Vite) – UI untuk menampilkan produk, status sinkronisasi, dan kontrol manual
 
 **Backend**
