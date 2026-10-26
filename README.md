@@ -1,5 +1,3 @@
-Berikut README dalam Bahasa Indonesia.
-
 ---
 
 Marketplace‑Connector
