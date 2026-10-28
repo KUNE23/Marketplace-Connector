@@ -1,0 +1,63 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id           BigInt   @id @default(autoincrement())
+  email        String   @unique
+  passwordHash String
+  role         String
+  active       Boolean  @default(true)
+  refreshTokens RefreshToken[]
+}
+
+model RefreshToken {
+  id        BigInt   @id @default(autoincrement())
+  tokenHash String   @unique
+  userId    BigInt
+  user      User     @relation(fields: [userId], references: [id])
+  expiresAt DateTime
+  createdAt DateTime @default(now())
+  revokedAt DateTime?
+}
+
+model RawShopee {
+  id        BigInt   @id @default(autoincrement())
+  payload   Json
+  fetchedAt DateTime @default(now()) @db.Timestamptz
+}
+
+model FieldMap {
+  shopeeKey   String @id
+  akulakuKey  String
+  transformJs String?
+}
+
+model Product {
+  id            BigInt   @id @default(autoincrement())
+  shopeeItemId BigInt?
+  sku           String?
+  name          String?
+  description   String?
+  priceIdr      Decimal?
+  stock         Int?
+  category      String?
+  imageUrls     String[]
+  lastSyncedAt  DateTime? @db.Timestamptz
+  syncLogs      SyncLog[]
+}
+
+model SyncLog {
+  id           BigInt   @id @default(autoincrement())
+  productId    BigInt
+  product      Product @relation(fields: [productId], references: [id])
+  status       String
+  responseCode Int?
+  responseBody Json?
+  runAt        DateTime @default(now()) @db.Timestamptz
+}

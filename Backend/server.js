@@ -1,21 +1,29 @@
+// Backend/server.js
+// Backend/server.js
 const express = require('express');
 const cors = require('cors');
+const config = require('./src/config');
+const statusRouter = require('./src/routes/status');
+const authRouter = require('./src/routes/auth');
+const userRouter = require('./src/routes/users');
+const errorHandler = require('./src/middleware/errorHandler');
 
 const app = express();
-const PORT = process.env.PORT || 3000;
+const PORT = config.port;
 
-// Enable CORS for all origins (you can restrict in production)
-app.use(cors());
+// CORS – configurable via .env (CORS_ORIGIN). Default: *
+app.use(cors({ origin: config.corsOrigin }));
 app.use(express.json());
 
-// Simple health/status endpoint
-app.get('/api/status', (req, res) => {
-  res.json({
-    status: 'success',
-    message: 'Backend connected successfully'
-  });
-});
+// Public routes
+app.use('/api', statusRouter);
+app.use('/api/auth', authRouter);
+app.use('/api/users', userRouter);
+
+// Central error handling (fallback)
+app.use(errorHandler);
 
 app.listen(PORT, () => {
   console.log(`Backend server listening on port ${PORT}`);
 });
+

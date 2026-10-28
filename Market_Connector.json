@@ -1,0 +1,1359 @@
+{
+  "version": "32.6.4",
+  "pages": [
+    {
+      "id": "Q54wFS9vcMAZJMu1ALFj",
+      "name": "Database Diagram",
+      "cells": [
+        {
+          "id": "1",
+          "type": "layer"
+        },
+        {
+          "id": "KkXF74FT-czYXahjefyP-1",
+          "type": "node",
+          "parent": "1",
+          "metadata": {
+            "mermaidData": "{\n  \"data\": \"erDiagram\\n    USERS {\\n        BIGINT id PK\\n        VARCHAR email\\n        VARCHAR password_hash\\n        VARCHAR role\\n    }\\n    RAW_SHOPEE {\\n        BIGINT id PK\\n        JSONB payload\\n        TIMESTAMPTZ fetched_at\\n    }\\n    FIELD_MAP {\\n        VARCHAR shopee_key PK\\n        VARCHAR akulaku_key\\n        TEXT transform_js\\n    }\\n    PRODUCTS {\\n        BIGINT id PK\\n        BIGINT shopee_itemid\\n        VARCHAR sku\\n        VARCHAR name\\n        TEXT description\\n        NUMERIC price_idr\\n        INTEGER stock\\n        VARCHAR category\\n        TEXT[] image_urls\\n        TIMESTAMPTZ last_synced_at\\n    }\\n    SYNC_LOG {\\n        BIGINT id PK\\n        BIGINT product_id FK\\n        VARCHAR status\\n        INTEGER response_code\\n        JSONB response_body\\n        TIMESTAMPTZ run_at\\n    }\\n\\n    USERS ||--o{ PRODUCTS : \\\"creates\\\"\\n    PRODUCTS ||--o{ SYNC_LOG : \\\"has\\\"\\n\",\n  \"config\": null,\n  \"version\": \"12\"\n}"
+          }
+        },
+        {
+          "id": "KkXF74FT-czYXahjefyP-2",
+          "type": "node",
+          "parent": "KkXF74FT-czYXahjefyP-1",
+          "label": "USERS",
+          "metadata": {
+            "mermaidId": "n:USERS",
+            "mermaidBaseStyle": "shape=table;startSize=39.75;container=1;collapsible=0;childLayout=tableLayout;fixedRows=1;rowLines=1;fontSize=16;fontFamily=Recursive;strokeWidth=2;align=center;resizeLast=1;html=1;fillColor=#FDF4FF;strokeColor=#E879F9;fontColor=#28253D;shadow=1;shadowColor=#000000;shadowOffsetX=4;shadowOffsetY=4;shadowBlur=0;shadowOpacity=6;",
+            "mermaidBaseValue": "USERS"
+          }
+        },
+        {
+          "id": "KkXF74FT-czYXahjefyP-3",
+          "type": "node",
+          "parent": "KkXF74FT-czYXahjefyP-2"
+        },
+        {
+          "id": "KkXF74FT-czYXahjefyP-4",
+          "type": "node",
+          "parent": "KkXF74FT-czYXahjefyP-3",
+          "label": "BIGINT"
+        },
+        {
+          "id": "KkXF74FT-czYXahjefyP-5",
+          "type": "node",
+          "parent": "KkXF74FT-czYXahjefyP-3",
+          "label": "id"
+        },
+        {
+          "id": "KkXF74FT-czYXahjefyP-6",
+          "type": "node",
+          "parent": "KkXF74FT-czYXahjefyP-3",
+          "label": "PK"
+        },
+        {
+          "id": "KkXF74FT-czYXahjefyP-7",
+          "type": "node",
+          "parent": "KkXF74FT-czYXahjefyP-2"
+        },
+        {
+          "id": "KkXF74FT-czYXahjefyP-8",
+          "type": "node",
+          "parent": "KkXF74FT-czYXahjefyP-7",
+          "label": "VARCHAR"
+        },
+        {
+          "id": "KkXF74FT-czYXahjefyP-9",
+          "type": "node",
+          "parent": "KkXF74FT-czYXahjefyP-7",
+          "label": "email"
+        },
+        {
+          "id": "KkXF74FT-czYXahjefyP-10",
+          "type": "node",
+          "parent": "KkXF74FT-czYXahjefyP-7"
+        },
+        {
+          "id": "KkXF74FT-czYXahjefyP-11",
+          "type": "node",
+          "parent": "KkXF74FT-czYXahjefyP-2"
+        },
+        {
+          "id": "KkXF74FT-czYXahjefyP-12",
+          "type": "node",
+          "parent": "KkXF74FT-czYXahjefyP-11",
+          "label": "VARCHAR"
+        },
+        {
+          "id": "KkXF74FT-czYXahjefyP-13",
+          "type": "node",
+          "parent": "KkXF74FT-czYXahjefyP-11",
+          "label": "password_hash"
+        },
+        {
+          "id": "KkXF74FT-czYXahjefyP-14",
+          "type": "node",
+          "parent": "KkXF74FT-czYXahjefyP-11"
+        },
+        {
+          "id": "KkXF74FT-czYXahjefyP-15",
+          "type": "node",
+          "parent": "KkXF74FT-czYXahjefyP-2"
+        },
+        {
+          "id": "KkXF74FT-czYXahjefyP-16",
+          "type": "node",
+          "parent": "KkXF74FT-czYXahjefyP-15",
+          "label": "VARCHAR"
+        },
+        {
+          "id": "KkXF74FT-czYXahjefyP-17",
+          "type": "node",
+          "parent": "KkXF74FT-czYXahjefyP-15",
+          "label": "role"
+        },
+        {
+          "id": "KkXF74FT-czYXahjefyP-18",
+          "type": "node",
+          "parent": "KkXF74FT-czYXahjefyP-15"
+        },
+        {
+          "id": "KkXF74FT-czYXahjefyP-19",
+          "type": "node",
+          "parent": "KkXF74FT-czYXahjefyP-1",
+          "label": "RAW_SHOPEE",
+          "metadata": {
+            "mermaidId": "n:RAW_SHOPEE",
+            "mermaidBaseStyle": "shape=table;startSize=39.75;container=1;collapsible=0;childLayout=tableLayout;fixedRows=1;rowLines=1;fontSize=16;fontFamily=Recursive;strokeWidth=2;align=center;resizeLast=1;html=1;fillColor=#F0FDFA;strokeColor=#2DD4BF;fontColor=#28253D;shadow=1;shadowColor=#000000;shadowOffsetX=4;shadowOffsetY=4;shadowBlur=0;shadowOpacity=6;",
+            "mermaidBaseValue": "RAW_SHOPEE"
+          }
+        },
+        {
+          "id": "KkXF74FT-czYXahjefyP-20",
+          "type": "node",
+          "parent": "KkXF74FT-czYXahjefyP-19"
+        },
+        {
+          "id": "KkXF74FT-czYXahjefyP-21",
+          "type": "node",
+          "parent": "KkXF74FT-czYXahjefyP-20",
+          "label": "BIGINT"
+        },
+        {
+          "id": "KkXF74FT-czYXahjefyP-22",
+          "type": "node",
+          "parent": "KkXF74FT-czYXahjefyP-20",
+          "label": "id"
+        },
+        {
+          "id": "KkXF74FT-czYXahjefyP-23",
+          "type": "node",
+          "parent": "KkXF74FT-czYXahjefyP-20",
+          "label": "PK"
+        },
+        {
+          "id": "KkXF74FT-czYXahjefyP-24",
+          "type": "node",
+          "parent": "KkXF74FT-czYXahjefyP-19"
+        },
+        {
+          "id": "KkXF74FT-czYXahjefyP-25",
+          "type": "node",
+          "parent": "KkXF74FT-czYXahjefyP-24",
+          "label": "JSONB"
+        },
+        {
+          "id": "KkXF74FT-czYXahjefyP-26",
+          "type": "node",
+          "parent": "KkXF74FT-czYXahjefyP-24",
+          "label": "payload"
+        },
+        {
+          "id": "KkXF74FT-czYXahjefyP-27",
+          "type": "node",
+          "parent": "KkXF74FT-czYXahjefyP-24"
+        },
+        {
+          "id": "KkXF74FT-czYXahjefyP-28",
+          "type": "node",
+          "parent": "KkXF74FT-czYXahjefyP-19"
+        },
+        {
+          "id": "KkXF74FT-czYXahjefyP-29",
+          "type": "node",
+          "parent": "KkXF74FT-czYXahjefyP-28",
+          "label": "TIMESTAMPTZ"
+        },
+        {
+          "id": "KkXF74FT-czYXahjefyP-30",
+          "type": "node",
+          "parent": "KkXF74FT-czYXahjefyP-28",
+          "label": "fetched_at"
+        },
+        {
+          "id": "KkXF74FT-czYXahjefyP-31",
+          "type": "node",
+          "parent": "KkXF74FT-czYXahjefyP-28"
+        },
+        {
+          "id": "KkXF74FT-czYXahjefyP-32",
+          "type": "node",
+          "parent": "KkXF74FT-czYXahjefyP-1",
+          "label": "FIELD_MAP",
+          "metadata": {
+            "mermaidId": "n:FIELD_MAP",
+            "mermaidBaseStyle": "shape=table;startSize=39.75;container=1;collapsible=0;childLayout=tableLayout;fixedRows=1;rowLines=1;fontSize=16;fontFamily=Recursive;strokeWidth=2;align=center;resizeLast=1;html=1;fillColor=#FFF7ED;strokeColor=#FB923C;fontColor=#28253D;shadow=1;shadowColor=#000000;shadowOffsetX=4;shadowOffsetY=4;shadowBlur=0;shadowOpacity=6;",
+            "mermaidBaseValue": "FIELD_MAP"
+          }
+        },
+        {
+          "id": "KkXF74FT-czYXahjefyP-33",
+          "type": "node",
+          "parent": "KkXF74FT-czYXahjefyP-32"
+        },
+        {
+          "id": "KkXF74FT-czYXahjefyP-34",
+          "type": "node",
+          "parent": "KkXF74FT-czYXahjefyP-33",
+          "label": "VARCHAR"
+        },
+        {
+          "id": "KkXF74FT-czYXahjefyP-35",
+          "type": "node",
+          "parent": "KkXF74FT-czYXahjefyP-33",
+          "label": "shopee_key"
+        },
+        {
+          "id": "KkXF74FT-czYXahjefyP-36",
+          "type": "node",
+          "parent": "KkXF74FT-czYXahjefyP-33",
+          "label": "PK"
+        },
+        {
+          "id": "KkXF74FT-czYXahjefyP-37",
+          "type": "node",
+          "parent": "KkXF74FT-czYXahjefyP-32"
+        },
+        {
+          "id": "KkXF74FT-czYXahjefyP-38",
+          "type": "node",
+          "parent": "KkXF74FT-czYXahjefyP-37",
+          "label": "VARCHAR"
+        },
+        {
+          "id": "KkXF74FT-czYXahjefyP-39",
+          "type": "node",
+          "parent": "KkXF74FT-czYXahjefyP-37",
+          "label": "akulaku_key"
+        },
+        {
+          "id": "KkXF74FT-czYXahjefyP-40",
+          "type": "node",
+          "parent": "KkXF74FT-czYXahjefyP-37"
+        },
+        {
+          "id": "KkXF74FT-czYXahjefyP-41",
+          "type": "node",
+          "parent": "KkXF74FT-czYXahjefyP-32"
+        },
+        {
+          "id": "KkXF74FT-czYXahjefyP-42",
+          "type": "node",
+          "parent": "KkXF74FT-czYXahjefyP-41",
+          "label": "TEXT"
+        },
+        {
+          "id": "KkXF74FT-czYXahjefyP-43",
+          "type": "node",
+          "parent": "KkXF74FT-czYXahjefyP-41",
+          "label": "transform_js"
+        },
+        {
+          "id": "KkXF74FT-czYXahjefyP-44",
+          "type": "node",
+          "parent": "KkXF74FT-czYXahjefyP-41"
+        },
+        {
+          "id": "KkXF74FT-czYXahjefyP-45",
+          "type": "node",
+          "parent": "KkXF74FT-czYXahjefyP-1",
+          "label": "PRODUCTS",
+          "metadata": {
+            "mermaidId": "n:PRODUCTS",
+            "mermaidBaseStyle": "shape=table;startSize=39.75;container=1;collapsible=0;childLayout=tableLayout;fixedRows=1;rowLines=1;fontSize=16;fontFamily=Recursive;strokeWidth=2;align=center;resizeLast=1;html=1;fillColor=#ECFEFF;strokeColor=#22D3EE;fontColor=#28253D;shadow=1;shadowColor=#000000;shadowOffsetX=4;shadowOffsetY=4;shadowBlur=0;shadowOpacity=6;",
+            "mermaidBaseValue": "PRODUCTS"
+          }
+        },
+        {
+          "id": "KkXF74FT-czYXahjefyP-46",
+          "type": "node",
+          "parent": "KkXF74FT-czYXahjefyP-45"
+        },
+        {
+          "id": "KkXF74FT-czYXahjefyP-47",
+          "type": "node",
+          "parent": "KkXF74FT-czYXahjefyP-46",
+          "label": "BIGINT"
+        },
+        {
+          "id": "KkXF74FT-czYXahjefyP-48",
+          "type": "node",
+          "parent": "KkXF74FT-czYXahjefyP-46",
+          "label": "id"
+        },
+        {
+          "id": "KkXF74FT-czYXahjefyP-49",
+          "type": "node",
+          "parent": "KkXF74FT-czYXahjefyP-46",
+          "label": "PK"
+        },
+        {
+          "id": "KkXF74FT-czYXahjefyP-50",
+          "type": "node",
+          "parent": "KkXF74FT-czYXahjefyP-45"
+        },
+        {
+          "id": "KkXF74FT-czYXahjefyP-51",
+          "type": "node",
+          "parent": "KkXF74FT-czYXahjefyP-50",
+          "label": "BIGINT"
+        },
+        {
+          "id": "KkXF74FT-czYXahjefyP-52",
+          "type": "node",
+          "parent": "KkXF74FT-czYXahjefyP-50",
+          "label": "shopee_itemid"
+        },
+        {
+          "id": "KkXF74FT-czYXahjefyP-53",
+          "type": "node",
+          "parent": "KkXF74FT-czYXahjefyP-50"
+        },
+        {
+          "id": "KkXF74FT-czYXahjefyP-54",
+          "type": "node",
+          "parent": "KkXF74FT-czYXahjefyP-45"
+        },
+        {
+          "id": "KkXF74FT-czYXahjefyP-55",
+          "type": "node",
+          "parent": "KkXF74FT-czYXahjefyP-54",
+          "label": "VARCHAR"
+        },
+        {
+          "id": "KkXF74FT-czYXahjefyP-56",
+          "type": "node",
+          "parent": "KkXF74FT-czYXahjefyP-54",
+          "label": "sku"
+        },
+        {
+          "id": "KkXF74FT-czYXahjefyP-57",
+          "type": "node",
+          "parent": "KkXF74FT-czYXahjefyP-54"
+        },
+        {
+          "id": "KkXF74FT-czYXahjefyP-58",
+          "type": "node",
+          "parent": "KkXF74FT-czYXahjefyP-45"
+        },
+        {
+          "id": "KkXF74FT-czYXahjefyP-59",
+          "type": "node",
+          "parent": "KkXF74FT-czYXahjefyP-58",
+          "label": "VARCHAR"
+        },
+        {
+          "id": "KkXF74FT-czYXahjefyP-60",
+          "type": "node",
+          "parent": "KkXF74FT-czYXahjefyP-58",
+          "label": "name"
+        },
+        {
+          "id": "KkXF74FT-czYXahjefyP-61",
+          "type": "node",
+          "parent": "KkXF74FT-czYXahjefyP-58"
+        },
+        {
+          "id": "KkXF74FT-czYXahjefyP-62",
+          "type": "node",
+          "parent": "KkXF74FT-czYXahjefyP-45"
+        },
+        {
+          "id": "KkXF74FT-czYXahjefyP-63",
+          "type": "node",
+          "parent": "KkXF74FT-czYXahjefyP-62",
+          "label": "TEXT"
+        },
+        {
+          "id": "KkXF74FT-czYXahjefyP-64",
+          "type": "node",
+          "parent": "KkXF74FT-czYXahjefyP-62",
+          "label": "description"
+        },
+        {
+          "id": "KkXF74FT-czYXahjefyP-65",
+          "type": "node",
+          "parent": "KkXF74FT-czYXahjefyP-62"
+        },
+        {
+          "id": "KkXF74FT-czYXahjefyP-66",
+          "type": "node",
+          "parent": "KkXF74FT-czYXahjefyP-45"
+        },
+        {
+          "id": "KkXF74FT-czYXahjefyP-67",
+          "type": "node",
+          "parent": "KkXF74FT-czYXahjefyP-66",
+          "label": "NUMERIC"
+        },
+        {
+          "id": "KkXF74FT-czYXahjefyP-68",
+          "type": "node",
+          "parent": "KkXF74FT-czYXahjefyP-66",
+          "label": "price_idr"
+        },
+        {
+          "id": "KkXF74FT-czYXahjefyP-69",
+          "type": "node",
+          "parent": "KkXF74FT-czYXahjefyP-66"
+        },
+        {
+          "id": "KkXF74FT-czYXahjefyP-70",
+          "type": "node",
+          "parent": "KkXF74FT-czYXahjefyP-45"
+        },
+        {
+          "id": "KkXF74FT-czYXahjefyP-71",
+          "type": "node",
+          "parent": "KkXF74FT-czYXahjefyP-70",
+          "label": "INTEGER"
+        },
+        {
+          "id": "KkXF74FT-czYXahjefyP-72",
+          "type": "node",
+          "parent": "KkXF74FT-czYXahjefyP-70",
+          "label": "stock"
+        },
+        {
+          "id": "KkXF74FT-czYXahjefyP-73",
+          "type": "node",
+          "parent": "KkXF74FT-czYXahjefyP-70"
+        },
+        {
+          "id": "KkXF74FT-czYXahjefyP-74",
+          "type": "node",
+          "parent": "KkXF74FT-czYXahjefyP-45"
+        },
+        {
+          "id": "KkXF74FT-czYXahjefyP-75",
+          "type": "node",
+          "parent": "KkXF74FT-czYXahjefyP-74",
+          "label": "VARCHAR"
+        },
+        {
+          "id": "KkXF74FT-czYXahjefyP-76",
+          "type": "node",
+          "parent": "KkXF74FT-czYXahjefyP-74",
+          "label": "category"
+        },
+        {
+          "id": "KkXF74FT-czYXahjefyP-77",
+          "type": "node",
+          "parent": "KkXF74FT-czYXahjefyP-74"
+        },
+        {
+          "id": "KkXF74FT-czYXahjefyP-78",
+          "type": "node",
+          "parent": "KkXF74FT-czYXahjefyP-45"
+        },
+        {
+          "id": "KkXF74FT-czYXahjefyP-79",
+          "type": "node",
+          "parent": "KkXF74FT-czYXahjefyP-78",
+          "label": "TEXT[]"
+        },
+        {
+          "id": "KkXF74FT-czYXahjefyP-80",
+          "type": "node",
+          "parent": "KkXF74FT-czYXahjefyP-78",
+          "label": "image_urls"
+        },
+        {
+          "id": "KkXF74FT-czYXahjefyP-81",
+          "type": "node",
+          "parent": "KkXF74FT-czYXahjefyP-78"
+        },
+        {
+          "id": "KkXF74FT-czYXahjefyP-82",
+          "type": "node",
+          "parent": "KkXF74FT-czYXahjefyP-45"
+        },
+        {
+          "id": "KkXF74FT-czYXahjefyP-83",
+          "type": "node",
+          "parent": "KkXF74FT-czYXahjefyP-82",
+          "label": "TIMESTAMPTZ"
+        },
+        {
+          "id": "KkXF74FT-czYXahjefyP-84",
+          "type": "node",
+          "parent": "KkXF74FT-czYXahjefyP-82",
+          "label": "last_synced_at"
+        },
+        {
+          "id": "KkXF74FT-czYXahjefyP-85",
+          "type": "node",
+          "parent": "KkXF74FT-czYXahjefyP-82"
+        },
+        {
+          "id": "KkXF74FT-czYXahjefyP-86",
+          "type": "node",
+          "parent": "KkXF74FT-czYXahjefyP-1",
+          "label": "SYNC_LOG",
+          "metadata": {
+            "mermaidId": "n:SYNC_LOG",
+            "mermaidBaseStyle": "shape=table;startSize=39.75;container=1;collapsible=0;childLayout=tableLayout;fixedRows=1;rowLines=1;fontSize=16;fontFamily=Recursive;strokeWidth=2;align=center;resizeLast=1;html=1;fillColor=#F0FDF4;strokeColor=#4ADE80;fontColor=#28253D;shadow=1;shadowColor=#000000;shadowOffsetX=4;shadowOffsetY=4;shadowBlur=0;shadowOpacity=6;",
+            "mermaidBaseValue": "SYNC_LOG"
+          }
+        },
+        {
+          "id": "KkXF74FT-czYXahjefyP-87",
+          "type": "node",
+          "parent": "KkXF74FT-czYXahjefyP-86"
+        },
+        {
+          "id": "KkXF74FT-czYXahjefyP-88",
+          "type": "node",
+          "parent": "KkXF74FT-czYXahjefyP-87",
+          "label": "BIGINT"
+        },
+        {
+          "id": "KkXF74FT-czYXahjefyP-89",
+          "type": "node",
+          "parent": "KkXF74FT-czYXahjefyP-87",
+          "label": "id"
+        },
+        {
+          "id": "KkXF74FT-czYXahjefyP-90",
+          "type": "node",
+          "parent": "KkXF74FT-czYXahjefyP-87",
+          "label": "PK"
+        },
+        {
+          "id": "KkXF74FT-czYXahjefyP-91",
+          "type": "node",
+          "parent": "KkXF74FT-czYXahjefyP-86"
+        },
+        {
+          "id": "KkXF74FT-czYXahjefyP-92",
+          "type": "node",
+          "parent": "KkXF74FT-czYXahjefyP-91",
+          "label": "BIGINT"
+        },
+        {
+          "id": "KkXF74FT-czYXahjefyP-93",
+          "type": "node",
+          "parent": "KkXF74FT-czYXahjefyP-91",
+          "label": "product_id"
+        },
+        {
+          "id": "KkXF74FT-czYXahjefyP-94",
+          "type": "node",
+          "parent": "KkXF74FT-czYXahjefyP-91",
+          "label": "FK"
+        },
+        {
+          "id": "KkXF74FT-czYXahjefyP-95",
+          "type": "node",
+          "parent": "KkXF74FT-czYXahjefyP-86"
+        },
+        {
+          "id": "KkXF74FT-czYXahjefyP-96",
+          "type": "node",
+          "parent": "KkXF74FT-czYXahjefyP-95",
+          "label": "VARCHAR"
+        },
+        {
+          "id": "KkXF74FT-czYXahjefyP-97",
+          "type": "node",
+          "parent": "KkXF74FT-czYXahjefyP-95",
+          "label": "status"
+        },
+        {
+          "id": "KkXF74FT-czYXahjefyP-98",
+          "type": "node",
+          "parent": "KkXF74FT-czYXahjefyP-95"
+        },
+        {
+          "id": "KkXF74FT-czYXahjefyP-99",
+          "type": "node",
+          "parent": "KkXF74FT-czYXahjefyP-86"
+        },
+        {
+          "id": "KkXF74FT-czYXahjefyP-100",
+          "type": "node",
+          "parent": "KkXF74FT-czYXahjefyP-99",
+          "label": "INTEGER"
+        },
+        {
+          "id": "KkXF74FT-czYXahjefyP-101",
+          "type": "node",
+          "parent": "KkXF74FT-czYXahjefyP-99",
+          "label": "response_code"
+        },
+        {
+          "id": "KkXF74FT-czYXahjefyP-102",
+          "type": "node",
+          "parent": "KkXF74FT-czYXahjefyP-99"
+        },
+        {
+          "id": "KkXF74FT-czYXahjefyP-103",
+          "type": "node",
+          "parent": "KkXF74FT-czYXahjefyP-86"
+        },
+        {
+          "id": "KkXF74FT-czYXahjefyP-104",
+          "type": "node",
+          "parent": "KkXF74FT-czYXahjefyP-103",
+          "label": "JSONB"
+        },
+        {
+          "id": "KkXF74FT-czYXahjefyP-105",
+          "type": "node",
+          "parent": "KkXF74FT-czYXahjefyP-103",
+          "label": "response_body"
+        },
+        {
+          "id": "KkXF74FT-czYXahjefyP-106",
+          "type": "node",
+          "parent": "KkXF74FT-czYXahjefyP-103"
+        },
+        {
+          "id": "KkXF74FT-czYXahjefyP-107",
+          "type": "node",
+          "parent": "KkXF74FT-czYXahjefyP-86"
+        },
+        {
+          "id": "KkXF74FT-czYXahjefyP-108",
+          "type": "node",
+          "parent": "KkXF74FT-czYXahjefyP-107",
+          "label": "TIMESTAMPTZ"
+        },
+        {
+          "id": "KkXF74FT-czYXahjefyP-109",
+          "type": "node",
+          "parent": "KkXF74FT-czYXahjefyP-107",
+          "label": "run_at"
+        },
+        {
+          "id": "KkXF74FT-czYXahjefyP-110",
+          "type": "node",
+          "parent": "KkXF74FT-czYXahjefyP-107"
+        }
+      ]
+    },
+    {
+      "id": "4ys34uQa8ZqAQKCGahEd",
+      "name": "ERD",
+      "cells": [
+        {
+          "id": "1",
+          "type": "layer"
+        },
+        {
+          "id": "8kQmRT1DkafyrpQQIzKE-1",
+          "type": "node",
+          "parent": "1",
+          "metadata": {
+            "mermaidData": "{\n  \"data\": \"erDiagram\\n    USERS {\\n        BIGINT id PK\\n        VARCHAR email\\n        VARCHAR password_hash\\n        VARCHAR role\\n    }\\n    RAW_SHOPEE {\\n        BIGINT id PK\\n        JSONB payload\\n        TIMESTAMPTZ fetched_at\\n    }\\n    FIELD_MAP {\\n        VARCHAR shopee_key PK\\n        VARCHAR akulaku_key\\n        TEXT transform_js\\n    }\\n    PRODUCTS {\\n        BIGINT id PK\\n        BIGINT shopee_itemid\\n        VARCHAR sku\\n        VARCHAR name\\n        TEXT description\\n        NUMERIC price_idr\\n        INTEGER stock\\n        VARCHAR category\\n        TEXT[] image_urls\\n        TIMESTAMPTZ last_synced_at\\n    }\\n    SYNC_LOG {\\n        BIGINT id PK\\n        BIGINT product_id FK\\n        VARCHAR status\\n        INTEGER response_code\\n        JSONB response_body\\n        TIMESTAMPTZ run_at\\n    }\\n\\n    %% Relationships\\n    USERS ||--o{ PRODUCTS : creates\\n    PRODUCTS ||--o{ SYNC_LOG : has\\n    RAW_SHOPEE ||--o{ PRODUCTS : provides_source\\n    FIELD_MAP ||--|| PRODUCTS : defines_mapping\\n\",\n  \"config\": null,\n  \"version\": \"12\"\n}"
+          }
+        },
+        {
+          "id": "8kQmRT1DkafyrpQQIzKE-2",
+          "type": "node",
+          "parent": "8kQmRT1DkafyrpQQIzKE-1",
+          "label": "USERS",
+          "metadata": {
+            "mermaidId": "n:USERS",
+            "mermaidBaseStyle": "shape=table;startSize=39.75;container=1;collapsible=0;childLayout=tableLayout;fixedRows=1;rowLines=1;fontSize=16;fontFamily=Recursive;strokeWidth=2;align=center;resizeLast=1;html=1;fillColor=#FDF4FF;strokeColor=#E879F9;fontColor=#28253D;shadow=1;shadowColor=#000000;shadowOffsetX=4;shadowOffsetY=4;shadowBlur=0;shadowOpacity=6;",
+            "mermaidBaseValue": "USERS"
+          }
+        },
+        {
+          "id": "8kQmRT1DkafyrpQQIzKE-3",
+          "type": "node",
+          "parent": "8kQmRT1DkafyrpQQIzKE-2"
+        },
+        {
+          "id": "8kQmRT1DkafyrpQQIzKE-4",
+          "type": "node",
+          "parent": "8kQmRT1DkafyrpQQIzKE-3",
+          "label": "BIGINT"
+        },
+        {
+          "id": "8kQmRT1DkafyrpQQIzKE-5",
+          "type": "node",
+          "parent": "8kQmRT1DkafyrpQQIzKE-3",
+          "label": "id"
+        },
+        {
+          "id": "8kQmRT1DkafyrpQQIzKE-6",
+          "type": "node",
+          "parent": "8kQmRT1DkafyrpQQIzKE-3",
+          "label": "PK"
+        },
+        {
+          "id": "8kQmRT1DkafyrpQQIzKE-7",
+          "type": "node",
+          "parent": "8kQmRT1DkafyrpQQIzKE-2"
+        },
+        {
+          "id": "8kQmRT1DkafyrpQQIzKE-8",
+          "type": "node",
+          "parent": "8kQmRT1DkafyrpQQIzKE-7",
+          "label": "VARCHAR"
+        },
+        {
+          "id": "8kQmRT1DkafyrpQQIzKE-9",
+          "type": "node",
+          "parent": "8kQmRT1DkafyrpQQIzKE-7",
+          "label": "email"
+        },
+        {
+          "id": "8kQmRT1DkafyrpQQIzKE-10",
+          "type": "node",
+          "parent": "8kQmRT1DkafyrpQQIzKE-7"
+        },
+        {
+          "id": "8kQmRT1DkafyrpQQIzKE-11",
+          "type": "node",
+          "parent": "8kQmRT1DkafyrpQQIzKE-2"
+        },
+        {
+          "id": "8kQmRT1DkafyrpQQIzKE-12",
+          "type": "node",
+          "parent": "8kQmRT1DkafyrpQQIzKE-11",
+          "label": "VARCHAR"
+        },
+        {
+          "id": "8kQmRT1DkafyrpQQIzKE-13",
+          "type": "node",
+          "parent": "8kQmRT1DkafyrpQQIzKE-11",
+          "label": "password_hash"
+        },
+        {
+          "id": "8kQmRT1DkafyrpQQIzKE-14",
+          "type": "node",
+          "parent": "8kQmRT1DkafyrpQQIzKE-11"
+        },
+        {
+          "id": "8kQmRT1DkafyrpQQIzKE-15",
+          "type": "node",
+          "parent": "8kQmRT1DkafyrpQQIzKE-2"
+        },
+        {
+          "id": "8kQmRT1DkafyrpQQIzKE-16",
+          "type": "node",
+          "parent": "8kQmRT1DkafyrpQQIzKE-15",
+          "label": "VARCHAR"
+        },
+        {
+          "id": "8kQmRT1DkafyrpQQIzKE-17",
+          "type": "node",
+          "parent": "8kQmRT1DkafyrpQQIzKE-15",
+          "label": "role"
+        },
+        {
+          "id": "8kQmRT1DkafyrpQQIzKE-18",
+          "type": "node",
+          "parent": "8kQmRT1DkafyrpQQIzKE-15"
+        },
+        {
+          "id": "8kQmRT1DkafyrpQQIzKE-19",
+          "type": "node",
+          "parent": "8kQmRT1DkafyrpQQIzKE-1",
+          "label": "RAW_SHOPEE",
+          "metadata": {
+            "mermaidId": "n:RAW_SHOPEE",
+            "mermaidBaseStyle": "shape=table;startSize=39.75;container=1;collapsible=0;childLayout=tableLayout;fixedRows=1;rowLines=1;fontSize=16;fontFamily=Recursive;strokeWidth=2;align=center;resizeLast=1;html=1;fillColor=#F0FDFA;strokeColor=#2DD4BF;fontColor=#28253D;shadow=1;shadowColor=#000000;shadowOffsetX=4;shadowOffsetY=4;shadowBlur=0;shadowOpacity=6;",
+            "mermaidBaseValue": "RAW_SHOPEE"
+          }
+        },
+        {
+          "id": "8kQmRT1DkafyrpQQIzKE-20",
+          "type": "node",
+          "parent": "8kQmRT1DkafyrpQQIzKE-19"
+        },
+        {
+          "id": "8kQmRT1DkafyrpQQIzKE-21",
+          "type": "node",
+          "parent": "8kQmRT1DkafyrpQQIzKE-20",
+          "label": "BIGINT"
+        },
+        {
+          "id": "8kQmRT1DkafyrpQQIzKE-22",
+          "type": "node",
+          "parent": "8kQmRT1DkafyrpQQIzKE-20",
+          "label": "id"
+        },
+        {
+          "id": "8kQmRT1DkafyrpQQIzKE-23",
+          "type": "node",
+          "parent": "8kQmRT1DkafyrpQQIzKE-20",
+          "label": "PK"
+        },
+        {
+          "id": "8kQmRT1DkafyrpQQIzKE-24",
+          "type": "node",
+          "parent": "8kQmRT1DkafyrpQQIzKE-19"
+        },
+        {
+          "id": "8kQmRT1DkafyrpQQIzKE-25",
+          "type": "node",
+          "parent": "8kQmRT1DkafyrpQQIzKE-24",
+          "label": "JSONB"
+        },
+        {
+          "id": "8kQmRT1DkafyrpQQIzKE-26",
+          "type": "node",
+          "parent": "8kQmRT1DkafyrpQQIzKE-24",
+          "label": "payload"
+        },
+        {
+          "id": "8kQmRT1DkafyrpQQIzKE-27",
+          "type": "node",
+          "parent": "8kQmRT1DkafyrpQQIzKE-24"
+        },
+        {
+          "id": "8kQmRT1DkafyrpQQIzKE-28",
+          "type": "node",
+          "parent": "8kQmRT1DkafyrpQQIzKE-19"
+        },
+        {
+          "id": "8kQmRT1DkafyrpQQIzKE-29",
+          "type": "node",
+          "parent": "8kQmRT1DkafyrpQQIzKE-28",
+          "label": "TIMESTAMPTZ"
+        },
+        {
+          "id": "8kQmRT1DkafyrpQQIzKE-30",
+          "type": "node",
+          "parent": "8kQmRT1DkafyrpQQIzKE-28",
+          "label": "fetched_at"
+        },
+        {
+          "id": "8kQmRT1DkafyrpQQIzKE-31",
+          "type": "node",
+          "parent": "8kQmRT1DkafyrpQQIzKE-28"
+        },
+        {
+          "id": "8kQmRT1DkafyrpQQIzKE-32",
+          "type": "node",
+          "parent": "8kQmRT1DkafyrpQQIzKE-1",
+          "label": "FIELD_MAP",
+          "metadata": {
+            "mermaidId": "n:FIELD_MAP",
+            "mermaidBaseStyle": "shape=table;startSize=39.75;container=1;collapsible=0;childLayout=tableLayout;fixedRows=1;rowLines=1;fontSize=16;fontFamily=Recursive;strokeWidth=2;align=center;resizeLast=1;html=1;fillColor=#FFF7ED;strokeColor=#FB923C;fontColor=#28253D;shadow=1;shadowColor=#000000;shadowOffsetX=4;shadowOffsetY=4;shadowBlur=0;shadowOpacity=6;",
+            "mermaidBaseValue": "FIELD_MAP"
+          }
+        },
+        {
+          "id": "8kQmRT1DkafyrpQQIzKE-33",
+          "type": "node",
+          "parent": "8kQmRT1DkafyrpQQIzKE-32"
+        },
+        {
+          "id": "8kQmRT1DkafyrpQQIzKE-34",
+          "type": "node",
+          "parent": "8kQmRT1DkafyrpQQIzKE-33",
+          "label": "VARCHAR"
+        },
+        {
+          "id": "8kQmRT1DkafyrpQQIzKE-35",
+          "type": "node",
+          "parent": "8kQmRT1DkafyrpQQIzKE-33",
+          "label": "shopee_key"
+        },
+        {
+          "id": "8kQmRT1DkafyrpQQIzKE-36",
+          "type": "node",
+          "parent": "8kQmRT1DkafyrpQQIzKE-33",
+          "label": "PK"
+        },
+        {
+          "id": "8kQmRT1DkafyrpQQIzKE-37",
+          "type": "node",
+          "parent": "8kQmRT1DkafyrpQQIzKE-32"
+        },
+        {
+          "id": "8kQmRT1DkafyrpQQIzKE-38",
+          "type": "node",
+          "parent": "8kQmRT1DkafyrpQQIzKE-37",
+          "label": "VARCHAR"
+        },
+        {
+          "id": "8kQmRT1DkafyrpQQIzKE-39",
+          "type": "node",
+          "parent": "8kQmRT1DkafyrpQQIzKE-37",
+          "label": "akulaku_key"
+        },
+        {
+          "id": "8kQmRT1DkafyrpQQIzKE-40",
+          "type": "node",
+          "parent": "8kQmRT1DkafyrpQQIzKE-37"
+        },
+        {
+          "id": "8kQmRT1DkafyrpQQIzKE-41",
+          "type": "node",
+          "parent": "8kQmRT1DkafyrpQQIzKE-32"
+        },
+        {
+          "id": "8kQmRT1DkafyrpQQIzKE-42",
+          "type": "node",
+          "parent": "8kQmRT1DkafyrpQQIzKE-41",
+          "label": "TEXT"
+        },
+        {
+          "id": "8kQmRT1DkafyrpQQIzKE-43",
+          "type": "node",
+          "parent": "8kQmRT1DkafyrpQQIzKE-41",
+          "label": "transform_js"
+        },
+        {
+          "id": "8kQmRT1DkafyrpQQIzKE-44",
+          "type": "node",
+          "parent": "8kQmRT1DkafyrpQQIzKE-41"
+        },
+        {
+          "id": "8kQmRT1DkafyrpQQIzKE-45",
+          "type": "node",
+          "parent": "8kQmRT1DkafyrpQQIzKE-1",
+          "label": "PRODUCTS",
+          "metadata": {
+            "mermaidId": "n:PRODUCTS",
+            "mermaidBaseStyle": "shape=table;startSize=39.75;container=1;collapsible=0;childLayout=tableLayout;fixedRows=1;rowLines=1;fontSize=16;fontFamily=Recursive;strokeWidth=2;align=center;resizeLast=1;html=1;fillColor=#ECFEFF;strokeColor=#22D3EE;fontColor=#28253D;shadow=1;shadowColor=#000000;shadowOffsetX=4;shadowOffsetY=4;shadowBlur=0;shadowOpacity=6;",
+            "mermaidBaseValue": "PRODUCTS"
+          }
+        },
+        {
+          "id": "8kQmRT1DkafyrpQQIzKE-46",
+          "type": "node",
+          "parent": "8kQmRT1DkafyrpQQIzKE-45"
+        },
+        {
+          "id": "8kQmRT1DkafyrpQQIzKE-47",
+          "type": "node",
+          "parent": "8kQmRT1DkafyrpQQIzKE-46",
+          "label": "BIGINT"
+        },
+        {
+          "id": "8kQmRT1DkafyrpQQIzKE-48",
+          "type": "node",
+          "parent": "8kQmRT1DkafyrpQQIzKE-46",
+          "label": "id"
+        },
+        {
+          "id": "8kQmRT1DkafyrpQQIzKE-49",
+          "type": "node",
+          "parent": "8kQmRT1DkafyrpQQIzKE-46",
+          "label": "PK"
+        },
+        {
+          "id": "8kQmRT1DkafyrpQQIzKE-50",
+          "type": "node",
+          "parent": "8kQmRT1DkafyrpQQIzKE-45"
+        },
+        {
+          "id": "8kQmRT1DkafyrpQQIzKE-51",
+          "type": "node",
+          "parent": "8kQmRT1DkafyrpQQIzKE-50",
+          "label": "BIGINT"
+        },
+        {
+          "id": "8kQmRT1DkafyrpQQIzKE-52",
+          "type": "node",
+          "parent": "8kQmRT1DkafyrpQQIzKE-50",
+          "label": "shopee_itemid"
+        },
+        {
+          "id": "8kQmRT1DkafyrpQQIzKE-53",
+          "type": "node",
+          "parent": "8kQmRT1DkafyrpQQIzKE-50"
+        },
+        {
+          "id": "8kQmRT1DkafyrpQQIzKE-54",
+          "type": "node",
+          "parent": "8kQmRT1DkafyrpQQIzKE-45"
+        },
+        {
+          "id": "8kQmRT1DkafyrpQQIzKE-55",
+          "type": "node",
+          "parent": "8kQmRT1DkafyrpQQIzKE-54",
+          "label": "VARCHAR"
+        },
+        {
+          "id": "8kQmRT1DkafyrpQQIzKE-56",
+          "type": "node",
+          "parent": "8kQmRT1DkafyrpQQIzKE-54",
+          "label": "sku"
+        },
+        {
+          "id": "8kQmRT1DkafyrpQQIzKE-57",
+          "type": "node",
+          "parent": "8kQmRT1DkafyrpQQIzKE-54"
+        },
+        {
+          "id": "8kQmRT1DkafyrpQQIzKE-58",
+          "type": "node",
+          "parent": "8kQmRT1DkafyrpQQIzKE-45"
+        },
+        {
+          "id": "8kQmRT1DkafyrpQQIzKE-59",
+          "type": "node",
+          "parent": "8kQmRT1DkafyrpQQIzKE-58",
+          "label": "VARCHAR"
+        },
+        {
+          "id": "8kQmRT1DkafyrpQQIzKE-60",
+          "type": "node",
+          "parent": "8kQmRT1DkafyrpQQIzKE-58",
+          "label": "name"
+        },
+        {
+          "id": "8kQmRT1DkafyrpQQIzKE-61",
+          "type": "node",
+          "parent": "8kQmRT1DkafyrpQQIzKE-58"
+        },
+        {
+          "id": "8kQmRT1DkafyrpQQIzKE-62",
+          "type": "node",
+          "parent": "8kQmRT1DkafyrpQQIzKE-45"
+        },
+        {
+          "id": "8kQmRT1DkafyrpQQIzKE-63",
+          "type": "node",
+          "parent": "8kQmRT1DkafyrpQQIzKE-62",
+          "label": "TEXT"
+        },
+        {
+          "id": "8kQmRT1DkafyrpQQIzKE-64",
+          "type": "node",
+          "parent": "8kQmRT1DkafyrpQQIzKE-62",
+          "label": "description"
+        },
+        {
+          "id": "8kQmRT1DkafyrpQQIzKE-65",
+          "type": "node",
+          "parent": "8kQmRT1DkafyrpQQIzKE-62"
+        },
+        {
+          "id": "8kQmRT1DkafyrpQQIzKE-66",
+          "type": "node",
+          "parent": "8kQmRT1DkafyrpQQIzKE-45"
+        },
+        {
+          "id": "8kQmRT1DkafyrpQQIzKE-67",
+          "type": "node",
+          "parent": "8kQmRT1DkafyrpQQIzKE-66",
+          "label": "NUMERIC"
+        },
+        {
+          "id": "8kQmRT1DkafyrpQQIzKE-68",
+          "type": "node",
+          "parent": "8kQmRT1DkafyrpQQIzKE-66",
+          "label": "price_idr"
+        },
+        {
+          "id": "8kQmRT1DkafyrpQQIzKE-69",
+          "type": "node",
+          "parent": "8kQmRT1DkafyrpQQIzKE-66"
+        },
+        {
+          "id": "8kQmRT1DkafyrpQQIzKE-70",
+          "type": "node",
+          "parent": "8kQmRT1DkafyrpQQIzKE-45"
+        },
+        {
+          "id": "8kQmRT1DkafyrpQQIzKE-71",
+          "type": "node",
+          "parent": "8kQmRT1DkafyrpQQIzKE-70",
+          "label": "INTEGER"
+        },
+        {
+          "id": "8kQmRT1DkafyrpQQIzKE-72",
+          "type": "node",
+          "parent": "8kQmRT1DkafyrpQQIzKE-70",
+          "label": "stock"
+        },
+        {
+          "id": "8kQmRT1DkafyrpQQIzKE-73",
+          "type": "node",
+          "parent": "8kQmRT1DkafyrpQQIzKE-70"
+        },
+        {
+          "id": "8kQmRT1DkafyrpQQIzKE-74",
+          "type": "node",
+          "parent": "8kQmRT1DkafyrpQQIzKE-45"
+        },
+        {
+          "id": "8kQmRT1DkafyrpQQIzKE-75",
+          "type": "node",
+          "parent": "8kQmRT1DkafyrpQQIzKE-74",
+          "label": "VARCHAR"
+        },
+        {
+          "id": "8kQmRT1DkafyrpQQIzKE-76",
+          "type": "node",
+          "parent": "8kQmRT1DkafyrpQQIzKE-74",
+          "label": "category"
+        },
+        {
+          "id": "8kQmRT1DkafyrpQQIzKE-77",
+          "type": "node",
+          "parent": "8kQmRT1DkafyrpQQIzKE-74"
+        },
+        {
+          "id": "8kQmRT1DkafyrpQQIzKE-78",
+          "type": "node",
+          "parent": "8kQmRT1DkafyrpQQIzKE-45"
+        },
+        {
+          "id": "8kQmRT1DkafyrpQQIzKE-79",
+          "type": "node",
+          "parent": "8kQmRT1DkafyrpQQIzKE-78",
+          "label": "TEXT[]"
+        },
+        {
+          "id": "8kQmRT1DkafyrpQQIzKE-80",
+          "type": "node",
+          "parent": "8kQmRT1DkafyrpQQIzKE-78",
+          "label": "image_urls"
+        },
+        {
+          "id": "8kQmRT1DkafyrpQQIzKE-81",
+          "type": "node",
+          "parent": "8kQmRT1DkafyrpQQIzKE-78"
+        },
+        {
+          "id": "8kQmRT1DkafyrpQQIzKE-82",
+          "type": "node",
+          "parent": "8kQmRT1DkafyrpQQIzKE-45"
+        },
+        {
+          "id": "8kQmRT1DkafyrpQQIzKE-83",
+          "type": "node",
+          "parent": "8kQmRT1DkafyrpQQIzKE-82",
+          "label": "TIMESTAMPTZ"
+        },
+        {
+          "id": "8kQmRT1DkafyrpQQIzKE-84",
+          "type": "node",
+          "parent": "8kQmRT1DkafyrpQQIzKE-82",
+          "label": "last_synced_at"
+        },
+        {
+          "id": "8kQmRT1DkafyrpQQIzKE-85",
+          "type": "node",
+          "parent": "8kQmRT1DkafyrpQQIzKE-82"
+        },
+        {
+          "id": "8kQmRT1DkafyrpQQIzKE-86",
+          "type": "node",
+          "parent": "8kQmRT1DkafyrpQQIzKE-1",
+          "label": "SYNC_LOG",
+          "metadata": {
+            "mermaidId": "n:SYNC_LOG",
+            "mermaidBaseStyle": "shape=table;startSize=39.75;container=1;collapsible=0;childLayout=tableLayout;fixedRows=1;rowLines=1;fontSize=16;fontFamily=Recursive;strokeWidth=2;align=center;resizeLast=1;html=1;fillColor=#F0FDF4;strokeColor=#4ADE80;fontColor=#28253D;shadow=1;shadowColor=#000000;shadowOffsetX=4;shadowOffsetY=4;shadowBlur=0;shadowOpacity=6;",
+            "mermaidBaseValue": "SYNC_LOG"
+          }
+        },
+        {
+          "id": "8kQmRT1DkafyrpQQIzKE-87",
+          "type": "node",
+          "parent": "8kQmRT1DkafyrpQQIzKE-86"
+        },
+        {
+          "id": "8kQmRT1DkafyrpQQIzKE-88",
+          "type": "node",
+          "parent": "8kQmRT1DkafyrpQQIzKE-87",
+          "label": "BIGINT"
+        },
+        {
+          "id": "8kQmRT1DkafyrpQQIzKE-89",
+          "type": "node",
+          "parent": "8kQmRT1DkafyrpQQIzKE-87",
+          "label": "id"
+        },
+        {
+          "id": "8kQmRT1DkafyrpQQIzKE-90",
+          "type": "node",
+          "parent": "8kQmRT1DkafyrpQQIzKE-87",
+          "label": "PK"
+        },
+        {
+          "id": "8kQmRT1DkafyrpQQIzKE-91",
+          "type": "node",
+          "parent": "8kQmRT1DkafyrpQQIzKE-86"
+        },
+        {
+          "id": "8kQmRT1DkafyrpQQIzKE-92",
+          "type": "node",
+          "parent": "8kQmRT1DkafyrpQQIzKE-91",
+          "label": "BIGINT"
+        },
+        {
+          "id": "8kQmRT1DkafyrpQQIzKE-93",
+          "type": "node",
+          "parent": "8kQmRT1DkafyrpQQIzKE-91",
+          "label": "product_id"
+        },
+        {
+          "id": "8kQmRT1DkafyrpQQIzKE-94",
+          "type": "node",
+          "parent": "8kQmRT1DkafyrpQQIzKE-91",
+          "label": "FK"
+        },
+        {
+          "id": "8kQmRT1DkafyrpQQIzKE-95",
+          "type": "node",
+          "parent": "8kQmRT1DkafyrpQQIzKE-86"
+        },
+        {
+          "id": "8kQmRT1DkafyrpQQIzKE-96",
+          "type": "node",
+          "parent": "8kQmRT1DkafyrpQQIzKE-95",
+          "label": "VARCHAR"
+        },
+        {
+          "id": "8kQmRT1DkafyrpQQIzKE-97",
+          "type": "node",
+          "parent": "8kQmRT1DkafyrpQQIzKE-95",
+          "label": "status"
+        },
+        {
+          "id": "8kQmRT1DkafyrpQQIzKE-98",
+          "type": "node",
+          "parent": "8kQmRT1DkafyrpQQIzKE-95"
+        },
+        {
+          "id": "8kQmRT1DkafyrpQQIzKE-99",
+          "type": "node",
+          "parent": "8kQmRT1DkafyrpQQIzKE-86"
+        },
+        {
+          "id": "8kQmRT1DkafyrpQQIzKE-100",
+          "type": "node",
+          "parent": "8kQmRT1DkafyrpQQIzKE-99",
+          "label": "INTEGER"
+        },
+        {
+          "id": "8kQmRT1DkafyrpQQIzKE-101",
+          "type": "node",
+          "parent": "8kQmRT1DkafyrpQQIzKE-99",
+          "label": "response_code"
+        },
+        {
+          "id": "8kQmRT1DkafyrpQQIzKE-102",
+          "type": "node",
+          "parent": "8kQmRT1DkafyrpQQIzKE-99"
+        },
+        {
+          "id": "8kQmRT1DkafyrpQQIzKE-103",
+          "type": "node",
+          "parent": "8kQmRT1DkafyrpQQIzKE-86"
+        },
+        {
+          "id": "8kQmRT1DkafyrpQQIzKE-104",
+          "type": "node",
+          "parent": "8kQmRT1DkafyrpQQIzKE-103",
+          "label": "JSONB"
+        },
+        {
+          "id": "8kQmRT1DkafyrpQQIzKE-105",
+          "type": "node",
+          "parent": "8kQmRT1DkafyrpQQIzKE-103",
+          "label": "response_body"
+        },
+        {
+          "id": "8kQmRT1DkafyrpQQIzKE-106",
+          "type": "node",
+          "parent": "8kQmRT1DkafyrpQQIzKE-103"
+        },
+        {
+          "id": "8kQmRT1DkafyrpQQIzKE-107",
+          "type": "node",
+          "parent": "8kQmRT1DkafyrpQQIzKE-86"
+        },
+        {
+          "id": "8kQmRT1DkafyrpQQIzKE-108",
+          "type": "node",
+          "parent": "8kQmRT1DkafyrpQQIzKE-107",
+          "label": "TIMESTAMPTZ"
+        },
+        {
+          "id": "8kQmRT1DkafyrpQQIzKE-109",
+          "type": "node",
+          "parent": "8kQmRT1DkafyrpQQIzKE-107",
+          "label": "run_at"
+        },
+        {
+          "id": "8kQmRT1DkafyrpQQIzKE-110",
+          "type": "node",
+          "parent": "8kQmRT1DkafyrpQQIzKE-107"
+        },
+        {
+          "id": "8kQmRT1DkafyrpQQIzKE-111",
+          "type": "edge",
+          "parent": "8kQmRT1DkafyrpQQIzKE-1",
+          "source": "8kQmRT1DkafyrpQQIzKE-2",
+          "target": "8kQmRT1DkafyrpQQIzKE-45",
+          "label": "creates",
+          "metadata": {
+            "mermaidId": "e:USERS->PRODUCTS#0",
+            "mermaidBaseStyle": "edgeStyle=orthogonalEdgeStyle;rounded=1;curved=0;startArrow=ERmandOne;startSize=14;endArrow=ERzeroToMany;endSize=14;jumpStyle=arc;jumpSize=12;strokeColor=#000000;strokeWidth=2;html=1;fontSize=14;labelBackgroundColor=#FFFFFF;fontFamily=Recursive;fontColor=#28253D;exitX=0.5;exitY=1;entryX=0.27;entryY=0;",
+            "mermaidBaseValue": "creates"
+          }
+        },
+        {
+          "id": "8kQmRT1DkafyrpQQIzKE-112",
+          "type": "edge",
+          "parent": "8kQmRT1DkafyrpQQIzKE-1",
+          "source": "8kQmRT1DkafyrpQQIzKE-45",
+          "target": "8kQmRT1DkafyrpQQIzKE-86",
+          "label": "has",
+          "metadata": {
+            "mermaidId": "e:PRODUCTS->SYNC_LOG#0",
+            "mermaidBaseStyle": "edgeStyle=orthogonalEdgeStyle;rounded=1;curved=0;startArrow=ERmandOne;startSize=14;endArrow=ERzeroToMany;endSize=14;jumpStyle=arc;jumpSize=12;strokeColor=#000000;strokeWidth=2;html=1;fontSize=14;labelBackgroundColor=#FFFFFF;fontFamily=Recursive;fontColor=#28253D;exitX=0.5;exitY=1;entryX=0.5;entryY=0;",
+            "mermaidBaseValue": "has"
+          }
+        },
+        {
+          "id": "8kQmRT1DkafyrpQQIzKE-113",
+          "type": "edge",
+          "parent": "8kQmRT1DkafyrpQQIzKE-1",
+          "source": "8kQmRT1DkafyrpQQIzKE-19",
+          "target": "8kQmRT1DkafyrpQQIzKE-45",
+          "label": "provides_source",
+          "metadata": {
+            "mermaidId": "e:RAW_SHOPEE->PRODUCTS#0",
+            "mermaidBaseStyle": "edgeStyle=orthogonalEdgeStyle;rounded=1;curved=0;startArrow=ERmandOne;startSize=14;endArrow=ERzeroToMany;endSize=14;jumpStyle=arc;jumpSize=12;strokeColor=#000000;strokeWidth=2;html=1;fontSize=14;labelBackgroundColor=#FFFFFF;fontFamily=Recursive;fontColor=#28253D;exitX=0.5;exitY=1;entryX=0.5;entryY=0;",
+            "mermaidBaseValue": "provides_source"
+          }
+        },
+        {
+          "id": "8kQmRT1DkafyrpQQIzKE-114",
+          "type": "edge",
+          "parent": "8kQmRT1DkafyrpQQIzKE-1",
+          "source": "8kQmRT1DkafyrpQQIzKE-32",
+          "target": "8kQmRT1DkafyrpQQIzKE-45",
+          "label": "defines_mapping",
+          "metadata": {
+            "mermaidId": "e:FIELD_MAP->PRODUCTS#0",
+            "mermaidBaseStyle": "edgeStyle=orthogonalEdgeStyle;rounded=1;curved=0;startArrow=ERmandOne;startSize=14;endArrow=ERmandOne;endSize=14;jumpStyle=arc;jumpSize=12;strokeColor=#000000;strokeWidth=2;html=1;fontSize=14;labelBackgroundColor=#FFFFFF;fontFamily=Recursive;fontColor=#28253D;exitX=0.5;exitY=1;entryX=0.73;entryY=0;",
+            "mermaidBaseValue": "defines_mapping"
+          }
+        }
+      ]
+    }
+  ]
+}
