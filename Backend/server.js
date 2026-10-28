@@ -1,5 +1,5 @@
 // Backend/server.js
-// Backend/server.js
+require("dotenv").config();
 const express = require('express');
 const cors = require('cors');
 const config = require('./src/config');
@@ -7,6 +7,7 @@ const statusRouter = require('./src/routes/status');
 const authRouter = require('./src/routes/auth');
 const userRouter = require('./src/routes/users');
 const errorHandler = require('./src/middleware/errorHandler');
+const authenticate = require('./src/middleware/authenticate');
 
 const app = express();
 const PORT = config.port;
@@ -18,7 +19,7 @@ app.use(express.json());
 // Public routes
 app.use('/api', statusRouter);
 app.use('/api/auth', authRouter);
-app.use('/api/users', userRouter);
+app.use('/api/users', authenticate, userRouter);
 
 // Central error handling (fallback)
 app.use(errorHandler);
@@ -26,4 +27,3 @@ app.use(errorHandler);
 app.listen(PORT, () => {
   console.log(`Backend server listening on port ${PORT}`);
 });
-

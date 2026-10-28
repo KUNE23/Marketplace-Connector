@@ -118,8 +118,8 @@ If a tool or required environment is unavailable, state the limitation clearly.
 
 ## 11. Security and Environment
 - Keep real credentials in environment variables or an approved secret manager.
-- Maintain an `.env.example` containing placeholders only.
-- Ensure `.env` and other secret-bearing files are ignored by Git.
+- Maintain an .env.example containing placeholders only.
+- Ensure .env and other secret-bearing files are ignored by Git.
 - Never print, expose, commit, or include real credentials in generated code, logs, screenshots, or final reports.
 - Do not disable authentication, TLS verification, validation, or security controls merely to make a test pass.
 - Apply least privilege to database accounts and external API credentials.

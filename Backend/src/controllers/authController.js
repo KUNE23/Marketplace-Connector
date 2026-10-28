@@ -12,7 +12,7 @@ async function loginHandler(req, res, next) {
     const result = await login(parsed);
     // Respond with tokens and minimal user info (no password hash)
     const { accessToken, refreshToken, user } = result;
-    res.json({ accessToken, refreshToken, user: { id: user.id, email: user.email, role: user.role } });
+    res.json({ accessToken, refreshToken, user: { id: user.id.toString(), email: user.email, role: user.role } });
   } catch (err) {
     if (err.name === 'ZodError') {
       return next(createError(400, err.errors.map(e => e.message).join(', ')));

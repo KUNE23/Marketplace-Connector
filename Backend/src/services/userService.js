@@ -1,4 +1,3 @@
-// Backend/src/services/userService.js
 const bcrypt = require('bcrypt');
 const { PrismaClient } = require('@prisma/client');
 const createError = require('http-errors');
@@ -16,7 +15,7 @@ async function createUser({ email, password, role, active = true }) {
   const passwordHash = await bcrypt.hash(password, 10);
   const user = await prisma.user.create({
     data: { email, passwordHash, role, active },
-    select: { id: true, email: true, role: true, active: true },
+    select: { id: true, email: true, role: true, active: true, name: true },
   });
   return user;
 }
@@ -27,7 +26,7 @@ async function createUser({ email, password, role, active = true }) {
 async function getUserById(userId) {
   const user = await prisma.user.findUnique({
     where: { id: userId },
-    select: { id: true, email: true, role: true, active: true },
+    select: { id: true, email: true, role: true, active: true, name: true },
   });
   if (!user) throw createError(404, 'User not found');
   return user;
@@ -46,7 +45,7 @@ async function listUsers({ page = 1, limit = 20, search }) {
       take: limit,
       where: whereClause,
       orderBy: { id: 'asc' },
-      select: { id: true, email: true, role: true, active: true },
+      select: { id: true, email: true, role: true, active: true, name: true },
     }),
     prisma.user.count({ where: whereClause }),
   ]);
@@ -67,7 +66,7 @@ async function updateUser(userId, data) {
   const user = await prisma.user.update({
     where: { id: userId },
     data: updateData,
-    select: { id: true, email: true, role: true, active: true },
+    select: { id: true, email: true, role: true, active: true, name: true },
   });
   return user;
 }

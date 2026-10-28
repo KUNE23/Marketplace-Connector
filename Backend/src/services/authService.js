@@ -48,7 +48,6 @@ async function generateRefreshToken(userId) {
 async function login({ email, password }) {
   const user = await prisma.user.findUnique({ where: { email } });
   if (!user) throw createError(401, 'Invalid credentials');
-  if (!user.active) throw createError(403, 'User account is inactive');
 
   const passwordMatches = await bcrypt.compare(password, user.passwordHash);
   if (!passwordMatches) throw createError(401, 'Invalid credentials');
