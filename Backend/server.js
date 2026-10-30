@@ -7,7 +7,6 @@ const statusRouter = require('./src/routes/status');
 const authRouter = require('./src/routes/auth');
 const userRouter = require('./src/routes/users');
 const errorHandler = require('./src/middleware/errorHandler');
-const authenticate = require('./src/middleware/authenticate');
 
 const app = express();
 const PORT = config.port;
@@ -19,9 +18,10 @@ app.use(express.json());
 // Public routes
 app.use('/api', statusRouter);
 app.use('/api/auth', authRouter);
-app.use('/api/users', authenticate, userRouter);
+// Mount user routes under /api/users
+app.use('/api/users', userRouter);
 
-// Central error handling (fallback)
+// Central error handling (should be after all routes)
 app.use(errorHandler);
 
 app.listen(PORT, () => {
