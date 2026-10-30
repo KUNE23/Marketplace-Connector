@@ -1,4 +1,5 @@
-// Backend/server.js
+// Start Shopee sync job (runs in background)
+require('./src/tasks/shopeeSyncJob');
 require("dotenv").config();
 const express = require('express');
 const cors = require('cors');
@@ -20,6 +21,7 @@ app.use('/api', statusRouter);
 app.use('/api/auth', authRouter);
 // Mount user routes under /api/users
 app.use('/api/users', userRouter);
+app.use('/api/products', require('./src/routes/products'));
 
 // Central error handling (should be after all routes)
 app.use(errorHandler);
