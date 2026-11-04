@@ -73,17 +73,11 @@ async function syncShopeeProducts() {
       },
     });
   } catch (err) {
-    // Simpan log error
-    await prisma.syncLog.create({
-      data: {
-        status: 'ERROR',
-        responseCode: err.response ? err.response.status : 500,
-        responseBody: err.response ? err.response.data : { message: err.message },
-      },
-    });
-    // lempar kembali agar scheduler bisa menanganinya bila diperlukan
+    // Log the error to console – SyncLog requires a productId, so we skip DB log here
+    console.error('[ShopeeSync] Error during sync:', err.message);
+    // Re‑throw to let caller know sync failed
     throw err;
   }
 }
 
-module.exports = { syncShopeeProducts };
+module.exports = { syncShopeeProducts, prisma };

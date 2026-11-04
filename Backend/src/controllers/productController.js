@@ -76,10 +76,24 @@ async function deleteProductHandler(req, res, next) {
   }
 }
 
+const { syncShopeeProducts } = require('../services/shopeeSyncService');
+
+async function syncShopeeHandler(req, res, next) {
+  try {
+    await syncShopeeProducts();
+    res.json({ message: 'Shopee sync completed' });
+  } catch (err) {
+    // errors already logged inside service; forward generic 500
+    return next(createError(500, err.message));
+  }
+}
+
 module.exports = {
   createProductHandler,
   getProductHandler,
   listProductsHandler,
   updateProductHandler,
   deleteProductHandler,
+  syncShopeeHandler,
 };
+

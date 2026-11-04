@@ -87,29 +87,6 @@ async function listProducts({ page = 1, limit = 20, search, category, minPrice, 
   ]);
   return { products: products.map(toPublicProduct), total, page, limit };
 }
-  const skip = (page - 1) * limit;
-  let where = {};
-  if (search) {
-    where = {
-      OR: [
-        { name: { contains: search, mode: 'insensitive' } },
-        { sku: { contains: search, mode: 'insensitive' } },
-        { description: { contains: search, mode: 'insensitive' } },
-      ],
-    };
-  }
-  const [products, total] = await Promise.all([
-    prisma.product.findMany({
-      skip,
-      take: limit,
-      where,
-      orderBy: { id: 'asc' },
-      select: PUBLIC_PRODUCT_SELECT,
-    }),
-    prisma.product.count({ where }),
-  ]);
-  return { products: products.map(toPublicProduct), total, page, limit };
-}
 
 async function updateProduct(id, data) {
   const product = await prisma.product.update({
