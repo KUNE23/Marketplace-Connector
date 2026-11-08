@@ -254,7 +254,7 @@ onMounted(() => {
               </SelectContent>
             </Select>
             <Select :model-value="String(limit)" @update:model-value="changeLimit">
-              <SelectTrigger class="w-32">
+              <SelectTrigger class="w-40">
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
@@ -325,7 +325,7 @@ onMounted(() => {
           </div>
         </div>
 
-        <div class="flex flex-wrap items-center justify-between gap-3">
+        <div class="flex flex-col gap-3">
           <p class="text-sm text-gray-500 dark:text-gray-400">
             Total {{ total.toLocaleString('id-ID') }} produk · Halaman {{ page }} dari {{ totalPages }}
           </p>

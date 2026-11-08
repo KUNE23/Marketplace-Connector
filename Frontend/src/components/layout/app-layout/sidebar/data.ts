@@ -8,55 +8,90 @@ import {
   TagIcon,
   TargetIcon,
   UserCircleIcon,
+  UsersIcon,
 } from '@/icons/layout'
 import type { NavItem } from './types'
 
-export const navItems: NavItem[] = [
+export interface AppNavItem extends NavItem {
+  adminOnly?: boolean
+}
+
+export interface NavSection {
+  type: string
+  label: string
+  adminOnly?: boolean
+  items: AppNavItem[]
+}
+
+export const navSections: NavSection[] = [
   {
-    icon: LayoutGridIcon,
-    name: 'Dashboard',
-    path: '/',
+    type: 'main',
+    label: 'Utama',
+    items: [
+      {
+        icon: LayoutGridIcon,
+        name: 'Dashboard',
+        path: '/',
+      },
+      {
+        icon: BoxIcon,
+        name: 'Products',
+        path: '/products',
+      },
+      {
+        icon: DollarIcon,
+        name: 'Penjualan',
+        path: '/penjualan',
+      },
+    ],
   },
   {
-    icon: BoxIcon,
-    name: 'Products',
-    path: '/products',
+    type: 'operational',
+    label: 'Operasional',
+    items: [
+      {
+        icon: PageIcon,
+        name: 'Listing',
+        path: '/listing',
+        adminOnly: true,
+      },
+      {
+        icon: CartIcon,
+        name: 'Pesanan',
+        path: '/pesanan',
+      },
+      {
+        icon: TargetIcon,
+        name: 'Iklan',
+        path: '/iklan',
+      },
+    ],
   },
   {
-    icon: DollarIcon,
-    name: 'Penjualan',
-    path: '/penjualan',
-  },
-  {
-    icon: PageIcon,
-    name: 'Listing',
-    path: '/listing',
-  },
-  {
-    icon: TagIcon,
-    name: 'Markup',
-    path: '/markup',
-  },
-  {
-    icon: CartIcon,
-    name: 'Pesanan',
-    path: '/pesanan',
-  },
-  {
-    icon: TargetIcon,
-    name: 'Iklan',
-    path: '/iklan',
-  },
-  {
-    icon: UserCircleIcon,
-    name: 'Akun Akulaku',
-    path: '/akun-akulaku',
-  },
-  {
-    icon: PluginIcon,
-    name: 'Jobs',
-    path: '/jobs',
+    type: 'admin',
+    label: 'Administrasi',
+    adminOnly: true,
+    items: [
+      {
+        icon: TagIcon,
+        name: 'Markup',
+        path: '/markup',
+      },
+      {
+        icon: UserCircleIcon,
+        name: 'Akun Akulaku',
+        path: '/akun-akulaku',
+      },
+      {
+        icon: PluginIcon,
+        name: 'Jobs',
+        path: '/jobs',
+      },
+      {
+        icon: UsersIcon,
+        name: 'Pegawai',
+        path: '/pegawai',
+      },
+    ],
   },
 ]
-
-export const othersItems: NavItem[] = []

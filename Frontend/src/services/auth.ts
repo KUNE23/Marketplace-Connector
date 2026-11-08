@@ -1,9 +1,12 @@
 import { apiFetch, tokenStore } from './api'
+import { useAuthUser } from '@/composables/useAuthUser'
 
 export interface AuthUser {
   id: string
   email: string
+  name: string | null
   role: string
+  active?: boolean
 }
 
 interface LoginResponse {
@@ -18,11 +21,15 @@ export async function login(email: string, password: string, keepLoggedIn = fals
     body: { email, password },
   })
   tokenStore.save(result.accessToken, result.refreshToken, keepLoggedIn)
+  const { user, clear } = useAuthUser()
+  user.value = result.user
   return result.user
 }
 
 export async function getMe(): Promise<AuthUser> {
   const result = await apiFetch<{ user: AuthUser }>('/auth/me')
+  const { user } = useAuthUser()
+  user.value = result.user
   return result.user
 }
 
@@ -38,5 +45,7 @@ export async function logout(): Promise<void> {
     }
   } finally {
     tokenStore.clear()
+    const { clear } = useAuthUser()
+    clear()
   }
 }

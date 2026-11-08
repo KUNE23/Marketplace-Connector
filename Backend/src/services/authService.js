@@ -13,6 +13,7 @@ function generateAccessToken(user) {
   const payload = {
     sub: user.id.toString(),
     role: user.role,
+    name: user.name ?? user.email.split('@')[0],
   };
   const secret = process.env.JWT_ACCESS_SECRET;
   const expiresIn = process.env.ACCESS_TOKEN_EXPIRES_IN || '15m';

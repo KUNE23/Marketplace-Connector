@@ -1,6 +1,6 @@
 import type { Component } from 'vue'
 
-export type MenuType = 'main' | 'others'
+export type MenuType = 'main' | 'operational' | 'admin'
 
 export interface SubItem {
   name: string

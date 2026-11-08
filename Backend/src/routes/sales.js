@@ -7,9 +7,9 @@ const {
   importSaleOrderHandler,
 } = require('../controllers/saleController');
 
-// All sales routes require admin authentication
+// Sales recap boleh dilihat ADMIN & EMPLOYEE; import manual hanya ADMIN
 router.use(authenticate);
-router.use(authorizeRoles('ADMIN'));
+router.use(authorizeRoles('ADMIN', 'EMPLOYEE'));
 
 // List sales with filter/pagination
 router.get('/orders', listSalesHandler);
@@ -18,6 +18,6 @@ router.get('/orders', listSalesHandler);
 router.get('/recap', recapSalesHandler);
 
 // Import order manually (for testing or webhook)
-router.post('/import', importSaleOrderHandler);
+router.post('/import', authorizeRoles('ADMIN'), importSaleOrderHandler);
 
 module.exports = router;

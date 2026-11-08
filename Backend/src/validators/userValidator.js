@@ -51,3 +51,16 @@ module.exports = {
   listUsersQuerySchema,
   userIdParamSchema,
 };
+
+// Profil sendiri & ganti password sendiri
+const updateOwnProfileSchema = z.object({
+  name: z.string().trim().min(1, { message: 'Name must not be empty' }).max(100),
+});
+
+const changeOwnPasswordSchema = z.object({
+  currentPassword: z.string().min(1, { message: 'Current password is required' }),
+  newPassword: z.string().min(6, { message: 'New password must be at least 6 characters' }),
+});
+
+module.exports.updateOwnProfileSchema = updateOwnProfileSchema;
+module.exports.changeOwnPasswordSchema = changeOwnPasswordSchema;

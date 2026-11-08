@@ -4,12 +4,16 @@ const {
   updateUserSchema,
   listUsersQuerySchema,
   userIdParamSchema,
+  updateOwnProfileSchema,
+  changeOwnPasswordSchema,
 } = require('../validators/userValidator');
 const {
   createUser,
   getUserById,
   listUsers,
   updateUser,
+  updateOwnProfile,
+  changeOwnPassword,
   deleteUser,
 } = require('../services/userService');
 const createError = require('http-errors');
@@ -125,6 +129,34 @@ async function meHandler(req, res, next) {
   }
 }
 
+/**
+ * PATCH /api/users/me/profile - update nama sendiri
+ */
+async function updateOwnProfileHandler(req, res, next) {
+  try {
+    if (!req.user) return next(createError(401, 'Unauthenticated'));
+    const parsed = updateOwnProfileSchema.parse(req.body);
+    const user = await updateOwnProfile(BigInt(req.user.id), parsed);
+    res.json(user);
+  } catch (err) {
+    handleError(err, next);
+  }
+}
+
+/**
+ * PATCH /api/users/me/password - ganti password sendiri (validasi password lama)
+ */
+async function changeOwnPasswordHandler(req, res, next) {
+  try {
+    if (!req.user) return next(createError(401, 'Unauthenticated'));
+    const parsed = changeOwnPasswordSchema.parse(req.body);
+    await changeOwnPassword(BigInt(req.user.id), parsed);
+    res.json({ message: 'Password updated' });
+  } catch (err) {
+    handleError(err, next);
+  }
+}
+
 module.exports = {
   createUserHandler,
   getUserHandler,
@@ -132,4 +164,6 @@ module.exports = {
   updateUserHandler,
   deleteUserHandler,
   meHandler,
+  updateOwnProfileHandler,
+  changeOwnPasswordHandler,
 };

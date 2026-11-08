@@ -1,5 +1,8 @@
-import { createRouter, createWebHistory } from 'vue-router'
+﻿import { createRouter, createWebHistory } from 'vue-router'
 import { isAccessTokenExpired, tokenStore, tryRefreshSession } from '@/services/api'
+import { useAuthUser } from '@/composables/useAuthUser'
+
+const { load: loadAuthUser } = useAuthUser()
 
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
@@ -37,6 +40,7 @@ const router = createRouter({
       component: () => import('../views/Listings/Listings.vue'),
       meta: {
         title: 'Listing',
+        adminOnly: true,
       },
     },
     {
@@ -45,6 +49,7 @@ const router = createRouter({
       component: () => import('../views/Markup/Markup.vue'),
       meta: {
         title: 'Markup',
+        adminOnly: true,
       },
     },
     {
@@ -61,6 +66,7 @@ const router = createRouter({
       component: () => import('../views/Jobs/Jobs.vue'),
       meta: {
         title: 'Jobs',
+        adminOnly: true,
       },
     },
     {
@@ -77,6 +83,16 @@ const router = createRouter({
       component: () => import('../views/AkulakuAccounts/AkulakuAccounts.vue'),
       meta: {
         title: 'Akun Akulaku',
+        adminOnly: true,
+      },
+    },
+    {
+      path: '/pegawai',
+      name: 'Pegawai',
+      component: () => import('../views/Pegawai/Pegawai.vue'),
+      meta: {
+        title: 'Pegawai',
+        adminOnly: true,
       },
     },
     {
@@ -234,5 +250,15 @@ router.beforeEach(async (to, from, next) => {
     return next({ path: '/signin', query: { redirect: to.fullPath } })
   }
 
+  // Route khusus admin: pegawai dialihkan ke dashboard.
+  if (to.meta.adminOnly) {
+    const user = await loadAuthUser()
+    if (user && user.role !== 'ADMIN') {
+      return next({ path: '/', replace: true })
+    }
+  }
+
   return next()
 })
+
+

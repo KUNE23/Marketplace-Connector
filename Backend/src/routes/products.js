@@ -17,11 +17,12 @@ const {
 router.use(authenticate);
 
 router.post('/', authorizeRoles('ADMIN'), createProductHandler);
-router.get('/', authorizeRoles('ADMIN'), listProductsHandler);
+// Read produk boleh ADMIN & EMPLOYEE
+router.get('/', authorizeRoles('ADMIN', 'EMPLOYEE'), listProductsHandler);
 router.get('/scrape/stats', authorizeRoles('ADMIN'), scrapeStatsHandler);
 router.post('/scrape/import-batch', authorizeRoles('ADMIN'), importBatchHandler);
 router.post('/scrape/reset', authorizeRoles('ADMIN'), resetImportHandler);
-router.get('/:id', authorizeRoles('ADMIN'), getProductHandler);
+router.get('/:id', authorizeRoles('ADMIN', 'EMPLOYEE'), getProductHandler);
 router.patch('/:id', authorizeRoles('ADMIN'), updateProductHandler);
 router.delete('/:id', authorizeRoles('ADMIN'), deleteProductHandler);
 

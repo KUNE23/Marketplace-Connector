@@ -332,11 +332,11 @@ onMounted(() => {
           </div>
         </div>
 
-        <div class="flex items-center justify-between">
+        <div class="flex flex-col gap-3">
           <p class="text-sm text-gray-500 dark:text-gray-400">
             Total {{ total }} listing · Halaman {{ page }} dari {{ totalPages }}
           </p>
-          <div class="flex gap-2">
+          <div class="flex flex-wrap items-center gap-2">
             <Button variant="outline" size="sm" :disabled="loading || page <= 1" @click="goToPage(page - 1)">Sebelumnya</Button>
             <Button variant="outline" size="sm" :disabled="loading || page >= totalPages" @click="goToPage(page + 1)">Berikutnya</Button>
           </div>

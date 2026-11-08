@@ -5,7 +5,7 @@ const { authenticate, authorizeRoles } = require('../middleware/auth');
 const { summaryHandler, recapHandler, recentOrdersHandler } = require('../controllers/dashboardController');
 
 router.use(authenticate);
-router.use(authorizeRoles('ADMIN'));
+router.use(authorizeRoles('ADMIN', 'EMPLOYEE'));
 
 router.get('/summary', summaryHandler);
 router.get('/recap', recapHandler);

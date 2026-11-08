@@ -10,11 +10,12 @@ const {
 } = require('../controllers/akulakuOrderController');
 
 router.use(authenticate);
-router.use(authorizeRoles('ADMIN'));
+router.use(authorizeRoles('ADMIN', 'EMPLOYEE'));
 
+// Read & update status boleh pegawai; create order hanya ADMIN (dari worker).
 router.get('/', listOrdersHandler);
 router.get('/:id', getOrderHandler);
-router.post('/', createOrderHandler);
-router.patch('/:id/status', updateOrderStatusHandler);
+router.post('/', authorizeRoles('ADMIN'), createOrderHandler);
+router.patch('/:id/status', authorizeRoles('ADMIN', 'EMPLOYEE'), updateOrderStatusHandler);
 
 module.exports = router;

@@ -129,6 +129,33 @@ async function updateUser(userId, data) {
 }
 
 /**
+ * Update profil sendiri — hanya nama (email/role/active tidak bisa diubah sendiri).
+ */
+async function updateOwnProfile(userId, { name }) {
+  const user = await prisma.user.update({
+    where: { id: userId },
+    data: { name },
+    select: PUBLIC_USER_SELECT,
+  });
+  return toPublicUser(user);
+}
+
+/**
+ * Ganti password sendiri — wajib verifikasi password lama.
+ */
+async function changeOwnPassword(userId, { currentPassword, newPassword }) {
+  const user = await prisma.user.findUnique({ where: { id: userId } });
+  if (!user) throw createError(404, 'User not found');
+
+  const matches = await bcrypt.compare(currentPassword, user.passwordHash);
+  if (!matches) throw createError(400, 'Password lama tidak sesuai');
+
+  const passwordHash = await bcrypt.hash(newPassword, 10);
+  await prisma.user.update({ where: { id: userId }, data: { passwordHash } });
+  return true;
+}
+
+/**
  * Hard delete a user.
  */
 async function deleteUser(userId) {
@@ -145,6 +172,8 @@ module.exports = {
   getUserById,
   listUsers,
   updateUser,
+  updateOwnProfile,
+  changeOwnPassword,
   deleteUser,
 };
 
