@@ -10,3 +10,9 @@ yarn-debug.log
 yarn-error.log
 coverage/
 .prisma/
+
+# Scraping data & local secrets
+*.db
+*.db-shm
+*.db-wal
+Backend/login.json

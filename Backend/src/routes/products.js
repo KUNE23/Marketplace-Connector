@@ -8,16 +8,19 @@ const {
   listProductsHandler,
   updateProductHandler,
   deleteProductHandler,
-  syncShopeeHandler,
+  scrapeStatsHandler,
+  importBatchHandler,
+  resetImportHandler,
 } = require('../controllers/productController');
 
 // All product routes require authentication
 router.use(authenticate);
 
-// ADMIN‑only create, update, delete, list
 router.post('/', authorizeRoles('ADMIN'), createProductHandler);
 router.get('/', authorizeRoles('ADMIN'), listProductsHandler);
-router.get('/syncShopee', authorizeRoles('ADMIN'), syncShopeeHandler);
+router.get('/scrape/stats', authorizeRoles('ADMIN'), scrapeStatsHandler);
+router.post('/scrape/import-batch', authorizeRoles('ADMIN'), importBatchHandler);
+router.post('/scrape/reset', authorizeRoles('ADMIN'), resetImportHandler);
 router.get('/:id', authorizeRoles('ADMIN'), getProductHandler);
 router.patch('/:id', authorizeRoles('ADMIN'), updateProductHandler);
 router.delete('/:id', authorizeRoles('ADMIN'), deleteProductHandler);

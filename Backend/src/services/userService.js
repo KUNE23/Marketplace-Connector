@@ -1,8 +1,7 @@
-const bcrypt = require('bcrypt');
-const { PrismaClient } = require('@prisma/client');
+﻿const bcrypt = require('bcrypt');
 const createError = require('http-errors');
 
-const prisma = new PrismaClient();
+const prisma = require('../lib/prisma');
 
 const PUBLIC_USER_SELECT = {
   id: true,
@@ -104,7 +103,7 @@ async function listUsers({ page = 1, limit = 20, search }) {
 }
 
 /**
- * Update user fields. Password, if present, will be re‑hashed.
+ * Update user fields. Password, if present, will be reâ€‘hashed.
  */
 async function updateUser(userId, data) {
   const updateData = {};
@@ -148,3 +147,4 @@ module.exports = {
   updateUser,
   deleteUser,
 };
+

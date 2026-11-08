@@ -1,11 +1,10 @@
-// Backend/src/services/authService.js
+﻿// Backend/src/services/authService.js
 const bcrypt = require('bcrypt');
 const jwt = require('jsonwebtoken');
 const crypto = require('crypto');
-const { PrismaClient } = require('@prisma/client');
 const createError = require('http-errors');
 
-const prisma = new PrismaClient();
+const prisma = require('../lib/prisma');
 
 /**
  * Helper to generate JWT access token.
@@ -24,11 +23,11 @@ function generateAccessToken(user) {
  * Helper to generate a refresh token, store its hash, and return the raw token.
  */
 async function generateRefreshToken(userId) {
-  // Generate a 48‑byte random string (hex encoded ~96 chars)
+  // Generate a 48â€‘byte random string (hex encoded ~96 chars)
   const rawToken = crypto.randomBytes(48).toString('hex');
   const tokenHash = crypto.createHash('sha256').update(rawToken).digest('hex');
   const expiresAt = new Date();
-  expiresAt.setDate(expiresAt.getDate() + 30); // 30‑day validity by default
+  expiresAt.setDate(expiresAt.getDate() + 30); // 30â€‘day validity by default
 
   await prisma.refreshToken.create({
     data: {
@@ -85,7 +84,7 @@ async function refresh({ token }) {
 }
 
 /**
- * Logout – revoke a refresh token.
+ * Logout â€“ revoke a refresh token.
  */
 async function logout({ token }) {
   const tokenHash = crypto.createHash('sha256').update(token).digest('hex');
@@ -93,8 +92,9 @@ async function logout({ token }) {
     where: { tokenHash, revokedAt: null },
     data: { revokedAt: new Date() },
   });
-  // Idempotent – no error if already revoked
+  // Idempotent â€“ no error if already revoked
   return true;
 }
 
 module.exports = { login, refresh, logout };
+

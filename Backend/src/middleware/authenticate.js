@@ -1,8 +1,8 @@
-// Backend/src/middleware/authenticate.js
+﻿// Backend/src/middleware/authenticate.js
 /**
  * Middleware that verifies a JWT, extracts the payload, and ensures a matching
  * User record exists in the database. If the user does not exist, it is created
- * automatically (upsert‑like behavior) with minimal required fields.
+ * automatically (upsertâ€‘like behavior) with minimal required fields.
  *
  * - The JWT must be provided in the `Authorization: Bearer <token>` header.
  * - The secret is taken from `process.env.JWT_SECRET`.
@@ -16,8 +16,7 @@
  */
 
 const jwt = require('jsonwebtoken');
-const { PrismaClient } = require('@prisma/client');
-const prisma = new PrismaClient();
+const prisma = require('../lib/prisma');
 const { ZodError, z } = require('zod');
 
 // Optional payload validation schema (email required, name optional)
@@ -40,7 +39,7 @@ async function authenticate(req, res, next) {
       return res.status(500).json({ error: 'Server configuration error: JWT secret missing', code: 500 });
     }
 
-    // Verify token – throws on invalid/expired
+    // Verify token â€“ throws on invalid/expired
     const decoded = jwt.verify(token, secret);
 
     // Validate payload (ensure email exists)
@@ -54,7 +53,7 @@ async function authenticate(req, res, next) {
       throw e;
     }
 
-    // Upsert user – create if not exists
+    // Upsert user â€“ create if not exists
     const user = await prisma.user.upsert({
       where: { email: payload.email },
       update: {}, // no changes if already exists
@@ -80,3 +79,4 @@ async function authenticate(req, res, next) {
 }
 
 module.exports = authenticate;
+

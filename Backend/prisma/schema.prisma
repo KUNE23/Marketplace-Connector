@@ -9,13 +9,14 @@ datasource db {
 }
 
 model User {
-  id           BigInt   @id @default(autoincrement())
-  email        String   @unique
-  passwordHash String
-  name         String?
-  role         String   @default("user")
-  active       Boolean  @default(true)
+  id            BigInt         @id @default(autoincrement())
+  email         String         @unique
+  passwordHash  String
+  name          String?
+  role          String         @default("user")
+  active        Boolean        @default(true)
   refreshTokens RefreshToken[]
+  notifications Notification[]
 }
 
 model RefreshToken {
@@ -41,17 +42,150 @@ model FieldMap {
 }
 
 model Product {
-  id            BigInt   @id @default(autoincrement())
-  shopeeItemId BigInt?
+  id            BigInt          @id @default(autoincrement())
+  shopeeItemId  BigInt?         @unique
   sku           String?
   name          String?
   description   String?
   priceIdr      Decimal?
   stock         Int?
-  category      String?
+  shopeeUrl     String?
+  shopId        String?
+  location      String?
+  sold          Int?
+  rating        Decimal?        @db.Decimal(3, 2)
   imageUrls     String[]
-  lastSyncedAt  DateTime? @db.Timestamptz
+  lastSyncedAt  DateTime?       @db.Timestamptz
   syncLogs      SyncLog[]
+  saleItems     SaleOrderItem[]
+  listings      Listing[]
+}
+
+model AkulakuAccount {
+  id         BigInt    @id @default(autoincrement())
+  label      String    @db.VarChar(100)
+  username   String    @db.VarChar(150)
+  passwordEnc String
+  status     String    @default("active") @db.VarChar(20)
+  note       String?
+  listings   Listing[]
+  orders     AkulakuOrder[]
+  session    AkulakuSession?
+  createdAt  DateTime  @default(now()) @db.Timestamptz
+  updatedAt  DateTime  @updatedAt @db.Timestamptz
+}
+
+// Jembatan produk Shopee -> akun Akulaku, dengan markup harga & status posting.
+model Listing {
+  id              BigInt          @id @default(autoincrement())
+  productId       BigInt
+  product         Product         @relation(fields: [productId], references: [id])
+  accountId       BigInt
+  account         AkulakuAccount  @relation(fields: [accountId], references: [id])
+  basePrice       Decimal         @db.Decimal(14, 2)
+  markupType      String          @default("percent") @db.VarChar(10) // percent | fixed
+  markupValue     Decimal         @db.Decimal(14, 2)
+  sellingPrice    Decimal         @db.Decimal(14, 2)
+  status          String          @default("draft") @db.VarChar(20) // draft | queued | posted | failed
+  akulakuProductId String?        @db.VarChar(150)
+  akulakuUrl      String?
+  errorMessage    String?
+  retryCount      Int             @default(0)
+  postedAt        DateTime?       @db.Timestamptz
+  createdAt       DateTime        @default(now()) @db.Timestamptz
+  updatedAt       DateTime        @updatedAt @db.Timestamptz
+
+  orderItems      AkulakuOrderItem[]
+
+  @@unique([productId, accountId])
+}
+
+model SaleOrder {
+  id         BigInt            @id @default(autoincrement())
+  shopName   String?           @db.VarChar(100)
+  externalId String?           @unique
+  currency   String            @default("IDR")
+  shopId     BigInt?  
+  shop       Shop?             @relation(fields: [shopId], references: [id])
+  status     String
+  totalAmt   Decimal           @db.Decimal(12, 2)
+  soldAt     DateTime          @db.Timestamptz
+  syncedAt   DateTime          @default(now()) @db.Timestamptz
+  items      SaleOrderItem[]
+}
+
+// Order dari marketplace Akulaku (inbound). Terpisah dari order Shopee.
+model AkulakuOrder {
+  id             BigInt              @id @default(autoincrement())
+  externalId     String              @unique @db.VarChar(150) // order id Akulaku
+  accountId      BigInt
+  account        AkulakuAccount      @relation(fields: [accountId], references: [id])
+  buyerName      String?             @db.VarChar(150)
+  buyerPhone     String?             @db.VarChar(50)
+  shippingAddress String?
+  status         String              @default("new") @db.VarChar(30) // new | processing | shipped | delivered | cancelled
+  totalAmt       Decimal             @db.Decimal(14, 2)
+  currency       String              @default("IDR")
+  orderedAt      DateTime            @db.Timestamptz
+  syncedAt       DateTime            @default(now()) @db.Timestamptz
+  updatedAt      DateTime            @updatedAt @db.Timestamptz
+  rawPayload     Json?
+  items          AkulakuOrderItem[]
+}
+
+model AkulakuOrderItem {
+  id        BigInt        @id @default(autoincrement())
+  orderId   BigInt
+  order     AkulakuOrder  @relation(fields: [orderId], references: [id])
+  listingId BigInt?
+  listing   Listing?      @relation(fields: [listingId], references: [id])
+  sku       String?       @db.VarChar(150)
+  name      String?       @db.VarChar(255)
+  qty       Int
+  unitPrice Decimal       @db.Decimal(14, 2)
+  total     Decimal       @db.Decimal(14, 2)
+}
+
+model SaleOrderItem {
+  id        BigInt    @id @default(autoincrement())
+  orderId   BigInt
+  product   Product   @relation(fields: [productId], references: [id])
+  productId BigInt
+  qty       Int
+  unitPrice Decimal   @db.Decimal(12, 2)
+  discount  Decimal?  @db.Decimal(12, 2)
+  total     Decimal   @db.Decimal(12, 2)
+  order     SaleOrder @relation(fields: [orderId], references: [id])
+}
+
+model Shop {
+  id        BigInt         @id @default(autoincrement())
+  shopName  String         @unique @db.VarChar(100)
+  shopId    String         @unique
+  orders    SaleOrder[]
+  sales     SaleSummary[]
+  createdAt DateTime       @default(now()) @db.Timestamptz
+}
+
+model SaleSummary {
+  id      BigInt   @id @default(autoincrement())
+  period  DateTime @db.Date
+  shopId  BigInt
+  shop    Shop?    @relation(fields: [shopId], references: [id])
+  qty     Int
+  revenue Decimal  @db.Decimal(14, 2)
+  @@unique([period, shopId])
+}
+
+model Notification {
+  id        BigInt   @id @default(autoincrement())
+  userId    BigInt?
+  user      User?    @relation(fields: [userId], references: [id])
+  type      String   @db.VarChar(50)
+  title     String   @db.VarChar(200)
+  body      String?
+  readAt    DateTime?
+  createdAt DateTime @default(now()) @db.Timestamptz
 }
 
 model SyncLog {
@@ -62,4 +196,65 @@ model SyncLog {
   responseCode Int?
   responseBody Json?
   runAt        DateTime @default(now()) @db.Timestamptz
+}
+
+// Antrian pekerjaan worker (posting listing / sync order).
+model Job {
+  id          BigInt    @id @default(autoincrement())
+  type        String    @db.VarChar(40) // post_listing | sync_orders
+  payload     Json?
+  status      String    @default("pending") @db.VarChar(20) // pending | running | done | failed
+  priority    Int       @default(0)
+  attempts    Int       @default(0)
+  maxAttempts Int       @default(3)
+  lastError   String?
+  runAt       DateTime  @default(now()) @db.Timestamptz
+  startedAt   DateTime? @db.Timestamptz
+  finishedAt  DateTime? @db.Timestamptz
+  createdAt   DateTime  @default(now()) @db.Timestamptz
+  updatedAt   DateTime  @updatedAt @db.Timestamptz
+
+  @@index([status, runAt])
+}
+
+// Sesi login Akulaku per akun (storage state Playwright), terenkripsi.
+model AkulakuSession {
+  id        BigInt          @id @default(autoincrement())
+  accountId BigInt          @unique
+  account   AkulakuAccount  @relation(fields: [accountId], references: [id])
+  stateEnc  String?
+  status    String          @default("missing") @db.VarChar(20) // missing | valid | expired
+  updatedAt DateTime        @updatedAt @db.Timestamptz
+  createdAt DateTime        @default(now()) @db.Timestamptz
+}
+
+// Progres import produk dari shopee.db (cursor-based, bisa lanjut).
+model ImportState {
+  id            BigInt   @id @default(autoincrement())
+  source        String   @unique @db.VarChar(50) // shopee_db
+  lastRowId     Int      @default(0)
+  imported      Int      @default(0)
+  updated       Int      @default(0)
+  skipped       Int      @default(0)
+  failed        Int      @default(0)
+  status        String   @default("idle") @db.VarChar(20) // idle | running | done
+  lastError     String?
+  startedAt     DateTime? @db.Timestamptz
+  finishedAt    DateTime? @db.Timestamptz
+  updatedAt     DateTime @updatedAt @db.Timestamptz
+}
+
+// Aturan markup harga bertingkat (persen), dipakai otomatis saat membuat listing
+// bila markup tidak diisi manual.
+model MarkupTier {
+  id          BigInt   @id @default(autoincrement())
+  label       String   @db.VarChar(100)
+  minPrice    Decimal  @db.Decimal(14, 2)
+  maxPrice    Decimal? @db.Decimal(14, 2) // null = tak terbatas
+  markupType  String   @default("percent") @db.VarChar(10)
+  markupValue Decimal  @db.Decimal(14, 2)
+  active      Boolean  @default(true)
+  sortOrder   Int      @default(0)
+  createdAt   DateTime @default(now()) @db.Timestamptz
+  updatedAt   DateTime @updatedAt @db.Timestamptz
 }

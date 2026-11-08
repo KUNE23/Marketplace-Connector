@@ -1,10 +1,8 @@
-// Backend/src/services/productService.js
-const { PrismaClient } = require('@prisma/client');
+﻿// Backend/src/services/productService.js
 const createError = require('http-errors');
 
-const prisma = new PrismaClient();
+const prisma = require('../lib/prisma');
 
-// Public fields to expose (omit internal fields like price decimal handling if needed)
 const PUBLIC_PRODUCT_SELECT = {
   id: true,
   shopeeItemId: true,
@@ -13,9 +11,14 @@ const PUBLIC_PRODUCT_SELECT = {
   description: true,
   priceIdr: true,
   stock: true,
-  category: true,
+  shopeeUrl: true,
+  shopId: true,
+  location: true,
+  sold: true,
+  rating: true,
   imageUrls: true,
   lastSyncedAt: true,
+  _count: { select: { listings: true } },
 };
 
 function toPublicProduct(product) {
@@ -27,32 +30,35 @@ function toPublicProduct(product) {
     description: product.description,
     priceIdr: product.priceIdr ? product.priceIdr.toString() : null,
     stock: product.stock,
-    category: product.category,
+    shopeeUrl: product.shopeeUrl,
+    shopId: product.shopId,
+    location: product.location,
+    sold: product.sold,
+    rating: product.rating ? product.rating.toString() : null,
     imageUrls: product.imageUrls,
     lastSyncedAt: product.lastSyncedAt,
+    listingCount: product._count?.listings ?? 0,
+    hasListing: (product._count?.listings ?? 0) > 0,
   };
 }
 
 async function createProduct(data) {
-  const product = await prisma.product.create({
-    data,
-    select: PUBLIC_PRODUCT_SELECT,
-  });
+  const payload = { ...data };
+  if (typeof payload.priceIdr === 'number' || typeof payload.priceIdr === 'bigint') {
+    payload.priceIdr = String(payload.priceIdr);
+  }
+  const product = await prisma.product.create({ data: payload, select: PUBLIC_PRODUCT_SELECT });
   return toPublicProduct(product);
 }
 
 async function getProductById(id) {
-  const product = await prisma.product.findUnique({
-    where: { id },
-    select: PUBLIC_PRODUCT_SELECT,
-  });
+  const product = await prisma.product.findUnique({ where: { id: BigInt(id) }, select: PUBLIC_PRODUCT_SELECT });
   if (!product) throw createError(404, 'Product not found');
   return toPublicProduct(product);
 }
 
-async function listProducts({ page = 1, limit = 20, search, category, minPrice, maxPrice }) {
+async function listProducts({ page = 1, limit = 20, search, hasListing, minPrice, maxPrice } = {}) {
   const skip = (page - 1) * limit;
-  let where = {};
   const andFilters = [];
   if (search) {
     andFilters.push({
@@ -63,43 +69,41 @@ async function listProducts({ page = 1, limit = 20, search, category, minPrice, 
       ],
     });
   }
-  if (category) {
-    andFilters.push({ category: { equals: category, mode: 'insensitive' } });
-  }
-  if (minPrice) {
-    andFilters.push({ priceIdr: { gte: minPrice } });
-  }
-  if (maxPrice) {
-    andFilters.push({ priceIdr: { lte: maxPrice } });
-  }
-  if (andFilters.length) {
-    where = { AND: andFilters };
-  }
+  if (minPrice) andFilters.push({ priceIdr: { gte: minPrice } });
+  if (maxPrice) andFilters.push({ priceIdr: { lte: maxPrice } });
+  if (hasListing === true) andFilters.push({ listings: { some: {} } });
+  if (hasListing === false) andFilters.push({ listings: { none: {} } });
+
+  const where = andFilters.length ? { AND: andFilters } : {};
   const [products, total] = await Promise.all([
-    prisma.product.findMany({
-      skip,
-      take: limit,
-      where,
-      orderBy: { id: 'asc' },
-      select: PUBLIC_PRODUCT_SELECT,
-    }),
+    prisma.product.findMany({ skip, take: limit, where, orderBy: { id: 'desc' }, select: PUBLIC_PRODUCT_SELECT }),
     prisma.product.count({ where }),
   ]);
   return { products: products.map(toPublicProduct), total, page, limit };
 }
 
 async function updateProduct(id, data) {
-  const product = await prisma.product.update({
-    where: { id },
-    data,
-    select: PUBLIC_PRODUCT_SELECT,
-  });
-  return toPublicProduct(product);
+  const payload = { ...data };
+  if (payload.priceIdr !== undefined && (typeof payload.priceIdr === 'number' || typeof payload.priceIdr === 'bigint')) {
+    payload.priceIdr = String(payload.priceIdr);
+  }
+  try {
+    const product = await prisma.product.update({ where: { id: BigInt(id) }, data: payload, select: PUBLIC_PRODUCT_SELECT });
+    return toPublicProduct(product);
+  } catch (err) {
+    if (err.code === 'P2025') throw createError(404, 'Product not found');
+    throw err;
+  }
 }
 
 async function deleteProduct(id) {
-  await prisma.product.delete({ where: { id } });
-  return true;
+  try {
+    await prisma.product.delete({ where: { id: BigInt(id) } });
+    return true;
+  } catch (err) {
+    if (err.code === 'P2025') throw createError(404, 'Product not found');
+    throw err;
+  }
 }
 
 module.exports = {
@@ -109,3 +113,4 @@ module.exports = {
   updateProduct,
   deleteProduct,
 };
+

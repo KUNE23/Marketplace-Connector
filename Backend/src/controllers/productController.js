@@ -48,6 +48,7 @@ async function listProductsHandler(req, res, next) {
       page: parsed.page,
       limit: parsed.limit,
       search: parsed.search,
+      hasListing: parsed.hasListing,
     });
     res.json(result);
   } catch (err) {
@@ -76,15 +77,33 @@ async function deleteProductHandler(req, res, next) {
   }
 }
 
-const { syncShopeeProducts } = require('../services/shopeeSyncService');
+const { importNextBatch, getScrapeStats, resetImport } = require('../services/shopeeImportService');
 
-async function syncShopeeHandler(req, res, next) {
+async function scrapeStatsHandler(req, res, next) {
   try {
-    await syncShopeeProducts();
-    res.json({ message: 'Shopee sync completed' });
+    const stats = await getScrapeStats();
+    res.json(stats);
   } catch (err) {
-    // errors already logged inside service; forward generic 500
-    return next(createError(500, err.message));
+    handleError(err, next);
+  }
+}
+
+async function importBatchHandler(req, res, next) {
+  try {
+    const batchSize = req.body?.batchSize ? Number(req.body.batchSize) : 50;
+    const summary = await importNextBatch({ batchSize });
+    res.json(summary);
+  } catch (err) {
+    handleError(err, next);
+  }
+}
+
+async function resetImportHandler(req, res, next) {
+  try {
+    const state = await resetImport();
+    res.json(state);
+  } catch (err) {
+    handleError(err, next);
   }
 }
 
@@ -94,6 +113,8 @@ module.exports = {
   listProductsHandler,
   updateProductHandler,
   deleteProductHandler,
-  syncShopeeHandler,
+  scrapeStatsHandler,
+  importBatchHandler,
+  resetImportHandler,
 };
 
