@@ -10,7 +10,7 @@ const {
 } = require('../controllers/adSpendController');
 
 router.use(authenticate);
-router.use(authorizeRoles('ADMIN'));
+router.use(authorizeRoles('ADMIN', 'EMPLOYEE'));
 
 router.get('/', listAdSpendsHandler);
 router.post('/', createAdSpendHandler);

@@ -11,12 +11,13 @@ const {
 } = require('../controllers/akulakuAccountController');
 
 router.use(authenticate);
-router.use(authorizeRoles('ADMIN'));
 
-router.get('/', listAkulakuAccountsHandler);
-router.get('/:id', getAkulakuAccountHandler);
-router.post('/', createAkulakuAccountHandler);
-router.patch('/:id', updateAkulakuAccountHandler);
-router.delete('/:id', deleteAkulakuAccountHandler);
+// Baca daftar akun boleh ADMIN & EMPLOYEE (dipakai untuk dropdown iklan/pesanan).
+// Kelola (tambah/ubah/hapus) khusus ADMIN.
+router.get('/', authorizeRoles('ADMIN', 'EMPLOYEE'), listAkulakuAccountsHandler);
+router.get('/:id', authorizeRoles('ADMIN', 'EMPLOYEE'), getAkulakuAccountHandler);
+router.post('/', authorizeRoles('ADMIN'), createAkulakuAccountHandler);
+router.patch('/:id', authorizeRoles('ADMIN'), updateAkulakuAccountHandler);
+router.delete('/:id', authorizeRoles('ADMIN'), deleteAkulakuAccountHandler);
 
 module.exports = router;
