@@ -7,7 +7,7 @@ const createAkulakuAccountSchema = z.object({
   username: z.string().min(1).max(150),
   password: z.string().min(1),
   status: z.enum(['active', 'inactive']).optional(),
-  note: z.string().optional(),
+  note: z.string().nullable().optional(),
 });
 
 const updateAkulakuAccountSchema = z.object({

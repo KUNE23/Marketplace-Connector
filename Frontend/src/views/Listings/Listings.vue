@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { computed, onMounted, ref } from 'vue'
+import { useToast } from 'vue-toastification'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import {
@@ -36,6 +37,9 @@ import {
   type MarkupType,
 } from '@/services/listings'
 import { formatRupiah, listProducts, type Product } from '@/services/products'
+import { listingStatusMeta } from '@/utils/labels'
+
+const toast = useToast()
 
 const listings = ref<Listing[]>([])
 const accounts = ref<AkulakuAccount[]>([])
@@ -46,37 +50,37 @@ const limit = 10
 const search = ref('')
 const statusFilter = ref<ListingStatus | 'all'>('all')
 const loading = ref(false)
-const error = ref('')
 
 const isDialogOpen = ref(false)
-const form = ref({ productId: '', accountId: '', markupType: 'percent' as MarkupType, markupValue: '' })
-const formError = ref('')
+const form = ref({
+  productId: '',
+  accountId: '',
+  markupType: 'percent' as MarkupType,
+  markupValue: '',
+  categoryPath: '',
+})
 const saving = ref(false)
 
 // Bulk listing
 const isBulkOpen = ref(false)
-const bulkForm = ref({ accountId: '', markupType: 'percent' as MarkupType, markupValue: '', count: 200 })
-const bulkError = ref('')
+const bulkForm = ref({
+  accountId: '',
+  markupType: 'percent' as MarkupType,
+  markupValue: '',
+  count: 200,
+  categoryPath: '',
+})
 const bulkSaving = ref(false)
-const bulkNotice = ref('')
 const bulkProgress = ref(0)
 
 const totalPages = computed(() => Math.max(1, Math.ceil(total.value / limit)))
 
-const statusMeta: Record<ListingStatus, { label: string; color: 'gray' | 'warning' | 'success' | 'error' }> = {
-  draft: { label: 'Draft', color: 'gray' },
-  queued: { label: 'Queued', color: 'warning' },
-  posted: { label: 'Posted', color: 'success' },
-  failed: { label: 'Failed', color: 'error' },
-}
-
 function statusOf(listing: Listing) {
-  return statusMeta[listing.status] ?? statusMeta.draft
+  return listingStatusMeta[listing.status] ?? listingStatusMeta.draft
 }
 
 async function load() {
   loading.value = true
-  error.value = ''
   try {
     const response = await listListings({
       page: page.value,
@@ -87,7 +91,7 @@ async function load() {
     listings.value = response.listings
     total.value = response.total
   } catch (err) {
-    error.value = err instanceof Error ? err.message : 'Gagal memuat listing'
+    toast.error(err instanceof Error ? err.message : 'Gagal memuat listing')
   } finally {
     loading.value = false
   }
@@ -129,16 +133,14 @@ function formatDate(value: string | null) {
 }
 
 function openCreate() {
-  form.value = { productId: '', accountId: '', markupType: 'percent', markupValue: '' }
-  formError.value = ''
+  form.value = { productId: '', accountId: '', markupType: 'percent', markupValue: '', categoryPath: '' }
   isDialogOpen.value = true
   loadOptions()
 }
 
 async function submitForm() {
-  formError.value = ''
-  if (!form.value.productId) return (formError.value = 'Pilih produk dulu')
-  if (!form.value.accountId) return (formError.value = 'Pilih akun Akulaku dulu')
+  if (!form.value.productId) return toast.warning('Pilih produk dulu')
+  if (!form.value.accountId) return toast.warning('Pilih akun Akulaku dulu')
 
   saving.value = true
   try {
@@ -147,29 +149,27 @@ async function submitForm() {
       accountId: form.value.accountId,
       markupType: form.value.markupType,
       markupValue: form.value.markupValue || undefined,
+      categoryPath: form.value.categoryPath.trim() || undefined,
     })
     isDialogOpen.value = false
+    toast.success('Listing berhasil dibuat.')
     await load()
   } catch (err) {
-    formError.value = err instanceof Error ? err.message : 'Gagal membuat listing'
+    toast.error(err instanceof Error ? err.message : 'Gagal membuat listing')
   } finally {
     saving.value = false
   }
 }
 
 function openBulk() {
-  bulkForm.value = { accountId: '', markupType: 'percent', markupValue: '', count: 200 }
-  bulkError.value = ''
-  bulkNotice.value = ''
+  bulkForm.value = { accountId: '', markupType: 'percent', markupValue: '', count: 200, categoryPath: '' }
   bulkProgress.value = 0
   isBulkOpen.value = true
   loadOptions()
 }
 
 async function submitBulk() {
-  bulkError.value = ''
-  bulkNotice.value = ''
-  if (!bulkForm.value.accountId) return (bulkError.value = 'Pilih akun Akulaku dulu')
+  if (!bulkForm.value.accountId) return toast.warning('Pilih akun Akulaku dulu')
   const target = Math.min(Math.max(Number(bulkForm.value.count) || 100, 1), 2000)
 
   bulkSaving.value = true
@@ -191,6 +191,7 @@ async function submitBulk() {
         accountId: bulkForm.value.accountId,
         markupType: bulkForm.value.markupType,
         markupValue: bulkForm.value.markupValue || undefined,
+        categoryPath: bulkForm.value.categoryPath.trim() || undefined,
       })
       aggregate.requested += result.requested
       aggregate.created += result.created
@@ -209,12 +210,14 @@ async function submitBulk() {
     }
 
     totalCreated = aggregate.created
-    bulkNotice.value = `Selesai: ${totalCreated} listing baru dibuat. Dilewati — sudah ada: ${aggregate.skippedExisting}, tanpa harga: ${aggregate.skippedNoPrice}, gagal: ${aggregate.failed}.`
+    toast.success(
+      `Bulk selesai: ${totalCreated} listing baru dibuat. Dilewati — sudah ada: ${aggregate.skippedExisting}, tanpa harga: ${aggregate.skippedNoPrice}, gagal: ${aggregate.failed}.`,
+    )
     isBulkOpen.value = false
     page.value = 1
     await load()
   } catch (err) {
-    bulkError.value = err instanceof Error ? err.message : 'Gagal bulk listing'
+    toast.error(err instanceof Error ? err.message : 'Gagal membuat listing massal')
   } finally {
     bulkSaving.value = false
   }
@@ -223,9 +226,10 @@ async function submitBulk() {
 async function markPosted(listing: Listing) {
   try {
     await updateListing(listing.id, { status: 'posted' })
+    toast.success('Status listing diperbarui.')
     await load()
   } catch (err) {
-    error.value = err instanceof Error ? err.message : 'Gagal update status'
+    toast.error(err instanceof Error ? err.message : 'Gagal memperbarui status')
   }
 }
 
@@ -233,9 +237,10 @@ async function removeListing(listing: Listing) {
   if (!window.confirm(`Hapus listing "${listing.product?.name}"?`)) return
   try {
     await deleteListing(listing.id)
+    toast.success('Listing dihapus.')
     await load()
   } catch (err) {
-    error.value = err instanceof Error ? err.message : 'Gagal menghapus listing'
+    toast.error(err instanceof Error ? err.message : 'Gagal menghapus listing')
   }
 }
 
@@ -265,22 +270,15 @@ onMounted(() => {
               </SelectTrigger>
               <SelectContent>
                 <SelectItem value="all">Semua status</SelectItem>
-                <SelectItem value="draft">Draft</SelectItem>
-                <SelectItem value="queued">Queued</SelectItem>
-                <SelectItem value="posted">Posted</SelectItem>
-                <SelectItem value="failed">Failed</SelectItem>
+                <SelectItem value="draft">Draf</SelectItem>
+                <SelectItem value="queued">Antrian</SelectItem>
+                <SelectItem value="posted">Tayang</SelectItem>
+                <SelectItem value="failed">Gagal</SelectItem>
               </SelectContent>
             </Select>
-            <Button variant="outline" size="sm" @click="openBulk">Bulk Listing</Button>
+            <Button variant="outline" size="sm" @click="openBulk">Listing Massal</Button>
             <Button size="sm" @click="openCreate">+ Buat Listing</Button>
           </div>
-        </div>
-
-        <div
-          v-if="error"
-          class="rounded-lg border border-error-500/30 bg-error-50 px-4 py-3 text-sm text-error-600 dark:border-error-500/30 dark:bg-error-500/10 dark:text-error-400"
-        >
-          {{ error }}
         </div>
 
         <div class="overflow-hidden rounded-xl border border-gray-200 bg-white dark:border-white/5 dark:bg-white/3">
@@ -322,7 +320,7 @@ onMounted(() => {
                   </TableCell>
                   <TableCell class="px-5 py-4 text-start text-sm sm:px-6">
                     <div class="flex gap-2">
-                      <Button v-if="listing.status !== 'posted'" variant="outline" size="sm" @click="markPosted(listing)">Tandai Posted</Button>
+                      <Button v-if="listing.status !== 'posted'" variant="outline" size="sm" @click="markPosted(listing)">Tandai Tayang</Button>
                       <Button variant="outline" size="sm" @click="removeListing(listing)">Hapus</Button>
                     </div>
                   </TableCell>
@@ -402,12 +400,17 @@ onMounted(() => {
               </Field>
             </div>
 
-            <div
-              v-if="formError"
-              class="rounded-lg border border-error-500/30 bg-error-50 px-4 py-3 text-sm text-error-600 dark:border-error-500/30 dark:bg-error-500/10 dark:text-error-400"
-            >
-              {{ formError }}
-            </div>
+            <Field class="gap-1.5">
+              <FieldLabel>Kategori Akulaku</FieldLabel>
+              <Input
+                v-model="form.categoryPath"
+                type="text"
+                placeholder="cth: Gadget & Digital/Aksesoris Digital/Kartu Memori Digital"
+              />
+              <p class="text-xs text-gray-500 dark:text-gray-400">
+                Jalur kategori dipisah "/" sesuai cascader Seller Centre. Wajib untuk posting otomatis.
+              </p>
+            </Field>
 
             <DialogFooter class="mx-0 mb-0 gap-3 p-0 pt-2 sm:justify-end">
               <DialogClose as-child>
@@ -423,7 +426,7 @@ onMounted(() => {
         <DialogContent class="max-w-[calc(100%-2rem)] rounded-3xl p-6 sm:max-w-146 sm:p-10">
           <DialogHeader class="gap-2 pe-14 text-start">
             <DialogTitle class="text-xl font-semibold text-gray-800 sm:text-2xl dark:text-white/90">
-              Bulk Listing
+              Listing Massal
             </DialogTitle>
             <DialogDescription class="text-sm text-gray-500 dark:text-gray-400">
               Buat listing untuk banyak produk sekaligus. Produk yang sudah punya listing akan dilewati.
@@ -470,28 +473,27 @@ onMounted(() => {
               </Field>
             </div>
 
+            <Field class="gap-1.5">
+              <FieldLabel>Kategori Akulaku</FieldLabel>
+              <Input
+                v-model="bulkForm.categoryPath"
+                type="text"
+                placeholder="cth: Gadget & Digital/Aksesoris Digital/Kartu Memori Digital"
+              />
+              <p class="text-xs text-gray-500 dark:text-gray-400">
+                Dipakai untuk semua produk di proses bulk ini. Wajib untuk posting otomatis.
+              </p>
+            </Field>
+
             <div v-if="bulkSaving" class="text-sm text-gray-500 dark:text-gray-400">
               Memproses... {{ bulkProgress }} produk sudah diproses.
-            </div>
-
-            <div
-              v-if="bulkNotice"
-              class="rounded-lg border border-success-500/30 bg-success-50 px-4 py-3 text-sm text-success-600 dark:bg-success-500/10 dark:text-success-400"
-            >
-              {{ bulkNotice }}
-            </div>
-            <div
-              v-if="bulkError"
-              class="rounded-lg border border-error-500/30 bg-error-50 px-4 py-3 text-sm text-error-600 dark:border-error-500/30 dark:bg-error-500/10 dark:text-error-400"
-            >
-              {{ bulkError }}
             </div>
 
             <DialogFooter class="mx-0 mb-0 gap-3 p-0 pt-2 sm:justify-end">
               <DialogClose as-child>
                 <Button variant="outline" type="button">Batal</Button>
               </DialogClose>
-              <Button type="submit" :disabled="bulkSaving">{{ bulkSaving ? 'Memproses...' : 'Mulai Bulk' }}</Button>
+              <Button type="submit" :disabled="bulkSaving">{{ bulkSaving ? 'Memproses...' : 'Mulai Massal' }}</Button>
             </DialogFooter>
           </form>
         </DialogContent>

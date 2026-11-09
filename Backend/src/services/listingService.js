@@ -13,6 +13,8 @@ const SELECT = {
   markupValue: true,
   sellingPrice: true,
   status: true,
+  categoryPath: true,
+  specs: true,
   akulakuProductId: true,
   akulakuUrl: true,
   errorMessage: true,
@@ -47,6 +49,8 @@ function serialize(listing) {
     markupValue: listing.markupValue?.toString() ?? '0',
     sellingPrice: listing.sellingPrice?.toString() ?? '0',
     status: listing.status,
+    categoryPath: listing.categoryPath ?? null,
+    specs: listing.specs ?? null,
     akulakuProductId: listing.akulakuProductId,
     akulakuUrl: listing.akulakuUrl,
     errorMessage: listing.errorMessage,
@@ -85,7 +89,7 @@ async function resolveMarkup({ markupType, markupValue, basePrice }) {
   return { markupType: markupType ?? 'percent', markupValue: '0' };
 }
 
-async function createListing({ productId, accountId, markupType, markupValue }) {
+async function createListing({ productId, accountId, markupType, markupValue, categoryPath, specs }) {
   const product = await prisma.product.findUnique({ where: { id: productId } });
   if (!product) throw createError(404, 'Product not found');
   const account = await prisma.akulakuAccount.findUnique({ where: { id: accountId } });
@@ -108,6 +112,8 @@ async function createListing({ productId, accountId, markupType, markupValue }) 
       markupType: resolved.markupType,
       markupValue: resolved.markupValue,
       sellingPrice,
+      categoryPath: categoryPath ?? null,
+      specs: specs ?? undefined,
     },
     select: SELECT,
   });
@@ -118,7 +124,7 @@ async function createListing({ productId, accountId, markupType, markupValue }) 
  * Buat listing untuk banyak produk sekaligus (satu akun, satu markup).
  * Produk yang sudah punya listing di akun sama / harga kosong akan dilewati.
  */
-async function createListingsBulk({ productIds, accountId, markupType, markupValue }) {
+async function createListingsBulk({ productIds, accountId, markupType, markupValue, categoryPath, specs }) {
   const account = await prisma.akulakuAccount.findUnique({ where: { id: accountId } });
   if (!account) throw createError(404, 'Akun Akulaku tidak ditemukan');
 
@@ -184,6 +190,8 @@ async function createListingsBulk({ productIds, accountId, markupType, markupVal
       markupType: resolved.markupType,
       markupValue: resolved.markupValue,
       sellingPrice: computeSellingPrice(basePrice, resolved.markupType, resolved.markupValue),
+      categoryPath: categoryPath ?? null,
+      specs: specs ?? undefined,
     });
   }
 
@@ -251,6 +259,12 @@ async function updateListing(id, data) {
   if (data.status !== undefined) {
     payload.status = data.status;
     if (data.status === 'posted') payload.postedAt = new Date();
+  }
+  if (data.categoryPath !== undefined) {
+    payload.categoryPath = data.categoryPath;
+  }
+  if (data.specs !== undefined) {
+    payload.specs = data.specs ?? undefined;
   }
 
   const updated = await prisma.listing.update({ where: { id: BigInt(id) }, data: payload, select: SELECT });

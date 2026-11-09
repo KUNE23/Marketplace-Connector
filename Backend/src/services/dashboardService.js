@@ -1,10 +1,50 @@
 // Backend/src/services/dashboardService.js
 const prisma = require('../lib/prisma');
+const { sumAdSpend } = require('./adSpendService');
 
 function startOfToday() {
   const d = new Date();
   d.setHours(0, 0, 0, 0);
   return d;
+}
+
+/**
+ * Hitung omzet, modal, biaya iklan, dan profit untuk rentang tanggal.
+ * Profit = omzet - modal produk (dari listing tertaut) - biaya iklan.
+ * `matchedItems`/`unmatchedItems` dipakai UI untuk menandai data modal yang belum lengkap.
+ */
+async function computeProfit({ from, to } = {}) {
+  const orderWhere = { status: { not: 'cancelled' } };
+  if (from || to) {
+    orderWhere.orderedAt = {};
+    if (from) orderWhere.orderedAt.gte = from;
+    if (to) orderWhere.orderedAt.lte = to;
+  }
+
+  const [omzetAgg, items] = await Promise.all([
+    prisma.akulakuOrder.aggregate({ _sum: { totalAmt: true }, where: orderWhere }),
+    prisma.akulakuOrderItem.findMany({
+      where: { order: orderWhere },
+      select: { qty: true, listingId: true, listing: { select: { basePrice: true } } },
+    }),
+  ]);
+
+  const omzet = Number(omzetAgg._sum.totalAmt ?? 0);
+  let modal = 0;
+  let matchedItems = 0;
+  let unmatchedItems = 0;
+  for (const it of items) {
+    if (it.listingId && it.listing) {
+      modal += Number(it.listing.basePrice ?? 0) * it.qty;
+      matchedItems += 1;
+    } else {
+      unmatchedItems += 1;
+    }
+  }
+  const adSpend = await sumAdSpend({ from, to });
+  const profit = omzet - modal - adSpend;
+
+  return { omzet, modal, adSpend, profit, matchedItems, unmatchedItems };
 }
 
 async function getSummary() {
@@ -36,15 +76,11 @@ async function getSummary() {
     prisma.job.count({ where: { status: 'failed' } }),
   ]);
 
-  // Omzet: Akulaku order yang tidak dibatalkan.
-  const revenueAgg = await prisma.akulakuOrder.aggregate({
-    _sum: { totalAmt: true },
-    where: { status: { not: 'cancelled' } },
-  });
-  const revenueToday = await prisma.akulakuOrder.aggregate({
-    _sum: { totalAmt: true },
-    where: { status: { not: 'cancelled' }, orderedAt: { gte: todayStart } },
-  });
+  // Omzet & profit: Akulaku order yang tidak dibatalkan.
+  const [profitAll, profitToday] = await Promise.all([
+    computeProfit(),
+    computeProfit({ from: todayStart }),
+  ]);
 
   const listingMap = Object.fromEntries(listingByStatus.map((r) => [r.status, r._count._all]));
   const orderMap = Object.fromEntries(orderByStatus.map((r) => [r.status, r._count._all]));
@@ -76,8 +112,18 @@ async function getSummary() {
       cancelled: orderMap.cancelled ?? 0,
     },
     revenue: {
-      total: revenueAgg._sum.totalAmt ? revenueAgg._sum.totalAmt.toString() : '0',
-      today: revenueToday._sum.totalAmt ? revenueToday._sum.totalAmt.toString() : '0',
+      total: profitAll.omzet.toFixed(2),
+      today: profitToday.omzet.toFixed(2),
+    },
+    profit: {
+      // Profit = omzet - modal produk - biaya iklan.
+      total: profitAll.profit.toFixed(2),
+      today: profitToday.profit.toFixed(2),
+      modal: profitAll.modal.toFixed(2),
+      adSpend: profitAll.adSpend.toFixed(2),
+      // Item order yang belum punya modal (tidak tertaut ke listing).
+      unmatchedItems: profitAll.unmatchedItems,
+      matchedItems: profitAll.matchedItems,
     },
     jobs: {
       pending: jobsPending,
@@ -86,31 +132,59 @@ async function getSummary() {
   };
 }
 
-/** Rekap omzet & jumlah order per periode (default 14 hari terakhir). */
+/** Rekap omzet, modal, biaya iklan & profit per periode (default 14 hari terakhir). */
 async function getRecap({ days = 14 } = {}) {
   const since = new Date();
   since.setHours(0, 0, 0, 0);
   since.setDate(since.getDate() - (days - 1));
 
-  const orders = await prisma.akulakuOrder.findMany({
-    where: { orderedAt: { gte: since }, status: { not: 'cancelled' } },
-    select: { orderedAt: true, totalAmt: true },
-    orderBy: { orderedAt: 'asc' },
-  });
+  const keyOf = (d) => new Date(d).toISOString().slice(0, 10);
+
+  const [orders, items, adSpends] = await Promise.all([
+    prisma.akulakuOrder.findMany({
+      where: { orderedAt: { gte: since }, status: { not: 'cancelled' } },
+      select: { orderedAt: true, totalAmt: true },
+    }),
+    prisma.akulakuOrderItem.findMany({
+      where: { order: { orderedAt: { gte: since }, status: { not: 'cancelled' } } },
+      select: {
+        qty: true,
+        listingId: true,
+        listing: { select: { basePrice: true } },
+        order: { select: { orderedAt: true } },
+      },
+    }),
+    prisma.adSpend.findMany({
+      where: { period: { gte: since } },
+      select: { period: true, amount: true },
+    }),
+  ]);
 
   const buckets = new Map();
   for (let i = 0; i < days; i += 1) {
     const d = new Date(since);
     d.setDate(since.getDate() + i);
-    buckets.set(d.toISOString().slice(0, 10), { date: d.toISOString().slice(0, 10), orders: 0, revenue: 0 });
+    buckets.set(keyOf(d), { date: keyOf(d), orders: 0, revenue: 0, modal: 0, adSpend: 0, profit: 0 });
   }
   for (const o of orders) {
-    const key = new Date(o.orderedAt).toISOString().slice(0, 10);
-    const bucket = buckets.get(key);
+    const bucket = buckets.get(keyOf(o.orderedAt));
     if (bucket) {
       bucket.orders += 1;
       bucket.revenue += Number(o.totalAmt ?? 0);
     }
+  }
+  for (const it of items) {
+    const bucket = buckets.get(keyOf(it.order.orderedAt));
+    if (bucket && it.listingId && it.listing) {
+      bucket.modal += Number(it.listing.basePrice ?? 0) * it.qty;
+    }
+  }
+  for (const a of adSpends) {
+    const bucket = buckets.get(keyOf(a.period));
+    if (bucket) bucket.adSpend += Number(a.amount ?? 0);
+  }
+  for (const bucket of buckets.values()) {
+    bucket.profit = bucket.revenue - bucket.modal - bucket.adSpend;
   }
 
   return { days, recap: Array.from(buckets.values()) };
@@ -144,4 +218,4 @@ async function getRecentOrders({ limit = 5 } = {}) {
   };
 }
 
-module.exports = { getSummary, getRecap, getRecentOrders };
+module.exports = { getSummary, getRecap, getRecentOrders, computeProfit };

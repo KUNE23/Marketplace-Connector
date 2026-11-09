@@ -24,6 +24,10 @@ export interface Listing {
   markupValue: string
   sellingPrice: string
   status: ListingStatus
+  /** Kategori marketplace Akulaku (jalur cascader, dipisah "/"). */
+  categoryPath: string | null
+  /** Spesifikasi khas kategori Akulaku, contoh: { "brandId": "Samsung" } */
+  specs: Record<string, string> | null
   akulakuProductId: string | null
   akulakuUrl: string | null
   errorMessage: string | null
@@ -55,6 +59,10 @@ export interface CreateListingPayload {
   accountId: string
   markupType?: MarkupType
   markupValue?: string
+  /** Jalur kategori Akulaku dipisah "/", contoh: "Gadget & Digital/Aksesoris Digital/Kartu Memori Digital" */
+  categoryPath?: string
+  /** Spesifikasi khas kategori, contoh: { "brandId": "Samsung" } */
+  specs?: Record<string, string>
 }
 
 export function listListings(params: ListingListParams = {}) {
@@ -75,6 +83,8 @@ export interface BulkCreatePayload {
   accountId: string
   markupType?: MarkupType
   markupValue?: string
+  categoryPath?: string
+  specs?: Record<string, string>
 }
 
 export interface BulkCreateResult {
@@ -93,7 +103,13 @@ export function bulkCreateListings(payload: BulkCreatePayload) {
 
 export function updateListing(
   id: string,
-  payload: { markupType?: MarkupType; markupValue?: string; status?: ListingStatus },
+  payload: {
+    markupType?: MarkupType
+    markupValue?: string
+    status?: ListingStatus
+    categoryPath?: string | null
+    specs?: Record<string, string> | null
+  },
 ) {
   return apiFetch<Listing>(`/listings/${id}`, { method: 'PATCH', body: payload })
 }

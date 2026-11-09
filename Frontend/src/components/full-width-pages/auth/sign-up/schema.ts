@@ -12,18 +12,18 @@ export interface SignUpFormData {
 export const validateSignUp = (data: SignUpFormData) => {
   const errors: Partial<Record<keyof SignUpFormData, string>> = {}
 
-  if (!data.fname.trim()) errors.fname = 'First name is required'
-  if (!data.lname.trim()) errors.lname = 'Last name is required'
+  if (!data.fname.trim()) errors.fname = 'Nama depan wajib diisi'
+  if (!data.lname.trim()) errors.lname = 'Nama belakang wajib diisi'
 
-  if (!data.email.trim()) errors.email = 'Email is required'
-  else if (!isEmail(data.email.trim())) errors.email = 'Please enter a valid email address'
+  if (!data.email.trim()) errors.email = 'Email wajib diisi'
+  else if (!isEmail(data.email.trim())) errors.email = 'Masukkan alamat email yang valid'
 
-  if (data.password.length < 8) errors.password = 'Password must be at least 8 characters'
+  if (data.password.length < 8) errors.password = 'Kata sandi minimal 8 karakter'
 
-  if (!data.confirmPassword) errors.confirmPassword = 'Please confirm your password'
-  else if (data.password !== data.confirmPassword) errors.confirmPassword = 'Passwords do not match'
+  if (!data.confirmPassword) errors.confirmPassword = 'Konfirmasi kata sandi wajib diisi'
+  else if (data.password !== data.confirmPassword) errors.confirmPassword = 'Kata sandi tidak sama'
 
-  if (!data.terms) errors.terms = 'You must agree to the Terms and Conditions'
+  if (!data.terms) errors.terms = 'Anda harus menyetujui Syarat dan Ketentuan'
 
   return errors
 }

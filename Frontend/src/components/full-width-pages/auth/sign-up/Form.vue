@@ -32,12 +32,12 @@ const onSubmit = handleSubmit(async () => {
     <div class="grid grid-cols-1 gap-5 sm:grid-cols-2">
       <Field :data-invalid="Boolean(errorOf('fname'))">
         <FieldLabel class="mb-1.5 block">
-          First Name <span class="text-red-500">*</span>
+          Nama Depan <span class="text-red-500">*</span>
         </FieldLabel>
         <Input
           v-model="values.fname"
           type="text"
-          placeholder="Enter your first name"
+          placeholder="Masukkan nama depan"
           :aria-invalid="errorOf('fname') ? 'true' : undefined"
           @blur="touch('fname')"
         />
@@ -46,12 +46,12 @@ const onSubmit = handleSubmit(async () => {
 
       <Field :data-invalid="Boolean(errorOf('lname'))">
         <FieldLabel class="mb-1.5 block">
-          Last Name <span class="text-red-500">*</span>
+          Nama Belakang <span class="text-red-500">*</span>
         </FieldLabel>
         <Input
           v-model="values.lname"
           type="text"
-          placeholder="Enter your last name"
+          placeholder="Masukkan nama belakang"
           :aria-invalid="errorOf('lname') ? 'true' : undefined"
           @blur="touch('lname')"
         />
@@ -64,7 +64,7 @@ const onSubmit = handleSubmit(async () => {
       <Input
         v-model="values.email"
         type="email"
-        placeholder="Enter your email"
+        placeholder="Masukkan email"
         :aria-invalid="errorOf('email') ? 'true' : undefined"
         @blur="touch('email')"
       />
@@ -72,19 +72,19 @@ const onSubmit = handleSubmit(async () => {
     </Field>
 
     <Field :data-invalid="Boolean(errorOf('password'))">
-      <FieldLabel class="mb-1.5 block"> Password <span class="text-red-500">*</span> </FieldLabel>
+      <FieldLabel class="mb-1.5 block"> Kata Sandi <span class="text-red-500">*</span> </FieldLabel>
       <InputGroup>
         <InputGroupInput
           v-model="values.password"
           :type="showPassword ? 'text' : 'password'"
-          placeholder="Enter your password"
+          placeholder="Masukkan kata sandi"
           :aria-invalid="errorOf('password') ? 'true' : undefined"
           @blur="touch('password')"
         />
         <InputGroupAddon align="inline-end">
           <InputGroupButton
             size="icon-xs"
-            :aria-label="showPassword ? 'Hide password' : 'Show password'"
+            :aria-label="showPassword ? 'Sembunyikan kata sandi' : 'Tampilkan kata sandi'"
             class="text-gray-500 dark:text-gray-400"
             @click="showPassword = !showPassword"
           >
@@ -98,20 +98,20 @@ const onSubmit = handleSubmit(async () => {
 
     <Field :data-invalid="Boolean(errorOf('confirmPassword'))">
       <FieldLabel class="mb-1.5 block">
-        Confirm Password <span class="text-red-500">*</span>
+        Konfirmasi Kata Sandi <span class="text-red-500">*</span>
       </FieldLabel>
       <InputGroup>
         <InputGroupInput
           v-model="values.confirmPassword"
           :type="showConfirmPassword ? 'text' : 'password'"
-          placeholder="Re-enter your password"
+          placeholder="Ulangi kata sandi"
           :aria-invalid="errorOf('confirmPassword') ? 'true' : undefined"
           @blur="touch('confirmPassword')"
         />
         <InputGroupAddon align="inline-end">
           <InputGroupButton
             size="icon-xs"
-            :aria-label="showConfirmPassword ? 'Hide confirm password' : 'Show confirm password'"
+            :aria-label="showConfirmPassword ? 'Sembunyikan konfirmasi kata sandi' : 'Tampilkan konfirmasi kata sandi'"
             class="text-gray-500 dark:text-gray-400"
             @click="showConfirmPassword = !showConfirmPassword"
           >
@@ -140,10 +140,10 @@ const onSubmit = handleSubmit(async () => {
           for="terms"
           class="inline-block cursor-pointer text-sm font-normal text-gray-500 dark:text-gray-400"
         >
-          By creating an account means you agree to the
-          <span class="text-gray-800 dark:text-white/90">Terms and Conditions,</span>
-          and our
-          <span class="text-gray-800 dark:text-white">Privacy Policy</span>
+          Dengan membuat akun berarti Anda menyetujui
+          <span class="text-gray-800 dark:text-white/90">Syarat dan Ketentuan,</span>
+          serta
+          <span class="text-gray-800 dark:text-white">Kebijakan Privasi</span>
         </FieldLabel>
         <FieldError :errors="[{ message: errorOf('terms') }]" />
       </div>
@@ -151,7 +151,7 @@ const onSubmit = handleSubmit(async () => {
 
     <div>
       <Button class="w-full" size="lg" type="submit" :disabled="isSubmitting">
-        {{ isSubmitting ? 'Signing Up...' : 'Sign Up' }}
+        {{ isSubmitting ? 'Memproses...' : 'Daftar' }}
       </Button>
     </div>
   </form>

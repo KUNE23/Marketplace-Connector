@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { computed, onMounted, ref } from 'vue'
+import { useToast } from 'vue-toastification'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -21,6 +22,9 @@ import {
   type OrderStatus,
 } from '@/services/akulakuOrders'
 import { formatRupiah } from '@/services/products'
+import { orderStatusMeta } from '@/utils/labels'
+
+const toast = useToast()
 
 const orders = ref<AkulakuOrder[]>([])
 const total = ref(0)
@@ -29,17 +33,8 @@ const limit = 10
 const search = ref('')
 const statusFilter = ref<OrderStatus | 'all'>('all')
 const loading = ref(false)
-const error = ref('')
 
 const totalPages = computed(() => Math.max(1, Math.ceil(total.value / limit)))
-
-const statusMeta: Record<OrderStatus, { label: string; color: 'info' | 'warning' | 'primary' | 'success' | 'error' }> = {
-  new: { label: 'Baru', color: 'info' },
-  processing: { label: 'Diproses', color: 'warning' },
-  shipped: { label: 'Dikirim', color: 'primary' },
-  delivered: { label: 'Selesai', color: 'success' },
-  cancelled: { label: 'Dibatalkan', color: 'error' },
-}
 
 const nextStatus: Record<OrderStatus, OrderStatus | null> = {
   new: 'processing',
@@ -50,12 +45,11 @@ const nextStatus: Record<OrderStatus, OrderStatus | null> = {
 }
 
 function statusOf(order: AkulakuOrder) {
-  return statusMeta[order.status] ?? statusMeta.new
+  return orderStatusMeta[order.status] ?? orderStatusMeta.new
 }
 
 async function load() {
   loading.value = true
-  error.value = ''
   try {
     const response = await listOrders({
       page: page.value,
@@ -66,7 +60,7 @@ async function load() {
     orders.value = response.orders
     total.value = response.total
   } catch (err) {
-    error.value = err instanceof Error ? err.message : 'Gagal memuat pesanan'
+    toast.error(err instanceof Error ? err.message : 'Gagal memuat pesanan')
   } finally {
     loading.value = false
   }
@@ -97,18 +91,20 @@ async function advanceStatus(order: AkulakuOrder) {
   if (!next) return
   try {
     await updateOrderStatus(order.id, next)
+    toast.success('Status pesanan diperbarui.')
     await load()
   } catch (err) {
-    error.value = err instanceof Error ? err.message : 'Gagal update status'
+    toast.error(err instanceof Error ? err.message : 'Gagal memperbarui status')
   }
 }
 
 async function setStatus(order: AkulakuOrder, status: OrderStatus) {
   try {
     await updateOrderStatus(order.id, status)
+    toast.success('Status pesanan diperbarui.')
     await load()
   } catch (err) {
-    error.value = err instanceof Error ? err.message : 'Gagal update status'
+    toast.error(err instanceof Error ? err.message : 'Gagal memperbarui status')
   }
 }
 
@@ -138,13 +134,6 @@ onMounted(load)
               <SelectItem value="cancelled">Dibatalkan</SelectItem>
             </SelectContent>
           </Select>
-        </div>
-
-        <div
-          v-if="error"
-          class="rounded-lg border border-error-500/30 bg-error-50 px-4 py-3 text-sm text-error-600 dark:border-error-500/30 dark:bg-error-500/10 dark:text-error-400"
-        >
-          {{ error }}
         </div>
 
         <div class="overflow-hidden rounded-xl border border-gray-200 bg-white dark:border-white/5 dark:bg-white/3">
@@ -184,7 +173,7 @@ onMounted(load)
                         size="sm"
                         @click="advanceStatus(order)"
                       >
-                        → {{ statusMeta[nextStatus[order.status] as OrderStatus].label }}
+                        → {{ orderStatusMeta[nextStatus[order.status] as OrderStatus].label }}
                       </Button>
                       <Button
                         v-if="order.status !== 'cancelled' && order.status !== 'delivered'"

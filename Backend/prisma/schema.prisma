@@ -87,6 +87,9 @@ model Listing {
   markupValue     Decimal         @db.Decimal(14, 2)
   sellingPrice    Decimal         @db.Decimal(14, 2)
   status          String          @default("draft") @db.VarChar(20) // draft | queued | posted | failed
+  // Kategori marketplace Akulaku (jalur cascader) & spesifikasi khas kategori.
+  categoryPath    String?
+  specs           Json?
   akulakuProductId String?        @db.VarChar(150)
   akulakuUrl      String?
   errorMessage    String?
@@ -257,4 +260,16 @@ model MarkupTier {
   sortOrder   Int      @default(0)
   createdAt   DateTime @default(now()) @db.Timestamptz
   updatedAt   DateTime @updatedAt @db.Timestamptz
+}
+
+// Biaya iklan (ad spend) untuk perhitungan profit bersih.
+model AdSpend {
+  id        BigInt   @id @default(autoincrement())
+  period    DateTime @db.Date // tanggal biaya iklan
+  amount    Decimal  @db.Decimal(14, 2)
+  note      String?
+  createdAt DateTime @default(now()) @db.Timestamptz
+  updatedAt DateTime @updatedAt @db.Timestamptz
+
+  @@index([period])
 }

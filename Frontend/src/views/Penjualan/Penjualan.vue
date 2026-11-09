@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { computed, onMounted, ref } from 'vue'
+import { useToast } from 'vue-toastification'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import {
@@ -14,8 +15,11 @@ import ComponentCard from '@/components/common/ComponentCard.vue'
 import PageBreadcrumb from '@/components/common/PageBreadcrumb.vue'
 import AdminLayout from '@/components/layout/AdminLayout.vue'
 import { getDashboardRecap, getDashboardSummary, type DashboardSummary, type RecapEntry } from '@/services/dashboard'
-import { listOrders, type AkulakuOrder, type OrderStatus } from '@/services/akulakuOrders'
+import { listOrders, type AkulakuOrder } from '@/services/akulakuOrders'
 import { formatRupiah } from '@/services/products'
+import { orderStatusMeta } from '@/utils/labels'
+
+const toast = useToast()
 
 const summary = ref<DashboardSummary | null>(null)
 const recap = ref<RecapEntry[]>([])
@@ -25,26 +29,16 @@ const page = ref(1)
 const limit = 20
 const recapDays = ref(14)
 const loading = ref(false)
-const error = ref('')
 
 const totalPages = computed(() => Math.max(1, Math.ceil(total.value / limit)))
 const maxRevenue = computed(() => Math.max(1, ...recap.value.map((r) => r.revenue)))
 
-const statusMeta: Record<OrderStatus, { label: string; color: 'info' | 'warning' | 'primary' | 'success' | 'error' }> = {
-  new: { label: 'Baru', color: 'info' },
-  processing: { label: 'Diproses', color: 'warning' },
-  shipped: { label: 'Dikirim', color: 'primary' },
-  delivered: { label: 'Selesai', color: 'success' },
-  cancelled: { label: 'Dibatalkan', color: 'error' },
-}
-
 function statusOf(status: string) {
-  return statusMeta[status as OrderStatus] ?? statusMeta.new
+  return orderStatusMeta[status] ?? orderStatusMeta.new
 }
 
 async function load() {
   loading.value = true
-  error.value = ''
   try {
     const [sum, rec, orderRes] = await Promise.all([
       getDashboardSummary(),
@@ -56,7 +50,7 @@ async function load() {
     orders.value = orderRes.orders
     total.value = orderRes.total
   } catch (err) {
-    error.value = err instanceof Error ? err.message : 'Gagal memuat data penjualan'
+    toast.error(err instanceof Error ? err.message : 'Gagal memuat data penjualan')
   } finally {
     loading.value = false
   }
@@ -106,6 +100,13 @@ onMounted(load)
             </p>
           </div>
           <div class="rounded-2xl border border-gray-200 bg-white p-5 dark:border-gray-800 dark:bg-white/3">
+            <p class="text-sm text-gray-500 dark:text-gray-400">Profit Bersih</p>
+            <p class="mt-2 text-2xl font-semibold text-success-600 dark:text-success-400">
+              {{ formatRupiah(summary?.profit.total ?? 0) }}
+            </p>
+            <p class="mt-1 text-xs text-gray-400">Modal: {{ formatRupiah(summary?.profit.modal ?? 0) }} · Iklan: {{ formatRupiah(summary?.profit.adSpend ?? 0) }}</p>
+          </div>
+          <div class="rounded-2xl border border-gray-200 bg-white p-5 dark:border-gray-800 dark:bg-white/3">
             <p class="text-sm text-gray-500 dark:text-gray-400">Total Pesanan</p>
             <p class="mt-2 text-2xl font-semibold text-gray-800 dark:text-white/90">
               {{ summary?.orders.total ?? 0 }}
@@ -123,7 +124,7 @@ onMounted(load)
           </div>
         </div>
 
-        <ComponentCard title="Rekap Omzet" desc="Omzet & jumlah pesanan Akulaku per hari.">
+        <ComponentCard title="Rekap Omzet & Profit" desc="Omzet, modal, biaya iklan & profit Akulaku per hari.">
           <div class="flex items-center justify-end gap-2">
             <Select :model-value="String(recapDays)" @update:model-value="(v) => { recapDays = Number(v); loadRecap() }">
               <SelectTrigger class="w-36">
@@ -137,17 +138,27 @@ onMounted(load)
             </Select>
           </div>
 
+          <div class="mb-3 flex flex-wrap gap-4 text-xs text-gray-500 dark:text-gray-400">
+            <span class="flex items-center gap-1.5"><span class="inline-block h-2.5 w-2.5 rounded-sm bg-brand-500/80" /> Omzet</span>
+            <span class="flex items-center gap-1.5"><span class="inline-block h-2.5 w-2.5 rounded-sm bg-success-500/80" /> Profit</span>
+          </div>
           <div class="flex h-52 items-end gap-1.5 overflow-x-auto">
             <div
               v-for="entry in recap"
               :key="entry.date"
               class="group flex min-w-8 flex-1 flex-col items-center justify-end gap-1"
-              :title="`${formatShortDate(entry.date)}: ${formatRupiah(entry.revenue)} (${entry.orders} pesanan)`"
+              :title="`${formatShortDate(entry.date)}\nOmzet: ${formatRupiah(entry.revenue)}\nModal: ${formatRupiah(entry.modal)}\nIklan: ${formatRupiah(entry.adSpend)}\nProfit: ${formatRupiah(entry.profit)}\n(${entry.orders} pesanan)`"
             >
-              <div
-                class="w-full rounded-t bg-brand-500/80 transition-all group-hover:bg-brand-500"
-                :style="{ height: Math.max(2, (entry.revenue / maxRevenue) * 180) + 'px' }"
-              />
+              <div class="flex w-full items-end justify-center gap-0.5">
+                <div
+                  class="w-1/2 rounded-t bg-brand-500/80 transition-all group-hover:bg-brand-500"
+                  :style="{ height: Math.max(2, (entry.revenue / maxRevenue) * 180) + 'px' }"
+                />
+                <div
+                  class="w-1/2 rounded-t bg-success-500/80 transition-all group-hover:bg-success-500"
+                  :style="{ height: Math.max(2, (Math.max(0, entry.profit) / maxRevenue) * 180) + 'px' }"
+                />
+              </div>
               <span class="text-[10px] text-gray-400">{{ formatShortDate(entry.date) }}</span>
             </div>
           </div>
@@ -156,15 +167,8 @@ onMounted(load)
         <ComponentCard title="Pesanan Akulaku" desc="Transaksi yang masuk dari marketplace Akulaku.">
           <div class="flex justify-end">
             <Button variant="outline" size="sm" :disabled="loading" @click="load">
-              {{ loading ? 'Memuat...' : 'Refresh' }}
+              {{ loading ? 'Memuat...' : 'Muat Ulang' }}
             </Button>
-          </div>
-
-          <div
-            v-if="error"
-            class="rounded-lg border border-error-500/30 bg-error-50 px-4 py-3 text-sm text-error-600 dark:border-error-500/30 dark:bg-error-500/10 dark:text-error-400"
-          >
-            {{ error }}
           </div>
 
           <div class="overflow-hidden rounded-xl border border-gray-200 bg-white dark:border-white/5 dark:bg-white/3">

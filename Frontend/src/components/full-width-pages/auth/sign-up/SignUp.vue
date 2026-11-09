@@ -15,7 +15,7 @@ import SocialButtons from './SocialButton.vue'
         class="inline-flex items-center text-sm text-gray-500 transition-colors hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-300"
       >
         <ChevronLeftIcon class="rtl:rotate-180" />
-        Back to dashboard
+        Kembali ke dashboard
       </RouterLink>
     </div>
 
@@ -32,12 +32,12 @@ import SocialButtons from './SocialButton.vue'
             <p
               class="text-center text-sm font-normal text-gray-700 sm:text-start dark:text-gray-400"
             >
-              Already have an account?
+              Sudah punya akun?
               <RouterLink
                 to="/signin"
                 class="text-brand-500 hover:text-brand-600 dark:text-brand-400"
               >
-                Sign In
+                Masuk
               </RouterLink>
             </p>
           </div>

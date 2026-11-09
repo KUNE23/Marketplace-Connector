@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { onMounted, ref } from 'vue'
+import { useToast } from 'vue-toastification'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -10,15 +11,14 @@ import AdminLayout from '@/components/layout/AdminLayout.vue'
 import { listMarkupTiers, saveMarkupTiers, type MarkupTierInput } from '@/services/markupTiers'
 import { formatRupiah } from '@/services/products'
 
+const toast = useToast()
+
 const tiers = ref<MarkupTierInput[]>([])
 const loading = ref(false)
 const saving = ref(false)
-const error = ref('')
-const notice = ref('')
 
 async function load() {
   loading.value = true
-  error.value = ''
   try {
     const res = await listMarkupTiers()
     tiers.value = res.tiers.map((t) => ({
@@ -31,7 +31,7 @@ async function load() {
       sortOrder: t.sortOrder,
     }))
   } catch (err) {
-    error.value = err instanceof Error ? err.message : 'Gagal memuat tier'
+    toast.error(err instanceof Error ? err.message : 'Gagal memuat tier')
   } finally {
     loading.value = false
   }
@@ -59,8 +59,6 @@ function cleanNumber(value: string) {
 
 async function save() {
   saving.value = true
-  error.value = ''
-  notice.value = ''
   try {
     const payload = tiers.value
       .map((t, i) => ({
@@ -74,10 +72,10 @@ async function save() {
       }))
       .sort((a, b) => Number(a.minPrice) - Number(b.minPrice))
     await saveMarkupTiers(payload)
-    notice.value = 'Tier markup disimpan.'
+    toast.success('Aturan markup disimpan.')
     await load()
   } catch (err) {
-    error.value = err instanceof Error ? err.message : 'Gagal menyimpan'
+    toast.error(err instanceof Error ? err.message : 'Gagal menyimpan')
   } finally {
     saving.value = false
   }
@@ -96,23 +94,10 @@ onMounted(load)
       >
         <div class="flex flex-wrap items-center justify-between gap-2">
           <div class="flex gap-2">
-            <Button variant="outline" size="sm" :disabled="loading" @click="load">Refresh</Button>
+            <Button variant="outline" size="sm" :disabled="loading" @click="load">Muat Ulang</Button>
             <Button size="sm" @click="addTier">+ Tambah Tier</Button>
           </div>
           <Button size="sm" :disabled="saving" @click="save">{{ saving ? 'Menyimpan...' : 'Simpan' }}</Button>
-        </div>
-
-        <div
-          v-if="notice"
-          class="rounded-lg border border-success-500/30 bg-success-50 px-4 py-3 text-sm text-success-600 dark:bg-success-500/10 dark:text-success-400"
-        >
-          {{ notice }}
-        </div>
-        <div
-          v-if="error"
-          class="rounded-lg border border-error-500/30 bg-error-50 px-4 py-3 text-sm text-error-600 dark:border-error-500/30 dark:bg-error-500/10 dark:text-error-400"
-        >
-          {{ error }}
         </div>
 
         <div class="overflow-hidden rounded-xl border border-gray-200 bg-white dark:border-white/5 dark:bg-white/3">

@@ -24,7 +24,7 @@ defineEmits<{ selectProvider: [providerId: string] }>()
       @click="$emit('selectProvider', provider.id)"
     >
       <component :is="provider.icon" :class="provider.iconClass" />
-      Sign in with {{ provider.name }}
+      Masuk dengan {{ provider.name }}
     </button>
   </div>
 </template>

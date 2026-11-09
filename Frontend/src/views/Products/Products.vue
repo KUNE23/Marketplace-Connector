@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { computed, onMounted, ref } from 'vue'
+import { useToast } from 'vue-toastification'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import {
@@ -25,6 +26,8 @@ import {
 
 const MAX_LIMIT = 100
 
+const toast = useToast()
+
 const products = ref<Product[]>([])
 const total = ref(0)
 const page = ref(1)
@@ -32,8 +35,6 @@ const limit = ref(20)
 const search = ref('')
 const hasListingFilter = ref<'all' | 'true' | 'false'>('all')
 const loading = ref(false)
-const error = ref('')
-const notice = ref('')
 
 const scrapeStats = ref<ScrapeStats | null>(null)
 
@@ -53,7 +54,6 @@ const progressPercent = computed(() => {
 
 async function load() {
   loading.value = true
-  error.value = ''
   try {
     const response = await listProducts({
       page: page.value,
@@ -64,7 +64,7 @@ async function load() {
     products.value = response.products
     total.value = response.total
   } catch (err) {
-    error.value = err instanceof Error ? err.message : 'Gagal memuat products'
+    toast.error(err instanceof Error ? err.message : 'Gagal memuat produk')
   } finally {
     loading.value = false
   }
@@ -117,15 +117,13 @@ async function runImport() {
   if (importing.value) return
   importing.value = true
   stopRequested.value = false
-  error.value = ''
-  notice.value = ''
   resetProgress()
 
   try {
     // loop batch sampai selesai atau dihentikan
     for (;;) {
       if (stopRequested.value) {
-        notice.value = 'Import dihentikan. Klik "Lanjutkan Import" untuk meneruskan.'
+        toast.info('Import dihentikan. Klik "Lanjutkan Import" untuk meneruskan.')
         break
       }
       const result = await importBatch(importBatchSize.value)
@@ -136,7 +134,7 @@ async function runImport() {
       scrapeStats.value = (await getScrapeStats()) ?? scrapeStats.value
 
       if (result.done) {
-        notice.value = 'Import selesai semua produk dari data scraping.'
+        toast.success('Import selesai: semua produk dari data scraping sudah diproses.')
         break
       }
     }
@@ -144,7 +142,7 @@ async function runImport() {
     await load()
     await loadStats()
   } catch (err) {
-    error.value = err instanceof Error ? err.message : 'Gagal import'
+    toast.error(err instanceof Error ? err.message : 'Gagal mengimpor')
   } finally {
     importing.value = false
   }
@@ -160,10 +158,10 @@ async function restartImport() {
   try {
     await resetImport()
     resetProgress()
-    notice.value = 'Progres import direset. Klik Mulai Import untuk mengulang dari awal.'
+    toast.success('Progres import direset. Klik Mulai Import untuk mengulang dari awal.')
     await loadStats()
   } catch (err) {
-    error.value = err instanceof Error ? err.message : 'Gagal reset'
+    toast.error(err instanceof Error ? err.message : 'Gagal mereset')
   }
 }
 
@@ -264,21 +262,8 @@ onMounted(() => {
                 <SelectItem value="100">100 / halaman</SelectItem>
               </SelectContent>
             </Select>
-            <Button variant="outline" size="sm" :disabled="loading" @click="load">Refresh</Button>
+            <Button variant="outline" size="sm" :disabled="loading" @click="load">Muat Ulang</Button>
           </div>
-        </div>
-
-        <div
-          v-if="notice"
-          class="rounded-lg border border-success-500/30 bg-success-50 px-4 py-3 text-sm text-success-600 dark:bg-success-500/10 dark:text-success-400"
-        >
-          {{ notice }}
-        </div>
-        <div
-          v-if="error"
-          class="rounded-lg border border-error-500/30 bg-error-50 px-4 py-3 text-sm text-error-600 dark:border-error-500/30 dark:bg-error-500/10 dark:text-error-400"
-        >
-          {{ error }}
         </div>
 
         <div class="overflow-hidden rounded-xl border border-gray-200 bg-white dark:border-white/5 dark:bg-white/3">

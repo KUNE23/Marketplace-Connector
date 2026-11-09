@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { computed, onMounted, ref } from 'vue'
 import { RouterLink } from 'vue-router'
+import { useToast } from 'vue-toastification'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import ComponentCard from '@/components/common/ComponentCard.vue'
@@ -15,26 +16,19 @@ import {
   type RecentOrder,
 } from '@/services/dashboard'
 import { formatRupiah } from '@/services/products'
+import { orderStatusMeta } from '@/utils/labels'
+
+const toast = useToast()
 
 const summary = ref<DashboardSummary | null>(null)
 const recap = ref<RecapEntry[]>([])
 const recent = ref<RecentOrder[]>([])
 const loading = ref(false)
-const error = ref('')
 
 const maxRevenue = computed(() => Math.max(1, ...recap.value.map((r) => r.revenue)))
 
-const statusColor: Record<string, 'info' | 'warning' | 'primary' | 'success' | 'error' | 'gray'> = {
-  new: 'info',
-  processing: 'warning',
-  shipped: 'primary',
-  delivered: 'success',
-  cancelled: 'error',
-}
-
 async function load() {
   loading.value = true
-  error.value = ''
   try {
     const [sum, rec, orders] = await Promise.all([
       getDashboardSummary(),
@@ -45,7 +39,7 @@ async function load() {
     recap.value = rec.recap
     recent.value = orders.orders
   } catch (err) {
-    error.value = err instanceof Error ? err.message : 'Gagal memuat dashboard'
+    toast.error(err instanceof Error ? err.message : 'Gagal memuat dashboard')
   } finally {
     loading.value = false
   }
@@ -67,21 +61,33 @@ onMounted(load)
     <div>
       <PageBreadcrumb pageTitle="Dashboard" />
       <div class="space-y-5 sm:space-y-6">
-        <div
-          v-if="error"
-          class="rounded-lg border border-error-500/30 bg-error-50 px-4 py-3 text-sm text-error-600 dark:border-error-500/30 dark:bg-error-500/10 dark:text-error-400"
-        >
-          {{ error }}
-        </div>
-
         <!-- Kartu utama -->
-        <div class="grid grid-cols-1 gap-5 sm:grid-cols-2 xl:grid-cols-4">
+        <div class="grid grid-cols-1 gap-5 sm:grid-cols-2 xl:grid-cols-3">
           <div class="rounded-2xl border border-gray-200 bg-white p-5 dark:border-gray-800 dark:bg-white/3">
             <p class="text-sm text-gray-500 dark:text-gray-400">Omzet Akulaku</p>
             <p class="mt-2 text-2xl font-semibold text-gray-800 dark:text-white/90">
               {{ formatRupiah(summary?.revenue.total ?? 0) }}
             </p>
             <p class="mt-1 text-xs text-gray-400">Hari ini: {{ formatRupiah(summary?.revenue.today ?? 0) }}</p>
+          </div>
+          <div class="rounded-2xl border border-gray-200 bg-white p-5 dark:border-gray-800 dark:bg-white/3">
+            <p class="text-sm text-gray-500 dark:text-gray-400">Profit Bersih</p>
+            <p class="mt-2 text-2xl font-semibold text-success-600 dark:text-success-400">
+              {{ formatRupiah(summary?.profit.total ?? 0) }}
+            </p>
+            <p class="mt-1 text-xs text-gray-400">
+              Hari ini: {{ formatRupiah(summary?.profit.today ?? 0) }} · Modal: {{ formatRupiah(summary?.profit.modal ?? 0) }}
+            </p>
+            <p v-if="(summary?.profit.unmatchedItems ?? 0) > 0" class="mt-1 text-xs text-warning-600 dark:text-warning-400">
+              Perhatian: {{ summary?.profit.unmatchedItems }} item tanpa modal (profit bisa lebih tinggi dari sebenarnya).
+            </p>
+          </div>
+          <div class="rounded-2xl border border-gray-200 bg-white p-5 dark:border-gray-800 dark:bg-white/3">
+            <p class="text-sm text-gray-500 dark:text-gray-400">Biaya Iklan</p>
+            <p class="mt-2 text-2xl font-semibold text-gray-800 dark:text-white/90">
+              {{ formatRupiah(summary?.profit.adSpend ?? 0) }}
+            </p>
+            <p class="mt-1 text-xs text-gray-400">Total tercatat · kelola di menu Iklan</p>
           </div>
           <div class="rounded-2xl border border-gray-200 bg-white p-5 dark:border-gray-800 dark:bg-white/3">
             <p class="text-sm text-gray-500 dark:text-gray-400">Pesanan</p>
@@ -127,19 +133,29 @@ onMounted(load)
           </ComponentCard>
         </div>
 
-        <!-- Rekap omzet -->
-        <ComponentCard title="Omzet 14 Hari" desc="Omzet Akulaku per hari.">
+        <!-- Rekap omzet & profit -->
+        <ComponentCard title="Omzet & Profit 14 Hari" desc="Batang terang = omzet, batang hijau = profit bersih.">
+          <div class="mb-3 flex flex-wrap gap-4 text-xs text-gray-500 dark:text-gray-400">
+            <span class="flex items-center gap-1.5"><span class="inline-block h-2.5 w-2.5 rounded-sm bg-brand-500/80" /> Omzet</span>
+            <span class="flex items-center gap-1.5"><span class="inline-block h-2.5 w-2.5 rounded-sm bg-success-500/80" /> Profit</span>
+          </div>
           <div class="flex h-52 items-end gap-1.5 overflow-x-auto">
             <div
               v-for="entry in recap"
               :key="entry.date"
               class="group flex min-w-8 flex-1 flex-col items-center justify-end gap-1"
-              :title="`${formatShortDate(entry.date)}: ${formatRupiah(entry.revenue)} (${entry.orders} pesanan)`"
+              :title="`${formatShortDate(entry.date)}\nOmzet: ${formatRupiah(entry.revenue)}\nModal: ${formatRupiah(entry.modal)}\nIklan: ${formatRupiah(entry.adSpend)}\nProfit: ${formatRupiah(entry.profit)}\n(${entry.orders} pesanan)`"
             >
-              <div
-                class="w-full rounded-t bg-brand-500/80 transition-all group-hover:bg-brand-500"
-                :style="{ height: Math.max(2, (entry.revenue / maxRevenue) * 180) + 'px' }"
-              />
+              <div class="flex w-full items-end justify-center gap-0.5">
+                <div
+                  class="w-1/2 rounded-t bg-brand-500/80 transition-all group-hover:bg-brand-500"
+                  :style="{ height: Math.max(2, (entry.revenue / maxRevenue) * 180) + 'px' }"
+                />
+                <div
+                  class="w-1/2 rounded-t bg-success-500/80 transition-all group-hover:bg-success-500"
+                  :style="{ height: Math.max(2, (Math.max(0, entry.profit) / maxRevenue) * 180) + 'px' }"
+                />
+              </div>
               <span class="text-[10px] text-gray-400">{{ formatShortDate(entry.date) }}</span>
             </div>
           </div>
@@ -165,7 +181,7 @@ onMounted(load)
                 <p class="text-xs text-gray-400">{{ order.buyerName ?? '-' }} · {{ order.accountLabel ?? '-' }}</p>
               </div>
               <div class="flex shrink-0 items-center gap-3">
-                <Badge size="sm" :color="statusColor[order.status] ?? 'gray'">{{ order.status }}</Badge>
+                <Badge size="sm" :color="orderStatusMeta[order.status]?.color ?? 'gray'">{{ orderStatusMeta[order.status]?.label ?? order.status }}</Badge>
                 <span class="text-sm font-medium text-gray-800 dark:text-white/90">{{ formatRupiah(order.totalAmt) }}</span>
               </div>
             </div>

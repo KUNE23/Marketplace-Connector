@@ -25,6 +25,7 @@ app.use('/api/listings', require('./src/routes/listings'));
 app.use('/api/markup-tiers', require('./src/routes/markupTiers'));
 app.use('/api/akulaku-orders', require('./src/routes/akulakuOrders'));
 app.use('/api/jobs', require('./src/routes/jobs'));
+app.use('/api/ad-spends', require('./src/routes/adSpends'));
 app.use('/api/dashboard', require('./src/routes/dashboard'));
 
 app.use(errorHandler);

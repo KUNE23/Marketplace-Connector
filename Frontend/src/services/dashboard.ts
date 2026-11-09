@@ -14,6 +14,14 @@ export interface DashboardSummary {
     cancelled: number
   }
   revenue: { total: string; today: string }
+  profit: {
+    total: string
+    today: string
+    modal: string
+    adSpend: string
+    matchedItems: number
+    unmatchedItems: number
+  }
   jobs: { pending: number; failed: number }
 }
 
@@ -21,6 +29,9 @@ export interface RecapEntry {
   date: string
   orders: number
   revenue: number
+  modal: number
+  adSpend: number
+  profit: number
 }
 
 export interface RecentOrder {

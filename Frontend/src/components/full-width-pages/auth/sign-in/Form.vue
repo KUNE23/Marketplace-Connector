@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { ref } from 'vue'
 import { RouterLink, useRouter } from 'vue-router'
+import { useToast } from 'vue-toastification'
 import { Button } from '@/components/ui/button'
 import { Checkbox } from '@/components/ui/checkbox'
 import { Field, FieldError, FieldLabel } from '@/components/ui/field'
@@ -16,8 +17,8 @@ import { EyeCloseIcon, EyeIcon } from '@/icons/layout'
 import { login } from '@/services/auth'
 import { validateSignIn, type SignInFormData } from './schema'
 
+const toast = useToast()
 const showPassword = ref(false)
-const serverError = ref('')
 const router = useRouter()
 
 const { values, errorOf, touch, handleSubmit, isSubmitting } = useFormValidation<SignInFormData>(
@@ -26,12 +27,12 @@ const { values, errorOf, touch, handleSubmit, isSubmitting } = useFormValidation
 )
 
 const onSubmit = handleSubmit(async (data) => {
-  serverError.value = ''
   try {
     await login(data.email.trim(), data.password, Boolean(data.keepLoggedIn))
+    toast.success('Berhasil masuk.')
     await router.push('/')
   } catch (error) {
-    serverError.value = error instanceof Error ? error.message : 'Failed to sign in'
+    toast.error(error instanceof Error ? error.message : 'Gagal masuk')
   }
 })
 </script>
@@ -51,19 +52,19 @@ const onSubmit = handleSubmit(async (data) => {
     </Field>
 
     <Field :data-invalid="Boolean(errorOf('password'))">
-      <FieldLabel class="mb-1.5 block"> Password <span class="text-red-500">*</span> </FieldLabel>
+      <FieldLabel class="mb-1.5 block"> Kata Sandi <span class="text-red-500">*</span> </FieldLabel>
       <InputGroup>
         <InputGroupInput
           v-model="values.password"
           :type="showPassword ? 'text' : 'password'"
-          placeholder="Enter your password"
+          placeholder="Masukkan kata sandi"
           :aria-invalid="errorOf('password') ? 'true' : undefined"
           @blur="touch('password')"
         />
         <InputGroupAddon align="inline-end">
           <InputGroupButton
             size="icon-xs"
-            :aria-label="showPassword ? 'Hide password' : 'Show password'"
+            :aria-label="showPassword ? 'Sembunyikan kata sandi' : 'Tampilkan kata sandi'"
             class="text-gray-500 dark:text-gray-400"
             @click="showPassword = !showPassword"
           >
@@ -86,27 +87,20 @@ const onSubmit = handleSubmit(async (data) => {
           for="keep-logged-in"
           class="text-theme-sm block cursor-pointer font-normal text-gray-700 dark:text-gray-400"
         >
-          Keep me logged in
+          Tetap masuk
         </FieldLabel>
       </Field>
       <RouterLink
         to="/reset-password"
         class="text-sm text-brand-500 hover:text-brand-600 dark:text-brand-400"
       >
-        Forgot password?
+        Lupa kata sandi?
       </RouterLink>
-    </div>
-
-    <div
-      v-if="serverError"
-      class="rounded-lg border border-error-500/30 bg-error-50 px-4 py-3 text-sm text-error-600 dark:border-error-500/30 dark:bg-error-500/10 dark:text-error-400"
-    >
-      {{ serverError }}
     </div>
 
     <div>
       <Button class="w-full" size="lg" type="submit" :disabled="isSubmitting">
-        {{ isSubmitting ? 'Signing In...' : 'Sign In' }}
+        {{ isSubmitting ? 'Memproses...' : 'Masuk' }}
       </Button>
     </div>
   </form>

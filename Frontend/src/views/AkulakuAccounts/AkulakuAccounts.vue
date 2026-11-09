@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { computed, onMounted, ref } from 'vue'
+import { useToast } from 'vue-toastification'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import {
@@ -31,6 +32,9 @@ import {
   updateAkulakuAccount,
   type AkulakuAccount,
 } from '@/services/akulakuAccounts'
+import { accountStatusMeta, accountStatusLabel } from '@/utils/labels'
+
+const toast = useToast()
 
 const accounts = ref<AkulakuAccount[]>([])
 const total = ref(0)
@@ -38,12 +42,10 @@ const page = ref(1)
 const limit = 10
 const search = ref('')
 const loading = ref(false)
-const error = ref('')
 
 const isDialogOpen = ref(false)
 const editingId = ref<string | null>(null)
 const form = ref({ label: '', username: '', password: '', status: 'active', note: '' })
-const formError = ref('')
 const saving = ref(false)
 
 const totalPages = computed(() => Math.max(1, Math.ceil(total.value / limit)))
@@ -51,7 +53,6 @@ const dialogTitle = computed(() => (editingId.value ? 'Edit Akun Akulaku' : 'Tam
 
 async function load() {
   loading.value = true
-  error.value = ''
   try {
     const response = await listAkulakuAccounts({
       page: page.value,
@@ -61,7 +62,7 @@ async function load() {
     accounts.value = response.accounts
     total.value = response.total
   } catch (err) {
-    error.value = err instanceof Error ? err.message : 'Gagal memuat akun Akulaku'
+    toast.error(err instanceof Error ? err.message : 'Gagal memuat akun Akulaku')
   } finally {
     loading.value = false
   }
@@ -81,7 +82,6 @@ function goToPage(next: number) {
 function openCreate() {
   editingId.value = null
   form.value = { label: '', username: '', password: '', status: 'active', note: '' }
-  formError.value = ''
   isDialogOpen.value = true
 }
 
@@ -94,15 +94,13 @@ function openEdit(account: AkulakuAccount) {
     status: account.status,
     note: account.note ?? '',
   }
-  formError.value = ''
   isDialogOpen.value = true
 }
 
 async function submitForm() {
-  formError.value = ''
-  if (!form.value.label.trim()) return (formError.value = 'Label wajib diisi')
-  if (!form.value.username.trim()) return (formError.value = 'Username wajib diisi')
-  if (!editingId.value && !form.value.password) return (formError.value = 'Password wajib diisi')
+  if (!form.value.label.trim()) return toast.warning('Label wajib diisi')
+  if (!form.value.username.trim()) return toast.warning('Username wajib diisi')
+  if (!editingId.value && !form.value.password) return toast.warning('Password wajib diisi')
 
   saving.value = true
   try {
@@ -119,9 +117,10 @@ async function submitForm() {
       await createAkulakuAccount(payload)
     }
     isDialogOpen.value = false
+    toast.success(editingId.value ? 'Akun Akulaku diperbarui.' : 'Akun Akulaku ditambahkan.')
     await load()
   } catch (err) {
-    formError.value = err instanceof Error ? err.message : 'Gagal menyimpan akun'
+    toast.error(err instanceof Error ? err.message : 'Gagal menyimpan akun')
   } finally {
     saving.value = false
   }
@@ -131,9 +130,10 @@ async function removeAccount(account: AkulakuAccount) {
   if (!window.confirm(`Hapus akun "${account.label}"?`)) return
   try {
     await deleteAkulakuAccount(account.id)
+    toast.success('Akun Akulaku dihapus.')
     await load()
   } catch (err) {
-    error.value = err instanceof Error ? err.message : 'Gagal menghapus akun'
+    toast.error(err instanceof Error ? err.message : 'Gagal menghapus akun')
   }
 }
 
@@ -151,13 +151,6 @@ onMounted(load)
             <Button type="submit" size="sm">Cari</Button>
           </form>
           <Button size="sm" @click="openCreate">+ Tambah Akun</Button>
-        </div>
-
-        <div
-          v-if="error"
-          class="rounded-lg border border-error-500/30 bg-error-50 px-4 py-3 text-sm text-error-600 dark:border-error-500/30 dark:bg-error-500/10 dark:text-error-400"
-        >
-          {{ error }}
         </div>
 
         <div class="overflow-hidden rounded-xl border border-gray-200 bg-white dark:border-white/5 dark:bg-white/3">
@@ -184,8 +177,8 @@ onMounted(load)
                   <TableCell class="px-5 py-4 text-start text-sm text-gray-500 sm:px-6 dark:text-gray-400">{{ account.username }}</TableCell>
                   <TableCell class="px-5 py-4 text-start text-sm text-gray-500 sm:px-6 dark:text-gray-400">{{ account.listingCount }}</TableCell>
                   <TableCell class="px-5 py-4 text-start text-sm sm:px-6">
-                    <Badge size="sm" :color="account.status === 'active' ? 'success' : 'gray'">
-                      {{ account.status }}
+                    <Badge size="sm" :color="accountStatusMeta[account.status]?.color ?? 'gray'">
+                      {{ accountStatusLabel(account.status) }}
                     </Badge>
                   </TableCell>
                   <TableCell class="px-5 py-4 text-start text-sm sm:px-6">
@@ -245,8 +238,8 @@ onMounted(load)
                   <SelectValue placeholder="Pilih status" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="active">Active</SelectItem>
-                  <SelectItem value="inactive">Inactive</SelectItem>
+                  <SelectItem value="active">Aktif</SelectItem>
+                  <SelectItem value="inactive">Nonaktif</SelectItem>
                 </SelectContent>
               </Select>
             </Field>
@@ -255,13 +248,6 @@ onMounted(load)
               <FieldLabel>Catatan (opsional)</FieldLabel>
               <Input v-model="form.note" type="text" placeholder="Catatan internal" />
             </Field>
-
-            <div
-              v-if="formError"
-              class="rounded-lg border border-error-500/30 bg-error-50 px-4 py-3 text-sm text-error-600 dark:border-error-500/30 dark:bg-error-500/10 dark:text-error-400"
-            >
-              {{ formError }}
-            </div>
 
             <DialogFooter class="mx-0 mb-0 gap-3 p-0 pt-2 sm:justify-end">
               <DialogClose as-child>

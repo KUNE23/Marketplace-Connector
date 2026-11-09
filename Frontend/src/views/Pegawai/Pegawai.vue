@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { computed, onMounted, ref } from 'vue'
+import { useToast } from 'vue-toastification'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import {
@@ -33,33 +34,32 @@ import {
   type UserRole,
 } from '@/services/users'
 
+const toast = useToast()
+
 const users = ref<User[]>([])
 const total = ref(0)
 const page = ref(1)
 const limit = 20
 const search = ref('')
 const loading = ref(false)
-const error = ref('')
-const notice = ref('')
 
 const isDialogOpen = ref(false)
 const editingId = ref<string | null>(null)
 const form = ref({ name: '', email: '', password: '', role: 'EMPLOYEE' as UserRole | string, active: true })
-const formError = ref('')
 const saving = ref(false)
 
 const totalPages = computed(() => Math.max(1, Math.ceil(total.value / limit)))
 const dialogTitle = computed(() => (editingId.value ? 'Edit Pegawai' : 'Tambah Pegawai'))
+const roleLabel = (role: string) => (role === 'ADMIN' ? 'Admin' : 'Pegawai')
 
 async function load() {
   loading.value = true
-  error.value = ''
   try {
     const response = await listUsers({ page: page.value, limit, search: search.value.trim() })
     users.value = response.users
     total.value = response.total
   } catch (err) {
-    error.value = err instanceof Error ? err.message : 'Gagal memuat pegawai'
+    toast.error(err instanceof Error ? err.message : 'Gagal memuat pegawai')
   } finally {
     loading.value = false
   }
@@ -79,7 +79,6 @@ function goToPage(next: number) {
 function openCreate() {
   editingId.value = null
   form.value = { name: '', email: '', password: '', role: 'EMPLOYEE', active: true }
-  formError.value = ''
   isDialogOpen.value = true
 }
 
@@ -92,16 +91,14 @@ function openEdit(user: User) {
     role: user.role,
     active: user.active,
   }
-  formError.value = ''
   isDialogOpen.value = true
 }
 
 async function submitForm() {
-  formError.value = ''
-  if (!form.value.email.trim()) return (formError.value = 'Email wajib diisi')
-  if (!editingId.value && !form.value.password) return (formError.value = 'Password wajib diisi')
+  if (!form.value.email.trim()) return toast.warning('Email wajib diisi')
+  if (!editingId.value && !form.value.password) return toast.warning('Password wajib diisi')
   if (form.value.password && form.value.password.length < 6) {
-    return (formError.value = 'Password minimal 6 karakter')
+    return toast.warning('Password minimal 6 karakter')
   }
 
   saving.value = true
@@ -119,10 +116,10 @@ async function submitForm() {
       await createUser(payload as { email: string; password: string })
     }
     isDialogOpen.value = false
-    notice.value = editingId.value ? 'Pegawai diperbarui.' : 'Pegawai ditambahkan.'
+    toast.success(editingId.value ? 'Pegawai diperbarui.' : 'Pegawai ditambahkan.')
     await load()
   } catch (err) {
-    formError.value = err instanceof Error ? err.message : 'Gagal menyimpan pegawai'
+    toast.error(err instanceof Error ? err.message : 'Gagal menyimpan pegawai')
   } finally {
     saving.value = false
   }
@@ -132,10 +129,10 @@ async function removeUser(user: User) {
   if (!window.confirm(`Hapus pegawai "${user.name ?? user.email}"?`)) return
   try {
     await deleteUser(user.id)
-    notice.value = 'Pegawai dihapus.'
+    toast.success('Pegawai dihapus.')
     await load()
   } catch (err) {
-    error.value = err instanceof Error ? err.message : 'Gagal menghapus pegawai'
+    toast.error(err instanceof Error ? err.message : 'Gagal menghapus pegawai')
   }
 }
 
@@ -153,22 +150,9 @@ onMounted(load)
             <Button type="submit" size="sm">Cari</Button>
           </form>
           <div class="flex items-center gap-2">
-            <Button variant="outline" size="sm" :disabled="loading" @click="load">Refresh</Button>
+            <Button variant="outline" size="sm" :disabled="loading" @click="load">Muat Ulang</Button>
             <Button size="sm" @click="openCreate">+ Tambah Pegawai</Button>
           </div>
-        </div>
-
-        <div
-          v-if="notice"
-          class="rounded-lg border border-success-500/30 bg-success-50 px-4 py-3 text-sm text-success-600 dark:bg-success-500/10 dark:text-success-400"
-        >
-          {{ notice }}
-        </div>
-        <div
-          v-if="error"
-          class="rounded-lg border border-error-500/30 bg-error-50 px-4 py-3 text-sm text-error-600 dark:border-error-500/30 dark:bg-error-500/10 dark:text-error-400"
-        >
-          {{ error }}
         </div>
 
         <div class="overflow-hidden rounded-xl border border-gray-200 bg-white dark:border-white/5 dark:bg-white/3">
@@ -194,7 +178,7 @@ onMounted(load)
                   <TableCell class="px-5 py-4 text-start text-sm text-gray-800 sm:px-6 dark:text-white/90">{{ user.name ?? '-' }}</TableCell>
                   <TableCell class="px-5 py-4 text-start text-sm text-gray-500 sm:px-6 dark:text-gray-400">{{ user.email }}</TableCell>
                   <TableCell class="px-5 py-4 text-start text-sm sm:px-6">
-                    <Badge size="sm" :color="user.role === 'ADMIN' ? 'primary' : 'gray'">{{ user.role }}</Badge>
+                    <Badge size="sm" :color="user.role === 'ADMIN' ? 'primary' : 'gray'">{{ roleLabel(user.role) }}</Badge>
                   </TableCell>
                   <TableCell class="px-5 py-4 text-start text-sm sm:px-6">
                     <Badge size="sm" :color="user.active ? 'success' : 'error'">{{ user.active ? 'Aktif' : 'Nonaktif' }}</Badge>
@@ -277,13 +261,6 @@ onMounted(load)
                   </SelectContent>
                 </Select>
               </Field>
-            </div>
-
-            <div
-              v-if="formError"
-              class="rounded-lg border border-error-500/30 bg-error-50 px-4 py-3 text-sm text-error-600 dark:border-error-500/30 dark:bg-error-500/10 dark:text-error-400"
-            >
-              {{ formError }}
             </div>
 
             <DialogFooter class="mx-0 mb-0 gap-3 p-0 pt-2 sm:justify-end">

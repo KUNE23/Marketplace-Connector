@@ -25,7 +25,7 @@ src/
 ├── icons/                        # SVG icons as Vue SFCs (icons/layout is the set used by the components)
 ├── router/
 │   └── index.ts                  # Vue Router 4 route definitions
-├── utils/                        # cn (clsx + tailwind-merge), get-initials, useVModel, focusOnOpen
+├── utils/                        # cn (clsx + tailwind-merge), get-initials, useVModel, focusOnOpen, labels (Status Indonesia)
 └── views/
     ├── Auth/                     # Sign in, Sign up
     ├── Charts/                   # LineChart, BarChart
@@ -55,6 +55,7 @@ src/
   - **@fullcalendar/vue3 & fullcalendar**: Event calendar with DayGrid, TimeGrid, MultiMonth, and Interaction plugins.
   - **jsvectormap**: Vector map (customer demographic card).
   - **flatpickr**: Date and time pickers.
+  - **vue-toastification** (v2 `2.0.0-rc.5`): toast notifications for success/error/warning. Registered in `src/main.ts` (`app.use(Toast, {...})`); call `const toast = useToast()` in a view and use `toast.success/error/warning/info`. Inline alert banners are avoided in favour of toasts.
 - **Scripts**:
   - `npm run dev` — starts the development server.
   - `npm run build` — runs type-check then builds the production bundle into `dist/`.
@@ -85,6 +86,8 @@ src/
   - Declare options as `ref<ApexCharts.ApexOptions>({...})` and pass to `<VueApexCharts :options="..." :series="..." />`.
 - **Calendar & Maps**:
   - `@fullcalendar/vue3` and map libraries are browser-only — always initialize inside `onMounted`. Never call them at the module level.
+- **Bahasa & Label Status**:
+  - UI copy uses Bahasa Indonesia. Status label/warna terpusat di `src/utils/labels.ts` (`orderStatusMeta`, `listingStatusMeta`, `jobStatusMeta`, `accountStatusMeta`, `jobTypeLabel`, dst.) — jangan hardcode label bahasa Inggris seperti `Draft`/`Posted`/`Failed`.
 
 ## Layouts & Structure
 

@@ -16,11 +16,18 @@ const { decryptSecret } = require('../utils/crypto');
 
 const prisma = require('../lib/prisma');
 
+// Berdasarkan inspeksi UI asli (Nov 2026):
+//   merchant.akulaku.com -> redirect ke https://ec-vendor.akulaku.com/ec-vendor
+//   Halaman login: /user/login
+//   Email: #login_email | Password: #login_pwd | Submit: button[type="submit"]
+// CATATAN: setelah submit, Akulaku meminta OTP ke nomor HP terdaftar. Karena itu
+// login interaktif cukup SEKALI lewat `npm run akulaku:login` (headed), lalu
+// storage state disimpan dan dipakai ulang oleh otomasi (headless).
 const CONFIG = {
-  baseUrl: process.env.AKULAKU_BASE_URL || 'https://seller.akulaku.com',
-  loginPath: process.env.AKULAKU_LOGIN_PATH || '/login',
-  usernameSelector: process.env.AKULAKU_USERNAME_SELECTOR || 'input[name="username"], input[type="email"]',
-  passwordSelector: process.env.AKULAKU_PASSWORD_SELECTOR || 'input[type="password"]',
+  baseUrl: process.env.AKULAKU_BASE_URL || 'https://ec-vendor.akulaku.com/ec-vendor',
+  loginPath: process.env.AKULAKU_LOGIN_PATH || '/user/login',
+  usernameSelector: process.env.AKULAKU_USERNAME_SELECTOR || '#login_email',
+  passwordSelector: process.env.AKULAKU_PASSWORD_SELECTOR || '#login_pwd',
   submitSelector: process.env.AKULAKU_LOGIN_SUBMIT_SELECTOR || 'button[type="submit"]',
   loggedInSelector: process.env.AKULAKU_LOGGED_IN_SELECTOR || '',
   headless: process.env.AKULAKU_HEADLESS !== 'false',
@@ -80,26 +87,93 @@ async function openLoggedInContext(accountId) {
   const context = await browser.newContext({ storageState: state || undefined });
   const page = await context.newPage();
 
+  let attemptedLogin = false;
   try {
-    await page.goto(`${CONFIG.baseUrl}${CONFIG.loginPath}`, { waitUntil: 'domcontentloaded', timeout: 60000 });
+    // Buka halaman utama dulu. Kalau sesi masih valid, Akulaku tidak
+    // mengarahkan ke halaman login (menghindari race ke /user/login).
+    await page.goto(CONFIG.baseUrl, { waitUntil: 'domcontentloaded', timeout: 60000 });
+    await page.waitForLoadState('networkidle', { timeout: 30000 }).catch(() => {});
 
+    // Deteksi butuh login: URL mengandung path login ATAU field login tampil.
+    const onLoginUrl = page.url().includes(CONFIG.loginPath);
+    const loginFieldCount = await page.locator(CONFIG.passwordSelector).count().catch(() => 0);
     const needLogin = CONFIG.loggedInSelector
       ? (await page.locator(CONFIG.loggedInSelector).count()) === 0
-      : page.url().includes(CONFIG.loginPath);
+      : onLoginUrl || loginFieldCount > 0;
 
     if (needLogin) {
+      // Pastikan berada di halaman login sebelum mengisi form.
+      if (!onLoginUrl) {
+        await page.goto(`${CONFIG.baseUrl}${CONFIG.loginPath}`, { waitUntil: 'domcontentloaded', timeout: 60000 });
+      }
+      await page.waitForSelector(CONFIG.passwordSelector, { state: 'visible', timeout: 30000 });
+      attemptedLogin = true;
       await page.fill(CONFIG.usernameSelector, username);
       await page.fill(CONFIG.passwordSelector, password);
       await page.click(CONFIG.submitSelector);
-      await page.waitForLoadState('networkidle', { timeout: 60000 });
+      await page.waitForLoadState('networkidle', { timeout: 60000 }).catch(() => {});
     }
 
     await saveSessionState(accountId, await context.storageState(), 'valid');
     return { browser, context, page };
   } catch (err) {
     await browser.close();
+    // Hanya tandai sesi expired bila login otomatis yang gagal. Error lain
+    // (network sementara, dsb) tidak boleh menghapus sesi valid yang tersimpan.
+    if (attemptedLogin) await saveSessionState(accountId, {}, 'expired');
+    throw err;
+  }
+}
+
+/**
+ * Login interaktif (headed). Menunggu user menyelesaikan OTP secara manual,
+ * lalu menyimpan storage state terenkripsi ke DB.
+ *
+ * Dipakai lewat `npm run akulaku:login -- <accountId>`.
+ * Mengembalikan { accountId, status, url }.
+ */
+async function loginInteractively(accountId, { timeoutMs = 10 * 60 * 1000 } = {}) {
+  const { chromium } = loadPlaywright();
+  const { account, username, password } = await getAccountCredentials(accountId);
+
+  const browser = await chromium.launch({ headless: false });
+  const context = await browser.newContext();
+  const page = await context.newPage();
+
+  try {
+    await page.goto(`${CONFIG.baseUrl}${CONFIG.loginPath}`, {
+      waitUntil: 'domcontentloaded',
+      timeout: 60000,
+    });
+
+    await page.fill(CONFIG.usernameSelector, username);
+    await page.fill(CONFIG.passwordSelector, password);
+    await page.click(CONFIG.submitSelector);
+
+    console.log('\n[akulaku] Kredensial dikirim. Kalau muncul permintaan OTP,');
+    console.log('[akulaku] selesaikan di jendela browser (kode dikirim ke HP terdaftar).');
+    console.log('[akulaku] Menunggu login selesai...\n');
+
+    // Tunggu sampai URL keluar dari halaman login (artinya OTP lolos / login sukses).
+    await page.waitForFunction(
+      (loginPath) => !location.pathname.includes(loginPath),
+      CONFIG.loginPath,
+      { timeout: timeoutMs },
+    );
+    await page.waitForLoadState('networkidle', { timeout: 60000 }).catch(() => {});
+
+    const state = await context.storageState();
+    if (!state.cookies?.length) {
+      throw createError(500, 'Login tampak berhasil tapi tidak ada cookie sesi yang tersimpan');
+    }
+    await saveSessionState(accountId, state, 'valid');
+
+    return { accountId: BigInt(accountId).toString(), label: account.label, status: 'valid', url: page.url() };
+  } catch (err) {
     await saveSessionState(accountId, {}, 'expired');
     throw err;
+  } finally {
+    await browser.close();
   }
 }
 
@@ -109,5 +183,6 @@ module.exports = {
   getSessionState,
   saveSessionState,
   openLoggedInContext,
+  loginInteractively,
 };
 
