@@ -71,6 +71,7 @@ model AkulakuAccount {
   listings   Listing[]
   orders     AkulakuOrder[]
   session    AkulakuSession?
+  adSpends   AdSpend[]
   createdAt  DateTime  @default(now()) @db.Timestamptz
   updatedAt  DateTime  @updatedAt @db.Timestamptz
 }
@@ -263,13 +264,17 @@ model MarkupTier {
 }
 
 // Biaya iklan (ad spend) untuk perhitungan profit bersih.
+// accountId null = "Umum" (berlaku untuk semua akun).
 model AdSpend {
-  id        BigInt   @id @default(autoincrement())
-  period    DateTime @db.Date // tanggal biaya iklan
-  amount    Decimal  @db.Decimal(14, 2)
+  id        BigInt           @id @default(autoincrement())
+  accountId BigInt?
+  account   AkulakuAccount?  @relation(fields: [accountId], references: [id])
+  period    DateTime         @db.Date // tanggal biaya iklan
+  amount    Decimal          @db.Decimal(14, 2)
   note      String?
-  createdAt DateTime @default(now()) @db.Timestamptz
-  updatedAt DateTime @updatedAt @db.Timestamptz
+  createdAt DateTime         @default(now()) @db.Timestamptz
+  updatedAt DateTime         @updatedAt @db.Timestamptz
 
   @@index([period])
+  @@index([accountId])
 }

@@ -16,23 +16,28 @@ import ComponentCard from '@/components/common/ComponentCard.vue'
 import PageBreadcrumb from '@/components/common/PageBreadcrumb.vue'
 import AdminLayout from '@/components/layout/AdminLayout.vue'
 import {
+  exportOrders,
   listOrders,
   updateOrderStatus,
   type AkulakuOrder,
   type OrderStatus,
 } from '@/services/akulakuOrders'
+import { listAkulakuAccounts, type AkulakuAccount } from '@/services/akulakuAccounts'
 import { formatRupiah } from '@/services/products'
 import { orderStatusMeta } from '@/utils/labels'
 
 const toast = useToast()
 
 const orders = ref<AkulakuOrder[]>([])
+const accounts = ref<AkulakuAccount[]>([])
 const total = ref(0)
 const page = ref(1)
 const limit = 10
 const search = ref('')
 const statusFilter = ref<OrderStatus | 'all'>('all')
+const accountFilter = ref<string>('all')
 const loading = ref(false)
+const exporting = ref(false)
 
 const totalPages = computed(() => Math.max(1, Math.ceil(total.value / limit)))
 
@@ -48,6 +53,15 @@ function statusOf(order: AkulakuOrder) {
   return orderStatusMeta[order.status] ?? orderStatusMeta.new
 }
 
+async function loadAccounts() {
+  try {
+    const res = await listAkulakuAccounts({ page: 1, limit: 100 })
+    accounts.value = res.accounts
+  } catch {
+    accounts.value = []
+  }
+}
+
 async function load() {
   loading.value = true
   try {
@@ -56,6 +70,7 @@ async function load() {
       limit,
       search: search.value.trim(),
       status: statusFilter.value,
+      accountId: accountFilter.value === 'all' ? undefined : accountFilter.value,
     })
     orders.value = response.orders
     total.value = response.total
@@ -74,6 +89,27 @@ function applySearch() {
 function applyFilter() {
   page.value = 1
   load()
+}
+
+function applyAccountFilter() {
+  page.value = 1
+  load()
+}
+
+async function doExport() {
+  exporting.value = true
+  try {
+    await exportOrders({
+      search: search.value.trim(),
+      status: statusFilter.value,
+      accountId: accountFilter.value === 'all' ? undefined : accountFilter.value,
+    })
+    toast.success('Export selesai, file terunduh.')
+  } catch (err) {
+    toast.error(err instanceof Error ? err.message : 'Gagal mengekspor')
+  } finally {
+    exporting.value = false
+  }
 }
 
 function goToPage(next: number) {
@@ -108,7 +144,10 @@ async function setStatus(order: AkulakuOrder, status: OrderStatus) {
   }
 }
 
-onMounted(load)
+onMounted(() => {
+  loadAccounts()
+  load()
+})
 </script>
 
 <template>
@@ -121,19 +160,35 @@ onMounted(load)
             <Input v-model="search" type="text" placeholder="Cari no. order atau pembeli..." />
             <Button type="submit" size="sm">Cari</Button>
           </form>
-          <Select v-model="statusFilter" @update:model-value="applyFilter">
-            <SelectTrigger class="w-44">
-              <SelectValue placeholder="Semua status" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="all">Semua status</SelectItem>
-              <SelectItem value="new">Baru</SelectItem>
-              <SelectItem value="processing">Diproses</SelectItem>
-              <SelectItem value="shipped">Dikirim</SelectItem>
-              <SelectItem value="delivered">Selesai</SelectItem>
-              <SelectItem value="cancelled">Dibatalkan</SelectItem>
-            </SelectContent>
-          </Select>
+          <div class="flex flex-wrap items-center gap-2">
+            <Select v-model="accountFilter" @update:model-value="applyAccountFilter">
+              <SelectTrigger class="w-48">
+                <SelectValue placeholder="Semua akun" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">Semua akun</SelectItem>
+                <SelectItem v-for="account in accounts" :key="account.id" :value="account.id">
+                  {{ account.label }}
+                </SelectItem>
+              </SelectContent>
+            </Select>
+            <Select v-model="statusFilter" @update:model-value="applyFilter">
+              <SelectTrigger class="w-44">
+                <SelectValue placeholder="Semua status" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">Semua status</SelectItem>
+                <SelectItem value="new">Baru</SelectItem>
+                <SelectItem value="processing">Diproses</SelectItem>
+                <SelectItem value="shipped">Dikirim</SelectItem>
+                <SelectItem value="delivered">Selesai</SelectItem>
+                <SelectItem value="cancelled">Dibatalkan</SelectItem>
+              </SelectContent>
+            </Select>
+            <Button variant="outline" size="sm" :disabled="exporting" @click="doExport">
+              {{ exporting ? 'Mengekspor...' : 'Export Excel' }}
+            </Button>
+          </div>
         </div>
 
         <div class="overflow-hidden rounded-xl border border-gray-200 bg-white dark:border-white/5 dark:bg-white/3">

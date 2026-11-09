@@ -136,6 +136,21 @@ async function getAkulakuOrderById(id) {
   return serialize(order);
 }
 
+/** Semua order (tanpa paginasi) untuk export, mengikuti filter yang sama dengan list. */
+async function listAkulakuOrdersForExport({ search, status, accountId } = {}) {
+  const where = {};
+  if (status) where.status = status;
+  if (accountId) where.accountId = BigInt(accountId);
+  if (search) {
+    where.OR = [
+      { externalId: { contains: search, mode: 'insensitive' } },
+      { buyerName: { contains: search, mode: 'insensitive' } },
+    ];
+  }
+  const orders = await prisma.akulakuOrder.findMany({ where, orderBy: { orderedAt: 'desc' }, select: SELECT });
+  return orders.map(serialize);
+}
+
 async function updateAkulakuOrderStatus(id, status) {
   try {
     const order = await prisma.akulakuOrder.update({
@@ -155,5 +170,6 @@ module.exports = {
   listAkulakuOrders,
   getAkulakuOrderById,
   updateAkulakuOrderStatus,
+  listAkulakuOrdersForExport,
 };
 

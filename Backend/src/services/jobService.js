@@ -93,6 +93,18 @@ async function markJobFailed(id, error, retry = true) {
   });
 }
 
+/** Cek apakah ada job tipe tertentu yang masih pending/running. */
+async function hasActiveJob(type) {
+  const count = await prisma.job.count({ where: { type, status: { in: ['pending', 'running'] } } });
+  return count > 0;
+}
+
+/** Enqueue hanya kalau belum ada job tipe yang sama yang aktif (anti-duplikat). */
+async function enqueueJobOnce({ type, payload, priority = 0 }) {
+  if (await hasActiveJob(type)) return null;
+  return enqueueJob({ type, payload, priority });
+}
+
 async function listJobs({ page = 1, limit = 20, status, type } = {}) {
   const skip = (page - 1) * limit;
   const where = {};
@@ -119,5 +131,5 @@ async function retryJob(id) {
   }
 }
 
-module.exports = { enqueueJob, claimNextJob, markJobDone, markJobFailed, listJobs, retryJob };
+module.exports = { enqueueJob, enqueueJobOnce, hasActiveJob, claimNextJob, markJobDone, markJobFailed, listJobs, retryJob };
 

@@ -1,4 +1,4 @@
-import { apiFetch } from './api'
+import { apiDownload, apiFetch } from './api'
 
 export type OrderStatus = 'new' | 'processing' | 'shipped' | 'delivered' | 'cancelled'
 
@@ -59,4 +59,15 @@ export function updateOrderStatus(id: string, status: OrderStatus) {
     method: 'PATCH',
     body: { status },
   })
+}
+
+/** Unduh pesanan (mengikuti filter) sebagai CSV yang bisa dibuka di Excel. */
+export function exportOrders(params: OrderListParams = {}) {
+  const query = new URLSearchParams()
+  Object.entries(params).forEach(([key, value]) => {
+    if (value !== undefined && value !== '' && value !== 'all') query.set(key, String(value))
+  })
+  const qs = query.toString()
+  const stamp = new Date().toISOString().slice(0, 10).replace(/-/g, '')
+  return apiDownload(`/akulaku-orders/export${qs ? `?${qs}` : ''}`, `pesanan-akulaku-${stamp}.csv`)
 }

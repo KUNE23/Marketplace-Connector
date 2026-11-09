@@ -9,17 +9,21 @@ const {
 } = require('../services/adSpendService');
 
 const amountSchema = z.union([z.string(), z.number()]).transform((v) => String(v));
+// accountId: null/''/'general' = Umum; angka/string = id akun.
+const accountIdSchema = z.union([z.string(), z.number()]).nullable().optional();
 
 const createAdSpendSchema = z.object({
   period: z.string().min(1),
   amount: amountSchema,
   note: z.string().nullable().optional(),
+  accountId: accountIdSchema,
 });
 
 const updateAdSpendSchema = z.object({
   period: z.string().min(1).optional(),
   amount: amountSchema.optional(),
   note: z.string().nullable().optional(),
+  accountId: accountIdSchema,
 });
 
 const idParamSchema = z.object({ id: z.string() });
@@ -33,8 +37,8 @@ function handleError(err, next) {
 
 async function listAdSpendsHandler(req, res, next) {
   try {
-    const { from, to } = req.query;
-    res.json(await listAdSpends({ from, to }));
+    const { from, to, accountId } = req.query;
+    res.json(await listAdSpends({ from, to, accountId }));
   } catch (err) { handleError(err, next); }
 }
 

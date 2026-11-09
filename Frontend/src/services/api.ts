@@ -160,3 +160,26 @@ export async function apiFetch<T>(path: string, options: RequestOptions = {}): P
 
   return data as T
 }
+
+/**
+ * Unduh file (mis. export CSV/Excel) dengan header Authorization, lalu
+ * memicu unduhan di browser. Melempar ApiError bila gagal.
+ */
+export async function apiDownload(path: string, filename: string): Promise<void> {
+  const token = tokenStore.getAccessToken()
+  const response = await fetch(`${API_BASE_URL}${path}`, {
+    headers: token ? { Authorization: `Bearer ${token}` } : {},
+  })
+  if (!response.ok) {
+    throw new ApiError('Gagal mengunduh file', response.status)
+  }
+  const blob = await response.blob()
+  const url = URL.createObjectURL(blob)
+  const link = document.createElement('a')
+  link.href = url
+  link.download = filename
+  document.body.appendChild(link)
+  link.click()
+  link.remove()
+  URL.revokeObjectURL(url)
+}

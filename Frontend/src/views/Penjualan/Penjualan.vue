@@ -15,7 +15,7 @@ import ComponentCard from '@/components/common/ComponentCard.vue'
 import PageBreadcrumb from '@/components/common/PageBreadcrumb.vue'
 import AdminLayout from '@/components/layout/AdminLayout.vue'
 import { getDashboardRecap, getDashboardSummary, type DashboardSummary, type RecapEntry } from '@/services/dashboard'
-import { listOrders, type AkulakuOrder } from '@/services/akulakuOrders'
+import { listOrders, exportOrders, type AkulakuOrder } from '@/services/akulakuOrders'
 import { formatRupiah } from '@/services/products'
 import { orderStatusMeta } from '@/utils/labels'
 
@@ -29,6 +29,7 @@ const page = ref(1)
 const limit = 20
 const recapDays = ref(14)
 const loading = ref(false)
+const exporting = ref(false)
 
 const totalPages = computed(() => Math.max(1, Math.ceil(total.value / limit)))
 const maxRevenue = computed(() => Math.max(1, ...recap.value.map((r) => r.revenue)))
@@ -76,6 +77,18 @@ function formatDate(value: string) {
 
 function formatShortDate(value: string) {
   return new Date(value).toLocaleDateString('id-ID', { day: '2-digit', month: 'short' })
+}
+
+async function doExport() {
+  exporting.value = true
+  try {
+    await exportOrders({})
+    toast.success('Export selesai, file terunduh.')
+  } catch (err) {
+    toast.error(err instanceof Error ? err.message : 'Gagal mengekspor')
+  } finally {
+    exporting.value = false
+  }
 }
 
 onMounted(load)
@@ -165,7 +178,10 @@ onMounted(load)
         </ComponentCard>
 
         <ComponentCard title="Pesanan Akulaku" desc="Transaksi yang masuk dari marketplace Akulaku.">
-          <div class="flex justify-end">
+          <div class="flex justify-end gap-2">
+            <Button variant="outline" size="sm" :disabled="exporting" @click="doExport">
+              {{ exporting ? 'Mengekspor...' : 'Export Excel' }}
+            </Button>
             <Button variant="outline" size="sm" :disabled="loading" @click="load">
               {{ loading ? 'Memuat...' : 'Muat Ulang' }}
             </Button>

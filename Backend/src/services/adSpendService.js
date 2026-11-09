@@ -2,9 +2,13 @@
 const createError = require('http-errors');
 const prisma = require('../lib/prisma');
 
+const INCLUDE = { account: { select: { id: true, label: true } } };
+
 function serialize(row) {
   return {
     id: row.id.toString(),
+    accountId: row.accountId ? row.accountId.toString() : null,
+    accountLabel: row.account?.label ?? null,
     period: row.period,
     amount: row.amount?.toString() ?? '0',
     note: row.note ?? null,
@@ -19,21 +23,37 @@ function toDateOnly(value) {
   return new Date(Date.UTC(d.getFullYear(), d.getMonth(), d.getDate()));
 }
 
-async function listAdSpends({ from, to } = {}) {
+/** accountId boleh: null/kosong = Umum, angka/string = id akun. */
+function normalizeAccountId(value) {
+  if (value === undefined || value === null || value === '' || value === 'general') return null;
+  return BigInt(value);
+}
+
+async function listAdSpends({ from, to, accountId } = {}) {
   const where = {};
   if (from || to) {
     where.period = {};
     if (from) where.period.gte = toDateOnly(from);
     if (to) where.period.lte = toDateOnly(to);
   }
-  const rows = await prisma.adSpend.findMany({ where, orderBy: { period: 'desc' } });
+  // accountId: 'all'/undefined = semua; 'general' = hanya Umum; selain itu = akun tertentu.
+  if (accountId !== undefined && accountId !== '' && accountId !== 'all') {
+    where.accountId = accountId === 'general' ? null : BigInt(accountId);
+  }
+  const rows = await prisma.adSpend.findMany({ where, orderBy: { period: 'desc' }, include: INCLUDE });
   const total = rows.reduce((sum, r) => sum + Number(r.amount ?? 0), 0);
   return { adSpends: rows.map(serialize), total: total.toFixed(2) };
 }
 
-async function createAdSpend({ period, amount, note }) {
+async function createAdSpend({ period, amount, note, accountId }) {
   const row = await prisma.adSpend.create({
-    data: { period: toDateOnly(period), amount: String(amount), note: note ?? null },
+    data: {
+      period: toDateOnly(period),
+      amount: String(amount),
+      note: note ?? null,
+      accountId: normalizeAccountId(accountId),
+    },
+    include: INCLUDE,
   });
   return serialize(row);
 }
@@ -43,8 +63,9 @@ async function updateAdSpend(id, data) {
   if (data.period !== undefined) payload.period = toDateOnly(data.period);
   if (data.amount !== undefined) payload.amount = String(data.amount);
   if (data.note !== undefined) payload.note = data.note;
+  if (data.accountId !== undefined) payload.accountId = normalizeAccountId(data.accountId);
   try {
-    const row = await prisma.adSpend.update({ where: { id: BigInt(id) }, data: payload });
+    const row = await prisma.adSpend.update({ where: { id: BigInt(id) }, data: payload, include: INCLUDE });
     return serialize(row);
   } catch (err) {
     if (err.code === 'P2025') throw createError(404, 'Biaya iklan tidak ditemukan');
@@ -62,7 +83,7 @@ async function deleteAdSpend(id) {
   }
 }
 
-/** Total biaya iklan dalam rentang tanggal (dipakai perhitungan profit). */
+/** Total biaya iklan dalam rentang tanggal (semua iklan, dipakai profit total). */
 async function sumAdSpend({ from, to } = {}) {
   const where = {};
   if (from || to) {
