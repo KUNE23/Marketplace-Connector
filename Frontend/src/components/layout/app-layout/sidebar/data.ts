@@ -53,7 +53,6 @@ export const navSections: NavSection[] = [
         icon: PageIcon,
         name: 'Listing',
         path: '/listing',
-        adminOnly: true,
       },
       {
         icon: CartIcon,

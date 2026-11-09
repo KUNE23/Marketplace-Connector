@@ -40,7 +40,6 @@ const router = createRouter({
       component: () => import('../views/Listings/Listings.vue'),
       meta: {
         title: 'Listing',
-        adminOnly: true,
       },
     },
     {

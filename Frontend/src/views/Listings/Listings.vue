@@ -360,8 +360,8 @@ onMounted(() => {
                   <SelectValue placeholder="Pilih produk" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem v-for="product in products" :key="product.id" :value="product.id">
-                    {{ product.name }}
+                  <SelectItem v-for="product in products" :key="product.id" :value="product.id" :title="product.name ?? ''">
+                    <span class="block min-w-0 max-w-full truncate">{{ product.name }}</span>
                   </SelectItem>
                 </SelectContent>
               </Select>

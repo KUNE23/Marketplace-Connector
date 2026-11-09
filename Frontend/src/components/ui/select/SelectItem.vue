@@ -27,7 +27,7 @@ const forwarded = useForwardPropsEmits(delegated, emits)
       )
     "
   >
-    <SelectItemText class="flex flex-1 shrink-0 items-center gap-2 whitespace-nowrap">
+    <SelectItemText class="flex min-w-0 flex-1 items-center gap-2 whitespace-nowrap">
       <slot />
     </SelectItemText>
     <span

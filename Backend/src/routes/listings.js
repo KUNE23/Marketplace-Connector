@@ -12,7 +12,8 @@ const {
 } = require('../controllers/listingController');
 
 router.use(authenticate);
-router.use(authorizeRoles('ADMIN'));
+// Kelola listing boleh ADMIN & EMPLOYEE (request klien).
+router.use(authorizeRoles('ADMIN', 'EMPLOYEE'));
 
 router.get('/', listListingsHandler);
 router.post('/', createListingHandler);
