@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { ref } from 'vue'
-import { RouterLink, useRouter } from 'vue-router'
+import { useRouter } from 'vue-router'
 import { useToast } from 'vue-toastification'
 import { Button } from '@/components/ui/button'
 import { Checkbox } from '@/components/ui/checkbox'
@@ -35,6 +35,11 @@ const onSubmit = handleSubmit(async (data) => {
     toast.error(error instanceof Error ? error.message : 'Gagal masuk')
   }
 })
+
+// Reset password ditangani admin (belum ada self-service).
+function onForgotPassword() {
+  toast.info('Lupa kata sandi? Hubungi admin untuk dibuatkan kata sandi baru.')
+}
 </script>
 
 <template>
@@ -90,12 +95,13 @@ const onSubmit = handleSubmit(async (data) => {
           Tetap masuk
         </FieldLabel>
       </Field>
-      <RouterLink
-        to="/reset-password"
+      <button
+        type="button"
         class="text-sm text-brand-500 hover:text-brand-600 dark:text-brand-400"
+        @click="onForgotPassword"
       >
         Lupa kata sandi?
-      </RouterLink>
+      </button>
     </div>
 
     <div>

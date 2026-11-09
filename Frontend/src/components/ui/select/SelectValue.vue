@@ -19,7 +19,7 @@ const forwarded = useForwardProps(delegated)
     v-bind="forwarded"
     :class="
       cn(
-        `flex flex-1 items-center gap-2 truncate text-start text-gray-800 group-data-placeholder/select-trigger:text-gray-400 dark:text-white/90 dark:group-data-placeholder/select-trigger:text-gray-500`,
+        `min-w-0 flex-1 truncate text-start text-gray-800 group-data-placeholder/select-trigger:text-gray-400 dark:text-white/90 dark:group-data-placeholder/select-trigger:text-gray-500`,
         props.class,
       )
     "
