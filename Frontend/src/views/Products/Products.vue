@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { computed, onMounted, ref } from 'vue'
+import { useRoute } from 'vue-router'
 import { useToast } from 'vue-toastification'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
@@ -27,6 +28,7 @@ import {
 const MAX_LIMIT = 100
 
 const toast = useToast()
+const route = useRoute()
 
 const products = ref<Product[]>([])
 const total = ref(0)
@@ -166,6 +168,12 @@ async function restartImport() {
 }
 
 onMounted(() => {
+  // Dukung pencarian dari navbar: /products?search=...
+  const q = route.query.search
+  if (typeof q === 'string' && q.trim()) {
+    search.value = q.trim()
+    page.value = 1
+  }
   load()
   loadStats()
 })

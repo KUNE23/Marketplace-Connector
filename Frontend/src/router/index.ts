@@ -15,7 +15,7 @@ const router = createRouter({
       name: 'Ecommerce',
       component: () => import('../views/Dashboard/Ecommerce.vue'),
       meta: {
-        title: 'eCommerce Dashboard',
+        title: 'Dashboard',
       },
     },
     {
@@ -240,7 +240,7 @@ async function hasUsableSession(): Promise<boolean> {
 }
 
 router.beforeEach(async (to, from, next) => {
-  document.title = `Vue.js ${to.meta.title} | Enzyy - Vue.js Tailwind CSS Dashboard Template`
+  document.title = `Enzyy.com | ${to.meta.title ?? 'Dashboard'}`
 
   const isPublicRoute = to.name === 'Signin' || to.name === 'Signup'
   const hasSession = await hasUsableSession()

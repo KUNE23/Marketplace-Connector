@@ -1,20 +1,84 @@
 <script setup lang="ts">
-import { onBeforeUnmount, onMounted, ref } from 'vue'
-import { RouterLink } from 'vue-router'
+import { computed, onBeforeUnmount, onMounted, ref } from 'vue'
+import { RouterLink, useRouter } from 'vue-router'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { Field } from '@/components/ui/field'
 import { InputGroup, InputGroupAddon, InputGroupInput } from '@/components/ui/input-group'
+import { useAuthUser } from '@/composables/useAuthUser'
 import { useSidebar } from '@/composables/useSidebar'
 import { HorizontalDotsIcon, MenuTwoIcon, SearchIcon, XIcon } from '@/icons/layout'
 import NotificationDropdown from '../../header/notification-dropdown/NotificationDropdown.vue'
 import ThemeToggleButton from '../../header/theme-toggler/ThemeToggler.vue'
 import UserDropdown from '../../header/user-dropdown/UserDropdown.vue'
+import { navSections } from '../sidebar/data'
 import { cn } from '@/utils/cn'
 
 const inputRef = ref<InstanceType<typeof InputGroupInput> | null>(null)
 const isApplicationMenuOpen = ref(false)
 const { openMobile, toggleSidebar } = useSidebar()
+
+// ---- Pencarian cepat (menu + produk) ----
+const router = useRouter()
+const { user } = useAuthUser()
+const query = ref('')
+const searchOpen = ref(false)
+const activeIndex = ref(0)
+const searchWrapper = ref<HTMLElement | null>(null)
+
+const isAdmin = computed(() => user.value?.role === 'ADMIN')
+
+const menuItems = computed<{ name: string; path: string }[]>(() =>
+  navSections
+    .filter((section) => isAdmin.value || !section.adminOnly)
+    .flatMap((section) => section.items.filter((item) => isAdmin.value || !item.adminOnly))
+    .filter((item): item is { name: string; path: string } & typeof item => Boolean(item.path))
+    .map((item) => ({ name: item.name, path: item.path })),
+)
+
+interface SearchResult {
+  label: string
+  path: string
+  hint: string
+}
+
+const results = computed<SearchResult[]>(() => {
+  const q = query.value.trim()
+  if (!q) return []
+  const lower = q.toLowerCase()
+  const menus = menuItems.value
+    .filter((item) => item.name.toLowerCase().includes(lower) || item.path.toLowerCase().includes(lower))
+    .slice(0, 5)
+    .map((item) => ({ label: item.name, path: item.path, hint: 'Halaman' }))
+  return [...menus, { label: `Cari produk "${q}"`, path: `/products?search=${encodeURIComponent(q)}`, hint: 'Produk' }]
+})
+
+function goTo(path: string) {
+  searchOpen.value = false
+  query.value = ''
+  ;(document.activeElement as HTMLElement | null)?.blur?.()
+  router.push(path)
+}
+
+function onEnter() {
+  const item = results.value[activeIndex.value]
+  if (item) goTo(item.path)
+}
+
+function moveActive(step: number) {
+  if (!results.value.length) return
+  activeIndex.value = (activeIndex.value + step + results.value.length) % results.value.length
+}
+
+function onQueryInput() {
+  activeIndex.value = 0
+  searchOpen.value = true
+}
+
+function onClickOutside(event: MouseEvent) {
+  if (!searchWrapper.value) return
+  if (!searchWrapper.value.contains(event.target as Node)) searchOpen.value = false
+}
 
 const toggleApplicationMenu = () => {
   isApplicationMenuOpen.value = !isApplicationMenuOpen.value
@@ -29,10 +93,12 @@ const handleKeyDown = (event: KeyboardEvent) => {
 
 onMounted(() => {
   document.addEventListener('keydown', handleKeyDown)
+  document.addEventListener('click', onClickOutside)
 })
 
 onBeforeUnmount(() => {
   document.removeEventListener('keydown', handleKeyDown)
+  document.removeEventListener('click', onClickOutside)
 })
 </script>
 
@@ -76,8 +142,8 @@ onBeforeUnmount(() => {
           <HorizontalDotsIcon />
         </Button>
 
-        <div class="hidden xl:block">
-          <form @submit.prevent>
+        <div ref="searchWrapper" class="relative hidden xl:block">
+          <form @submit.prevent="onEnter">
             <Field class="xl:w-107.5">
               <InputGroup
                 class="border-gray-200 bg-transparent dark:border-gray-800 dark:bg-white/3"
@@ -87,9 +153,15 @@ onBeforeUnmount(() => {
                 </InputGroupAddon>
                 <InputGroupInput
                   ref="inputRef"
+                  v-model="query"
                   type="text"
-                  placeholder="Search or type command..."
+                  placeholder="Cari halaman atau produk..."
                   class="text-gray-800 placeholder:text-gray-400 dark:text-white/90 dark:placeholder:text-white/30"
+                  @input="onQueryInput"
+                  @focus="onQueryInput"
+                  @keydown.down.prevent="moveActive(1)"
+                  @keydown.up.prevent="moveActive(-1)"
+                  @keydown.esc="searchOpen = false"
                 />
                 <InputGroupAddon align="inline-end">
                   <Badge
@@ -105,6 +177,29 @@ onBeforeUnmount(() => {
               </InputGroup>
             </Field>
           </form>
+
+          <!-- Hasil pencarian cepat -->
+          <div
+            v-if="searchOpen && results.length"
+            class="absolute z-99999 mt-2 w-full overflow-hidden rounded-xl border border-gray-200 bg-white py-1 shadow-theme-lg dark:border-gray-800 dark:bg-[#1E2635]"
+          >
+            <button
+              v-for="(item, index) in results"
+              :key="item.path + item.hint"
+              type="button"
+              class="flex w-full items-center justify-between gap-3 px-4 py-2.5 text-start text-sm transition-colors"
+              :class="
+                index === activeIndex
+                  ? 'bg-gray-100 text-gray-800 dark:bg-white/5 dark:text-white/90'
+                  : 'text-gray-600 dark:text-gray-300'
+              "
+              @mouseenter="activeIndex = index"
+              @click="goTo(item.path)"
+            >
+              <span class="min-w-0 truncate">{{ item.label }}</span>
+              <span class="shrink-0 text-xs text-gray-400">{{ item.hint }}</span>
+            </button>
+          </div>
         </div>
       </div>
 
