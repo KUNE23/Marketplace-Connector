@@ -16,3 +16,7 @@ coverage/
 *.db-shm
 *.db-wal
 Backend/login.json
+
+# Log PM2
+logs/
+Backend/logs/
