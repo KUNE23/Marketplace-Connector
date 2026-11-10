@@ -97,8 +97,8 @@ function openEdit(user: User) {
 async function submitForm() {
   if (!form.value.email.trim()) return toast.warning('Email wajib diisi')
   if (!editingId.value && !form.value.password) return toast.warning('Password wajib diisi')
-  if (form.value.password && form.value.password.length < 6) {
-    return toast.warning('Password minimal 6 karakter')
+  if (form.value.password && form.value.password.length < 8) {
+    return toast.warning('Password minimal 8 karakter')
   }
 
   saving.value = true
@@ -230,7 +230,7 @@ onMounted(load)
 
             <Field class="gap-1.5">
               <FieldLabel>Password {{ editingId ? '(kosongkan jika tidak diubah)' : '' }}</FieldLabel>
-              <Input v-model="form.password" type="password" placeholder="minimal 6 karakter" />
+              <Input v-model="form.password" type="password" placeholder="minimal 8 karakter" />
             </Field>
 
             <div class="grid grid-cols-2 gap-4">

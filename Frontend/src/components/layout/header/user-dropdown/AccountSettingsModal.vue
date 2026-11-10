@@ -56,7 +56,7 @@ async function saveName() {
 
 async function savePassword() {
   if (!currentPassword.value) return toast.warning('Password lama wajib diisi')
-  if (newPassword.value.length < 6) return toast.warning('Password baru minimal 6 karakter')
+  if (newPassword.value.length < 8) return toast.warning('Password baru minimal 8 karakter')
   if (newPassword.value !== confirmPassword.value) return toast.warning('Konfirmasi password tidak sama')
 
   saving.value = true
@@ -106,7 +106,7 @@ async function savePassword() {
 
         <Field class="gap-1.5">
           <FieldLabel>Password Baru</FieldLabel>
-          <Input v-model="newPassword" type="password" placeholder="minimal 6 karakter" />
+          <Input v-model="newPassword" type="password" placeholder="minimal 8 karakter" />
         </Field>
 
         <Field class="gap-1.5">

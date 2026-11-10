@@ -2,28 +2,43 @@
 const jwt = require('jsonwebtoken');
 const createError = require('http-errors');
 const config = require('../config');
+const prisma = require('../lib/prisma');
 
 /**
  * Middleware to authenticate requests using JWT access token.
  * Expects Authorization header: Bearer <token>
+ *
+ * Selain memverifikasi JWT, middleware ini juga memeriksa ke DB bahwa user
+ * masih ADA dan AKTIF, serta memakai role terbaru dari DB. Dengan begitu:
+ * - user yang dinonaktifkan langsung kehilangan akses,
+ * - perubahan role langsung berlaku (tidak perlu login ulang).
  */
-function authenticate(req, res, next) {
+async function authenticate(req, res, next) {
   const authHeader = req.headers['authorization'];
   if (!authHeader) return next(createError(401, 'Missing Authorization header'));
 
   const token = authHeader.split(' ')[1];
   if (!token) return next(createError(401, 'Invalid Authorization header format'));
 
+  let payload;
   try {
-    const payload = jwt.verify(token, process.env.JWT_ACCESS_SECRET);
-    // Attach user info to request for downstream handlers
-    req.user = {
-      id: payload.sub, // keep as string for easy comparison
-      role: payload.role,
-    };
-    next();
+    payload = jwt.verify(token, process.env.JWT_ACCESS_SECRET);
   } catch (err) {
     return next(createError(401, 'Invalid or expired token'));
+  }
+
+  try {
+    const user = await prisma.user.findUnique({
+      where: { id: BigInt(payload.sub) },
+      select: { id: true, role: true, active: true },
+    });
+    if (!user || !user.active) {
+      return next(createError(401, 'Akun tidak aktif atau tidak ditemukan'));
+    }
+    req.user = { id: user.id.toString(), role: user.role };
+    next();
+  } catch (err) {
+    return next(createError(401, 'Invalid token'));
   }
 }
 

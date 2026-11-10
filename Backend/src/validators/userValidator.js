@@ -8,18 +8,18 @@ const roleSchema = z.enum(['ADMIN', 'EMPLOYEE'], {
 // For creating a new user
 const createUserSchema = z.object({
   email: z.string().trim().email({ message: 'Invalid email' }),
-  password: z.string().min(6, { message: 'Password must be at least 6 characters' }),
+  password: z.string().min(8, { message: 'Password minimal 8 karakter' }),
   name: z.string().trim().min(1, { message: 'Name must not be empty' }).optional(),
   role: roleSchema.optional().default('EMPLOYEE'),
   active: z.boolean().optional(),
 });
 
-// For updating a user – all fields optional but if password present it must meet criteria
+// For updating a user — all fields optional but if password present it must meet criteria
 // Unknown keys are stripped by Zod to prevent mass assignment of sensitive fields.
 const updateUserSchema = z
   .object({
     email: z.string().trim().email({ message: 'Invalid email' }).optional(),
-    password: z.string().min(6, { message: 'Password must be at least 6 characters' }).optional(),
+    password: z.string().min(8, { message: 'Password minimal 8 karakter' }).optional(),
     name: z.string().trim().min(1, { message: 'Name must not be empty' }).optional(),
     active: z.boolean().optional(),
     // role changes are allowed only for admin and validated in controller
@@ -59,7 +59,7 @@ const updateOwnProfileSchema = z.object({
 
 const changeOwnPasswordSchema = z.object({
   currentPassword: z.string().min(1, { message: 'Current password is required' }),
-  newPassword: z.string().min(6, { message: 'New password must be at least 6 characters' }),
+  newPassword: z.string().min(8, { message: 'Password baru minimal 8 karakter' }),
 });
 
 module.exports.updateOwnProfileSchema = updateOwnProfileSchema;

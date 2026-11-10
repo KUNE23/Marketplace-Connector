@@ -103,7 +103,18 @@ async function listUsers({ page = 1, limit = 20, search }) {
 }
 
 /**
- * Update user fields. Password, if present, will be reâ€‘hashed.
+ * Cabut semua refresh token milik user (memaksa login ulang di semua perangkat).
+ */
+async function revokeUserTokens(userId) {
+  return prisma.refreshToken.updateMany({
+    where: { userId, revokedAt: null },
+    data: { revokedAt: new Date() },
+  });
+}
+
+/**
+ * Update user fields. Password, if present, will be re-hashed.
+ * Mengganti password atau menonaktifkan user akan mencabut semua sesinya.
  */
 async function updateUser(userId, data) {
   const updateData = {};
@@ -122,6 +133,10 @@ async function updateUser(userId, data) {
       data: updateData,
       select: PUBLIC_USER_SELECT,
     });
+    // Cabut sesi bila password diganti atau akun dinonaktifkan.
+    if (data.password !== undefined || data.active === false) {
+      await revokeUserTokens(userId);
+    }
     return toPublicUser(user);
   } catch (err) {
     return mapPrismaError(err);
@@ -142,6 +157,7 @@ async function updateOwnProfile(userId, { name }) {
 
 /**
  * Ganti password sendiri — wajib verifikasi password lama.
+ * Setelah ganti, semua sesi (refresh token) dicabut → wajib login ulang.
  */
 async function changeOwnPassword(userId, { currentPassword, newPassword }) {
   const user = await prisma.user.findUnique({ where: { id: userId } });
@@ -152,6 +168,7 @@ async function changeOwnPassword(userId, { currentPassword, newPassword }) {
 
   const passwordHash = await bcrypt.hash(newPassword, 10);
   await prisma.user.update({ where: { id: userId }, data: { passwordHash } });
+  await revokeUserTokens(userId);
   return true;
 }
 
@@ -175,5 +192,6 @@ module.exports = {
   updateOwnProfile,
   changeOwnPassword,
   deleteUser,
+  revokeUserTokens,
 };
 
