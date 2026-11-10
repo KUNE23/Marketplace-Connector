@@ -12,7 +12,6 @@ const userRouter = require('./src/routes/users');
 const errorHandler = require('./src/middleware/errorHandler');
 
 const app = express();
-app.set('trust proxy', 1);
 const PORT = config.port;
 
 // Di belakang reverse proxy (nginx) agar IP klien terbaca benar oleh rate limiter.
