@@ -2,6 +2,7 @@
 require("dotenv").config();
 const express = require('express');
 const cors = require('cors');
+const cookieParser = require('cookie-parser');
 const config = require('./src/config');
 const { securityHeaders, corsOptions } = require('./src/middleware/security');
 const { apiLimiter, authLimiter } = require('./src/middleware/rateLimit');
@@ -22,7 +23,8 @@ if (process.env.TRUST_PROXY) {
 
 app.disable('x-powered-by');
 app.use(securityHeaders());
-app.use(cors(corsOptions()));
+app.use(cors({ ...corsOptions(), credentials: true }));
+app.use(cookieParser());
 app.use(express.json({ limit: process.env.BODY_LIMIT || '1mb' }));
 
 // Rate limiting: umum untuk /api, ketat untuk autentikasi.

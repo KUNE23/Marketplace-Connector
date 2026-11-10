@@ -2,20 +2,52 @@
 const { loginSchema } = require('../validators/authValidator');
 const { login, refresh, logout } = require('../services/authService');
 const createError = require('http-errors');
+const {
+  ACCESS_COOKIE,
+  REFRESH_COOKIE,
+  accessCookieOptions,
+  refreshCookieOptions,
+  clearAccessOptions,
+  clearRefreshOptions,
+} = require('../utils/cookies');
+
+const ACCESS_MAX_AGE_MS = 15 * 60 * 1000; // 15 menit
+const REFRESH_MAX_AGE_MS = 30 * 24 * 60 * 60 * 1000; // 30 hari
+
+function publicUser(user) {
+  return {
+    id: user.id.toString(),
+    email: user.email,
+    role: user.role,
+    name: user.name ?? user.email.split('@')[0],
+  };
+}
+
+/** Set cookie access + refresh. `persist` true = cookie persisten (30 hari). */
+function setAuthCookies(res, { accessToken, refreshToken }, persist) {
+  res.cookie(ACCESS_COOKIE, accessToken, accessCookieOptions(ACCESS_MAX_AGE_MS));
+  res.cookie(REFRESH_COOKIE, refreshToken, refreshCookieOptions(persist ? REFRESH_MAX_AGE_MS : undefined));
+}
+
+function clearAuthCookies(res) {
+  res.clearCookie(ACCESS_COOKIE, clearAccessOptions);
+  res.clearCookie(REFRESH_COOKIE, clearRefreshOptions);
+}
 
 /**
  * POST /api/auth/login
+ * Token dikirim sebagai cookie httpOnly (tidak pernah ke JS).
  */
 async function loginHandler(req, res, next) {
   try {
     const parsed = loginSchema.parse(req.body);
+    const persist = Boolean(req.body?.keepLoggedIn);
     const result = await login(parsed);
-    // Respond with tokens and minimal user info (no password hash)
-    const { accessToken, refreshToken, user } = result;
-    res.json({ accessToken, refreshToken, user: { id: user.id.toString(), email: user.email, role: user.role, name: user.name ?? user.email.split('@')[0] } });
+    setAuthCookies(res, result, persist);
+    res.json({ user: publicUser(result.user) });
   } catch (err) {
     if (err.name === 'ZodError') {
-      return next(createError(400, err.errors.map(e => e.message).join(', ')));
+      return next(createError(400, err.errors.map((e) => e.message).join(', ')));
     }
     next(err);
   }
@@ -23,34 +55,37 @@ async function loginHandler(req, res, next) {
 
 /**
  * POST /api/auth/refresh
+ * Ambil refresh token dari cookie (fallback: body untuk kompatibilitas).
  */
 async function refreshHandler(req, res, next) {
   try {
-    const { refreshToken } = req.body;
-    if (!refreshToken) return next(createError(400, 'refreshToken is required'));
-    const result = await refresh({ token: refreshToken });
-    res.json(result);
+    const token = req.cookies?.[REFRESH_COOKIE] || req.body?.refreshToken;
+    if (!token) return next(createError(401, 'Refresh token tidak ditemukan'));
+    const result = await refresh({ token });
+    setAuthCookies(res, result, true);
+    res.json({ message: 'Token diperbarui' });
   } catch (err) {
+    clearAuthCookies(res);
     next(err);
   }
 }
 
 /**
- * POST /api/auth/logout (protected – requires valid access token)
+ * POST /api/auth/logout
  */
 async function logoutHandler(req, res, next) {
   try {
-    const { refreshToken } = req.body;
-    if (!refreshToken) return next(createError(400, 'refreshToken is required'));
-    await logout({ token: refreshToken });
-    res.json({ message: 'Logged out successfully' });
+    const token = req.cookies?.[REFRESH_COOKIE] || req.body?.refreshToken;
+    if (token) await logout({ token });
+    clearAuthCookies(res);
+    res.json({ message: 'Berhasil keluar' });
   } catch (err) {
     next(err);
   }
 }
 
 /**
- * GET /api/auth/me – returns currently authenticated user info.
+ * GET /api/auth/me — info user yang sedang login.
  */
 async function meHandler(req, res, next) {
   try {

@@ -3,6 +3,7 @@ const jwt = require('jsonwebtoken');
 const createError = require('http-errors');
 const config = require('../config');
 const prisma = require('../lib/prisma');
+const { ACCESS_COOKIE } = require('../utils/cookies');
 
 /**
  * Middleware to authenticate requests using JWT access token.
@@ -14,11 +15,14 @@ const prisma = require('../lib/prisma');
  * - perubahan role langsung berlaku (tidak perlu login ulang).
  */
 async function authenticate(req, res, next) {
+  // Token diutamakan dari cookie httpOnly; fallback ke header Authorization
+  // (untuk tooling/klien yang memakai bearer token).
+  const cookieToken = req.cookies ? req.cookies[ACCESS_COOKIE] : null;
   const authHeader = req.headers['authorization'];
-  if (!authHeader) return next(createError(401, 'Missing Authorization header'));
+  const headerToken = authHeader ? authHeader.split(' ')[1] : null;
+  const token = cookieToken || headerToken;
 
-  const token = authHeader.split(' ')[1];
-  if (!token) return next(createError(401, 'Invalid Authorization header format'));
+  if (!token) return next(createError(401, 'Missing Authorization header'));
 
   let payload;
   try {

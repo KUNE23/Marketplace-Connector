@@ -1,6 +1,6 @@
+// Autentikasi kini memakai cookie httpOnly (token tidak disimpan di JS).
+// Semua request mengirim cookie via credentials: 'include'.
 const API_BASE_URL = import.meta.env.VITE_API_URL ?? '/api'
-const ACCESS_TOKEN_KEY = 'mc_access_token'
-const REFRESH_TOKEN_KEY = 'mc_refresh_token'
 
 export class ApiError extends Error {
   status: number
@@ -14,64 +14,16 @@ export class ApiError extends Error {
   }
 }
 
-function readToken(key: string): string | null {
-  return localStorage.getItem(key) ?? sessionStorage.getItem(key)
-}
-
-function tokenStorage(): Storage {
-  return localStorage.getItem(ACCESS_TOKEN_KEY) ? localStorage : sessionStorage
-}
-
-export const tokenStore = {
-  getAccessToken: () => readToken(ACCESS_TOKEN_KEY),
-  getRefreshToken: () => readToken(REFRESH_TOKEN_KEY),
-  save(accessToken: string, refreshToken: string, persist?: boolean) {
-    // Kalau `persist` tidak diberikan, pertahankan storage yang sedang dipakai.
-    const target = persist === undefined ? tokenStorage() : persist ? localStorage : sessionStorage
-    const other = target === localStorage ? sessionStorage : localStorage
-    target.setItem(ACCESS_TOKEN_KEY, accessToken)
-    target.setItem(REFRESH_TOKEN_KEY, refreshToken)
-    other.removeItem(ACCESS_TOKEN_KEY)
-    other.removeItem(REFRESH_TOKEN_KEY)
-  },
-  clear() {
-    for (const storage of [localStorage, sessionStorage]) {
-      storage.removeItem(ACCESS_TOKEN_KEY)
-      storage.removeItem(REFRESH_TOKEN_KEY)
-    }
-  },
-}
-
-/** Cek apakah access token sudah expired berdasarkan klaim `exp` (tanpa verifikasi). */
-export function isAccessTokenExpired(token: string | null): boolean {
-  if (!token) return true
-  try {
-    const payload = JSON.parse(atob(token.split('.')[1].replace(/-/g, '+').replace(/_/g, '/')))
-    if (typeof payload.exp !== 'number') return false
-    // anggap expired 10 detik lebih awal untuk toleransi
-    return Date.now() >= payload.exp * 1000 - 10_000
-  } catch {
-    return true
-  }
-}
-
 // Satu proses refresh pada satu waktu (hindari race saat banyak request 401).
 let refreshPromise: Promise<boolean> | null = null
 
 async function performRefresh(): Promise<boolean> {
-  const refreshToken = tokenStore.getRefreshToken()
-  if (!refreshToken) return false
   try {
     const response = await fetch(`${API_BASE_URL}/auth/refresh`, {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ refreshToken }),
+      credentials: 'include',
     })
-    if (!response.ok) return false
-    const data = (await response.json()) as { accessToken?: string; refreshToken?: string }
-    if (!data.accessToken || !data.refreshToken) return false
-    tokenStore.save(data.accessToken, data.refreshToken)
-    return true
+    return response.ok
   } catch {
     return false
   }
@@ -103,13 +55,13 @@ interface RequestOptions extends Omit<RequestInit, 'body'> {
   skipAuthRefresh?: boolean
 }
 
-async function doFetch(path: string, options: RequestOptions, token: string | null) {
+async function doFetch(path: string, options: RequestOptions) {
   const { body, headers, skipAuthRefresh: _skip, ...rest } = options
   return fetch(`${API_BASE_URL}${path}`, {
     ...rest,
+    credentials: 'include',
     headers: {
       ...(body !== undefined ? { 'Content-Type': 'application/json' } : {}),
-      ...(token ? { Authorization: `Bearer ${token}` } : {}),
       ...headers,
     },
     body: body !== undefined ? JSON.stringify(body) : undefined,
@@ -117,26 +69,15 @@ async function doFetch(path: string, options: RequestOptions, token: string | nu
 }
 
 export async function apiFetch<T>(path: string, options: RequestOptions = {}): Promise<T> {
-  let token = tokenStore.getAccessToken()
+  let response = await doFetch(path, options)
 
-  // Proaktif: refresh dulu jika access token sudah expired (hindari 401 sia-sia).
-  if (!options.skipAuthRefresh && isAccessTokenExpired(token) && tokenStore.getRefreshToken()) {
+  // Access token kedaluwarsa -> coba refresh via cookie, lalu ulangi sekali.
+  if (response.status === 401 && !options.skipAuthRefresh) {
     const ok = await refreshOnce()
-    if (ok) token = tokenStore.getAccessToken()
-  }
-
-  let response = await doFetch(path, options, token)
-
-  if (response.status === 401 && !options.skipAuthRefresh && tokenStore.getRefreshToken()) {
-    const ok = await refreshOnce()
-    if (ok) {
-      token = tokenStore.getAccessToken()
-      response = await doFetch(path, options, token)
-    }
+    if (ok) response = await doFetch(path, options)
   }
 
   if (response.status === 401 && !options.skipAuthRefresh) {
-    tokenStore.clear()
     onUnauthenticated?.()
   }
 
@@ -162,14 +103,11 @@ export async function apiFetch<T>(path: string, options: RequestOptions = {}): P
 }
 
 /**
- * Unduh file (mis. export CSV/Excel) dengan header Authorization, lalu
- * memicu unduhan di browser. Melempar ApiError bila gagal.
+ * Unduh file (mis. export CSV/Excel) dengan cookie sesi, lalu memicu unduhan
+ * di browser. Melempar ApiError bila gagal.
  */
 export async function apiDownload(path: string, filename: string): Promise<void> {
-  const token = tokenStore.getAccessToken()
-  const response = await fetch(`${API_BASE_URL}${path}`, {
-    headers: token ? { Authorization: `Bearer ${token}` } : {},
-  })
+  const response = await fetch(`${API_BASE_URL}${path}`, { credentials: 'include' })
   if (!response.ok) {
     throw new ApiError('Gagal mengunduh file', response.status)
   }

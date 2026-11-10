@@ -1,5 +1,5 @@
 ﻿import { createRouter, createWebHistory } from 'vue-router'
-import { isAccessTokenExpired, tokenStore, tryRefreshSession } from '@/services/api'
+import { ApiError, apiFetch, tryRefreshSession } from '@/services/api'
 import { useAuthUser } from '@/composables/useAuthUser'
 
 const { load: loadAuthUser } = useAuthUser()
@@ -226,11 +226,17 @@ const router = createRouter({
 export default router
 
 async function hasUsableSession(): Promise<boolean> {
-  const accessToken = tokenStore.getAccessToken()
-  if (accessToken && !isAccessTokenExpired(accessToken)) return true
-  // Access token tidak ada / expired: coba pakai refresh token.
-  if (!tokenStore.getRefreshToken()) return false
-  return tryRefreshSession()
+  try {
+    // Access cookie masih valid?
+    await apiFetch('/auth/me', { skipAuthRefresh: true })
+    return true
+  } catch (err) {
+    // 401 -> coba perbarui sesi via refresh cookie.
+    if (err instanceof ApiError && err.status === 401) {
+      return tryRefreshSession()
+    }
+    return false
+  }
 }
 
 router.beforeEach(async (to, from, next) => {
@@ -245,7 +251,6 @@ router.beforeEach(async (to, from, next) => {
   }
 
   if (!hasSession) {
-    tokenStore.clear()
     return next({ path: '/signin', query: { redirect: to.fullPath } })
   }
 
