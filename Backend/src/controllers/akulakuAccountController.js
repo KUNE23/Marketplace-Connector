@@ -12,7 +12,15 @@ const {
   getAkulakuAccountById,
   updateAkulakuAccount,
   deleteAkulakuAccount,
+  getAkulakuSessionInfo,
 } = require('../services/akulakuAccountService');
+const { startLogin, submitOtp, cancelLogin } = require('../services/akulakuLoginFlow');
+const { z } = require('zod');
+
+const otpSchema = z.object({
+  code: z.string().trim().min(4, { message: 'Kode OTP minimal 4 digit' }).max(8),
+  channel: z.enum(['whatsapp', 'sms']).optional(),
+});
 
 function handleError(err, next) {
   if (err.name === 'ZodError') {
@@ -62,10 +70,50 @@ async function deleteAkulakuAccountHandler(req, res, next) {
   } catch (err) { handleError(err, next); }
 }
 
+/** POST /api/akulaku-accounts/:id/login — mulai login (isi kredensial otomatis). */
+async function loginStartHandler(req, res, next) {
+  try {
+    const { id } = akulakuAccountIdParamSchema.parse(req.params);
+    const result = await startLogin(id);
+    res.json(result);
+  } catch (err) { handleError(err, next); }
+}
+
+/** POST /api/akulaku-accounts/:id/login/otp — kirim kode OTP. */
+async function loginOtpHandler(req, res, next) {
+  try {
+    const { id } = akulakuAccountIdParamSchema.parse(req.params);
+    const parsed = otpSchema.parse(req.body);
+    const result = await submitOtp(id, parsed.code, parsed.channel);
+    res.json(result);
+  } catch (err) { handleError(err, next); }
+}
+
+/** DELETE /api/akulaku-accounts/:id/login — batalkan proses login. */
+async function loginCancelHandler(req, res, next) {
+  try {
+    const { id } = akulakuAccountIdParamSchema.parse(req.params);
+    await cancelLogin(id);
+    res.status(204).send();
+  } catch (err) { handleError(err, next); }
+}
+
+/** GET /api/akulaku-accounts/:id/session — status sesi Akulaku akun ini. */
+async function sessionInfoHandler(req, res, next) {
+  try {
+    const { id } = akulakuAccountIdParamSchema.parse(req.params);
+    res.json(await getAkulakuSessionInfo(id));
+  } catch (err) { handleError(err, next); }
+}
+
 module.exports = {
   listAkulakuAccountsHandler,
   createAkulakuAccountHandler,
   getAkulakuAccountHandler,
   updateAkulakuAccountHandler,
   deleteAkulakuAccountHandler,
+  loginStartHandler,
+  loginOtpHandler,
+  loginCancelHandler,
+  sessionInfoHandler,
 };

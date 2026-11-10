@@ -34,6 +34,13 @@ export const accountStatusMeta: Record<string, StatusMeta> = {
   inactive: { label: 'Nonaktif', color: 'gray' },
 }
 
+/** Status sesi login Akulaku (per akun). */
+export const sessionStatusMeta: Record<string, StatusMeta> = {
+  valid: { label: 'Sesi Aktif', color: 'success' },
+  expired: { label: 'Sesi Kadaluarsa', color: 'error' },
+  missing: { label: 'Belum Login', color: 'warning' },
+}
+
 /** Label pekerjaan worker (tipe job). */
 export const jobTypeMeta: Record<string, string> = {
   post_listing: 'Posting Produk',
@@ -49,6 +56,7 @@ export const orderStatusLabel = (s?: string | null) => labelOf(orderStatusMeta, 
 export const listingStatusLabel = (s?: string | null) => labelOf(listingStatusMeta, s)
 export const jobStatusLabel = (s?: string | null) => labelOf(jobStatusMeta, s)
 export const accountStatusLabel = (s?: string | null) => labelOf(accountStatusMeta, s)
+export const sessionStatusLabel = (s?: string | null) => labelOf(sessionStatusMeta, s)
 
 export function jobTypeLabel(type?: string | null) {
   if (!type) return '-'

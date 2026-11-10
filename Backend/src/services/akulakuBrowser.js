@@ -184,5 +184,6 @@ module.exports = {
   saveSessionState,
   openLoggedInContext,
   loginInteractively,
+  loadPlaywright,
 };
 

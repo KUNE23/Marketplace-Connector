@@ -12,6 +12,7 @@ const SELECT = {
   note: true,
   createdAt: true,
   updatedAt: true,
+  session: { select: { status: true, updatedAt: true } },
   _count: { select: { listings: true } },
 };
 
@@ -23,8 +24,23 @@ function serialize(account) {
     status: account.status,
     note: account.note,
     listingCount: account._count?.listings ?? 0,
+    sessionStatus: account.session?.status ?? 'missing',
+    sessionUpdatedAt: account.session?.updatedAt ?? null,
     createdAt: account.createdAt,
     updatedAt: account.updatedAt,
+  };
+}
+
+/** Info sesi Akulaku satu akun. */
+async function getAkulakuSessionInfo(id) {
+  const session = await prisma.akulakuSession.findUnique({
+    where: { accountId: BigInt(id) },
+    select: { status: true, updatedAt: true },
+  });
+  return {
+    accountId: String(id),
+    status: session?.status ?? 'missing',
+    updatedAt: session?.updatedAt ?? null,
   };
 }
 
@@ -100,5 +116,6 @@ module.exports = {
   getAkulakuAccountById,
   updateAkulakuAccount,
   deleteAkulakuAccount,
+  getAkulakuSessionInfo,
 };
 

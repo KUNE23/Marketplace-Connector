@@ -7,6 +7,9 @@ export interface AkulakuAccount {
   status: 'active' | 'inactive' | string
   note: string | null
   listingCount: number
+  /** Status sesi login Akulaku: missing | valid | expired */
+  sessionStatus: 'missing' | 'valid' | 'expired' | string
+  sessionUpdatedAt: string | null
   createdAt: string
   updatedAt: string
 }
@@ -52,4 +55,35 @@ export function updateAkulakuAccount(id: string, payload: Partial<AkulakuAccount
 
 export function deleteAkulakuAccount(id: string) {
   return apiFetch<void>(`/akulaku-accounts/${id}`, { method: 'DELETE' })
+}
+
+export interface LoginFlowResult {
+  state: 'success' | 'otp_required' | 'pending'
+  channels?: string[]
+  phoneHint?: string | null
+  message?: string
+}
+
+/** Mulai login Akulaku lewat aplikasi (backend mengisi kredensial otomatis). */
+export function startAkulakuLogin(id: string) {
+  return apiFetch<LoginFlowResult>(`/akulaku-accounts/${id}/login`, { method: 'POST' })
+}
+
+/** Kirim kode OTP ke backend untuk diteruskan ke halaman Akulaku. */
+export function submitAkulakuOtp(id: string, code: string, channel?: 'whatsapp' | 'sms') {
+  return apiFetch<LoginFlowResult>(`/akulaku-accounts/${id}/login/otp`, {
+    method: 'POST',
+    body: { code, channel },
+  })
+}
+
+/** Batalkan proses login yang sedang berjalan. */
+export function cancelAkulakuLogin(id: string) {
+  return apiFetch<void>(`/akulaku-accounts/${id}/login`, { method: 'DELETE' })
+}
+
+export function getAkulakuSession(id: string) {
+  return apiFetch<{ accountId: string; status: string; updatedAt: string | null }>(
+    `/akulaku-accounts/${id}/session`,
+  )
 }
