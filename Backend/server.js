@@ -3,6 +3,8 @@ require("dotenv").config();
 const express = require('express');
 const cors = require('cors');
 const config = require('./src/config');
+const { securityHeaders, corsOptions } = require('./src/middleware/security');
+const { apiLimiter, authLimiter } = require('./src/middleware/rateLimit');
 const statusRouter = require('./src/routes/status');
 const authRouter = require('./src/routes/auth');
 const userRouter = require('./src/routes/users');
@@ -11,8 +13,21 @@ const errorHandler = require('./src/middleware/errorHandler');
 const app = express();
 const PORT = config.port;
 
-app.use(cors({ origin: config.corsOrigin }));
-app.use(express.json());
+// Di belakang reverse proxy (nginx) agar IP klien terbaca benar oleh rate limiter.
+// Set TRUST_PROXY=1 (atau jumlah hop) di VPS.
+if (process.env.TRUST_PROXY) {
+  const val = process.env.TRUST_PROXY === 'true' ? 1 : Number(process.env.TRUST_PROXY) || process.env.TRUST_PROXY;
+  app.set('trust proxy', val);
+}
+
+app.disable('x-powered-by');
+app.use(securityHeaders());
+app.use(cors(corsOptions()));
+app.use(express.json({ limit: process.env.BODY_LIMIT || '1mb' }));
+
+// Rate limiting: umum untuk /api, ketat untuk autentikasi.
+app.use('/api', apiLimiter);
+app.use('/api/auth', authLimiter);
 
 app.use('/api', statusRouter);
 app.use('/api/auth', authRouter);
