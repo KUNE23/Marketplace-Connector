@@ -21,12 +21,12 @@ router.patch('/me/profile', updateOwnProfileHandler);
 router.patch('/me/password', changeOwnPasswordHandler);
 
 // ADMIN-only routes
-router.post('/', authorizeRoles('ADMIN'), createUserHandler);
-router.get('/', authorizeRoles('ADMIN'), listUsersHandler);
-router.delete('/:id', authorizeRoles('ADMIN'), deleteUserHandler);
+router.post('/', authorizeRoles('ADMIN', 'SUPERADMIN'), createUserHandler);
+router.get('/', authorizeRoles('ADMIN', 'SUPERADMIN'), listUsersHandler);
+router.delete('/:id', authorizeRoles('ADMIN', 'SUPERADMIN'), deleteUserHandler);
 
 // Self-access routes (user can view/update own profile via ID)
-router.get('/:id', authorizeSelfOrRoles('ADMIN'), getUserHandler);
-router.patch('/:id', authorizeSelfOrRoles('ADMIN'), updateUserHandler);
+router.get('/:id', authorizeSelfOrRoles('ADMIN', 'SUPERADMIN'), getUserHandler);
+router.patch('/:id', authorizeSelfOrRoles('ADMIN', 'SUPERADMIN'), updateUserHandler);
 
 module.exports = router;

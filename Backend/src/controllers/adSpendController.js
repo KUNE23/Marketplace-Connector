@@ -38,14 +38,14 @@ function handleError(err, next) {
 async function listAdSpendsHandler(req, res, next) {
   try {
     const { from, to, accountId } = req.query;
-    res.json(await listAdSpends({ from, to, accountId }));
+    res.json(await listAdSpends({ from, to, accountId, user: req.user }));
   } catch (err) { handleError(err, next); }
 }
 
 async function createAdSpendHandler(req, res, next) {
   try {
     const parsed = createAdSpendSchema.parse(req.body);
-    res.status(201).json(await createAdSpend(parsed));
+    res.status(201).json(await createAdSpend(parsed, req.user));
   } catch (err) { handleError(err, next); }
 }
 

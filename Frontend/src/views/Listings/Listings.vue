@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed, onMounted, ref } from 'vue'
+import { computed, onMounted, ref, watch } from 'vue'
 import { useToast } from 'vue-toastification'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
@@ -26,12 +26,13 @@ import ComponentCard from '@/components/common/ComponentCard.vue'
 import PageBreadcrumb from '@/components/common/PageBreadcrumb.vue'
 import AdminLayout from '@/components/layout/AdminLayout.vue'
 import { listAkulakuAccounts, type AkulakuAccount } from '@/services/akulakuAccounts'
+import { resolveCategory } from '@/services/categories'
 import {
   bulkCreateListings,
   createListing,
   deleteListing,
   listListings,
-  updateListing,
+  queueListing,
   type Listing,
   type ListingStatus,
   type MarkupType,
@@ -50,6 +51,7 @@ const limit = 10
 const search = ref('')
 const statusFilter = ref<ListingStatus | 'all'>('all')
 const loading = ref(false)
+const queueingId = ref<string | null>(null)
 
 const isDialogOpen = ref(false)
 const form = ref({
@@ -57,9 +59,13 @@ const form = ref({
   accountId: '',
   markupType: 'percent' as MarkupType,
   markupValue: '',
-  categoryPath: '',
 })
 const saving = ref(false)
+
+// Preview kategori otomatis (berdasarkan produk terpilih).
+const autoCategory = ref<{ path: string; matchedKeyword?: string; source: string } | null>(null)
+const autoCategorySuggestions = ref<{ path: string; level: number }[]>([])
+const resolvingCategory = ref(false)
 
 // Bulk listing
 const isBulkOpen = ref(false)
@@ -68,10 +74,30 @@ const bulkForm = ref({
   markupType: 'percent' as MarkupType,
   markupValue: '',
   count: 200,
-  categoryPath: '',
 })
 const bulkSaving = ref(false)
 const bulkProgress = ref(0)
+
+const selectedProductName = computed(
+  () => products.value.find((p) => p.id === form.value.productId)?.name ?? '',
+)
+
+// Perbarui preview kategori otomatis saat produk berubah.
+watch(selectedProductName, async (name) => {
+  autoCategory.value = null
+  autoCategorySuggestions.value = []
+  if (!name) return
+  resolvingCategory.value = true
+  try {
+    const res = await resolveCategory({ productName: name })
+    autoCategory.value = res.resolved
+    autoCategorySuggestions.value = res.suggestions
+  } catch {
+    autoCategory.value = null
+  } finally {
+    resolvingCategory.value = false
+  }
+})
 
 const totalPages = computed(() => Math.max(1, Math.ceil(total.value / limit)))
 
@@ -133,7 +159,9 @@ function formatDate(value: string | null) {
 }
 
 function openCreate() {
-  form.value = { productId: '', accountId: '', markupType: 'percent', markupValue: '', categoryPath: '' }
+  form.value = { productId: '', accountId: '', markupType: 'percent', markupValue: '' }
+  autoCategory.value = null
+  autoCategorySuggestions.value = []
   isDialogOpen.value = true
   loadOptions()
 }
@@ -149,10 +177,9 @@ async function submitForm() {
       accountId: form.value.accountId,
       markupType: form.value.markupType,
       markupValue: form.value.markupValue || undefined,
-      categoryPath: form.value.categoryPath.trim() || undefined,
     })
     isDialogOpen.value = false
-    toast.success('Listing berhasil dibuat.')
+    toast.success('Listing berhasil dibuat. Kategori ditentukan otomatis saat posting.')
     await load()
   } catch (err) {
     toast.error(err instanceof Error ? err.message : 'Gagal membuat listing')
@@ -162,7 +189,7 @@ async function submitForm() {
 }
 
 function openBulk() {
-  bulkForm.value = { accountId: '', markupType: 'percent', markupValue: '', count: 200, categoryPath: '' }
+  bulkForm.value = { accountId: '', markupType: 'percent', markupValue: '', count: 200 }
   bulkProgress.value = 0
   isBulkOpen.value = true
   loadOptions()
@@ -191,7 +218,6 @@ async function submitBulk() {
         accountId: bulkForm.value.accountId,
         markupType: bulkForm.value.markupType,
         markupValue: bulkForm.value.markupValue || undefined,
-        categoryPath: bulkForm.value.categoryPath.trim() || undefined,
       })
       aggregate.requested += result.requested
       aggregate.created += result.created
@@ -223,13 +249,16 @@ async function submitBulk() {
   }
 }
 
-async function markPosted(listing: Listing) {
+async function postToAkulaku(listing: Listing) {
+  queueingId.value = listing.id
   try {
-    await updateListing(listing.id, { status: 'posted' })
-    toast.success('Status listing diperbarui.')
+    await queueListing(listing.id)
+    toast.success('Listing masuk antrian posting. Worker akan memprosesnya sebentar lagi.')
     await load()
   } catch (err) {
-    toast.error(err instanceof Error ? err.message : 'Gagal memperbarui status')
+    toast.error(err instanceof Error ? err.message : 'Gagal memasukkan listing ke antrian')
+  } finally {
+    queueingId.value = null
   }
 }
 
@@ -306,6 +335,9 @@ onMounted(() => {
                   <TableCell class="px-5 py-4 text-start text-sm text-gray-800 sm:px-6 dark:text-white/90">
                     <div class="font-medium">{{ listing.product?.name }}</div>
                     <div class="text-xs text-gray-400">{{ listing.product?.sku }}</div>
+                    <div v-if="listing.categoryPath" class="max-w-[20rem] truncate text-xs text-brand-500 dark:text-brand-400" :title="listing.categoryPath">
+                      {{ listing.categoryPath }}
+                    </div>
                   </TableCell>
                   <TableCell class="px-5 py-4 text-start text-sm text-gray-500 sm:px-6 dark:text-gray-400">
                     {{ listing.account?.label }}
@@ -316,11 +348,34 @@ onMounted(() => {
                   </TableCell>
                   <TableCell class="px-5 py-4 text-start text-sm font-medium text-gray-800 sm:px-6 dark:text-white/90">{{ formatRupiah(listing.sellingPrice) }}</TableCell>
                   <TableCell class="px-5 py-4 text-start text-sm sm:px-6">
-                    <Badge size="sm" :color="statusOf(listing).color">{{ statusOf(listing).label }}</Badge>
+                    <div class="space-y-1">
+                      <Badge size="sm" :color="statusOf(listing).color">{{ statusOf(listing).label }}</Badge>
+                      <p
+                        v-if="listing.status === 'failed' && listing.errorMessage"
+                        class="max-w-[22rem] text-xs text-error-500 dark:text-error-400"
+                        :title="listing.errorMessage"
+                      >
+                        {{ listing.errorMessage }}
+                      </p>
+                    </div>
                   </TableCell>
                   <TableCell class="px-5 py-4 text-start text-sm sm:px-6">
                     <div class="flex gap-2">
-                      <Button v-if="listing.status !== 'posted'" variant="outline" size="sm" @click="markPosted(listing)">Tandai Tayang</Button>
+                      <Button
+                        v-if="listing.status === 'draft' || listing.status === 'failed'"
+                        variant="outline"
+                        size="sm"
+                        :disabled="queueingId === listing.id"
+                        @click="postToAkulaku(listing)"
+                      >
+                        {{ queueingId === listing.id ? 'Memproses...' : 'Posting ke Akulaku' }}
+                      </Button>
+                      <span
+                        v-else-if="listing.status === 'queued'"
+                        class="text-xs text-gray-500 dark:text-gray-400"
+                      >
+                        Menunggu worker...
+                      </span>
                       <Button variant="outline" size="sm" @click="removeListing(listing)">Hapus</Button>
                     </div>
                   </TableCell>
@@ -401,14 +456,34 @@ onMounted(() => {
             </div>
 
             <Field class="gap-1.5">
-              <FieldLabel>Kategori Akulaku</FieldLabel>
-              <Input
-                v-model="form.categoryPath"
-                type="text"
-                placeholder="cth: Gadget & Digital/Aksesoris Digital/Kartu Memori Digital"
-              />
+              <FieldLabel>Kategori Akulaku (otomatis)</FieldLabel>
+              <div
+                class="rounded-lg border border-gray-200 bg-gray-50 px-3 py-2 text-sm dark:border-white/10 dark:bg-white/5"
+              >
+                <p v-if="!form.productId" class="text-gray-500 dark:text-gray-400">
+                  Pilih produk untuk melihat kategori otomatis.
+                </p>
+                <p v-else-if="resolvingCategory" class="text-gray-500 dark:text-gray-400">
+                  Menentukan kategori...
+                </p>
+                <p v-else-if="autoCategory" class="text-success-600 dark:text-success-400">
+                  {{ autoCategory.path }}
+                  <span v-if="autoCategory.matchedKeyword" class="text-xs text-gray-500 dark:text-gray-400">
+                    (kata kunci: "{{ autoCategory.matchedKeyword }}")
+                  </span>
+                </p>
+                <div v-else class="text-warning-600 dark:text-warning-400">
+                  <p>Kategori tidak terdeteksi otomatis.</p>
+                  <div v-if="autoCategorySuggestions.length" class="mt-1 text-xs text-gray-500 dark:text-gray-400">
+                    Saran:
+                    <span v-for="(s, i) in autoCategorySuggestions" :key="s.path" class="block">
+                      {{ i + 1 }}. {{ s.path }}
+                    </span>
+                  </div>
+                </div>
+              </div>
               <p class="text-xs text-gray-500 dark:text-gray-400">
-                Jalur kategori dipisah "/" sesuai cascader Seller Centre. Wajib untuk posting otomatis.
+                Kategori ditentukan dari nama produk. Tidak perlu diisi manual.
               </p>
             </Field>
 
@@ -475,13 +550,8 @@ onMounted(() => {
 
             <Field class="gap-1.5">
               <FieldLabel>Kategori Akulaku</FieldLabel>
-              <Input
-                v-model="bulkForm.categoryPath"
-                type="text"
-                placeholder="cth: Gadget & Digital/Aksesoris Digital/Kartu Memori Digital"
-              />
-              <p class="text-xs text-gray-500 dark:text-gray-400">
-                Dipakai untuk semua produk di proses bulk ini. Wajib untuk posting otomatis.
+              <p class="rounded-lg border border-gray-200 bg-gray-50 px-3 py-2 text-sm text-gray-500 dark:border-white/10 dark:bg-white/5 dark:text-gray-400">
+                Ditentukan otomatis untuk setiap produk berdasarkan nama. Tidak perlu diisi.
               </p>
             </Field>
 

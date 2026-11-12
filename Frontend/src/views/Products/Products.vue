@@ -5,6 +5,15 @@ import { useToast } from 'vue-toastification'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import {
+  Dialog,
+  DialogClose,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from '@/components/ui/dialog'
+import {
   Select,
   SelectContent,
   SelectItem,
@@ -39,6 +48,28 @@ const hasListingFilter = ref<'all' | 'true' | 'false'>('all')
 const loading = ref(false)
 
 const scrapeStats = ref<ScrapeStats | null>(null)
+
+// Modal detail produk
+const isDetailOpen = ref(false)
+const detailProduct = ref<Product | null>(null)
+const activeImageIndex = ref(0)
+const STOCK_DEFAULT = 100
+
+function openDetail(product: Product) {
+  detailProduct.value = product
+  activeImageIndex.value = 0
+  isDetailOpen.value = true
+}
+
+/** Stok efektif: pakai stok produk, kalau kosong pakai default (yang dipakai saat posting). */
+function effectiveStock(product: Product | null) {
+  if (!product) return STOCK_DEFAULT
+  return product.stock ?? STOCK_DEFAULT
+}
+
+function isStockDefault(product: Product | null) {
+  return !product || product.stock === null || product.stock === undefined
+}
 
 // state import massal
 const importing = ref(false)
@@ -286,14 +317,15 @@ onMounted(() => {
                   <TableCell isHeader class="px-5 py-3 text-start text-xs font-medium text-gray-500 sm:px-6 dark:text-gray-400">Rating</TableCell>
                   <TableCell isHeader class="px-5 py-3 text-start text-xs font-medium text-gray-500 sm:px-6 dark:text-gray-400">Status</TableCell>
                   <TableCell isHeader class="px-5 py-3 text-start text-xs font-medium text-gray-500 sm:px-6 dark:text-gray-400">Sinkron</TableCell>
+                  <TableCell isHeader class="px-5 py-3 text-start text-xs font-medium text-gray-500 sm:px-6 dark:text-gray-400">Aksi</TableCell>
                 </TableRow>
               </TableHeader>
               <TableBody class="divide-y divide-gray-100 dark:divide-white/5">
                 <TableRow v-if="loading && products.length === 0">
-                  <TableCell class="px-6 py-8 text-center text-sm text-gray-500 dark:text-gray-400">Memuat data...</TableCell>
+                  <TableCell colspan="8" class="px-6 py-8 text-center text-sm text-gray-500 dark:text-gray-400">Memuat data...</TableCell>
                 </TableRow>
                 <TableRow v-else-if="products.length === 0">
-                  <TableCell class="px-6 py-8 text-center text-sm text-gray-500 dark:text-gray-400">Belum ada produk. Klik "Mulai Import" untuk mengambil dari data scraping.</TableCell>
+                  <TableCell colspan="8" class="px-6 py-8 text-center text-sm text-gray-500 dark:text-gray-400">Belum ada produk. Klik "Mulai Import" untuk mengambil dari data scraping.</TableCell>
                 </TableRow>
                 <TableRow
                   v-for="product in products"
@@ -312,6 +344,9 @@ onMounted(() => {
                     </Badge>
                   </TableCell>
                   <TableCell class="px-5 py-4 text-start text-sm text-gray-500 sm:px-6 dark:text-gray-400">{{ formatDate(product.lastSyncedAt) }}</TableCell>
+                  <TableCell class="px-5 py-4 text-start text-sm sm:px-6">
+                    <Button variant="outline" size="sm" @click="openDetail(product)">Detail</Button>
+                  </TableCell>
                 </TableRow>
               </TableBody>
             </Table>
@@ -330,6 +365,132 @@ onMounted(() => {
           </div>
         </div>
       </ComponentCard>
+
+      <!-- Modal detail produk -->
+      <Dialog :open="isDetailOpen" @update:open="isDetailOpen = $event">
+        <DialogContent class="max-w-[calc(100%-2rem)] rounded-3xl p-6 sm:max-w-3xl sm:p-8">
+          <DialogHeader class="gap-2 pe-14 text-start">
+            <DialogTitle class="text-xl font-semibold text-gray-800 sm:text-2xl dark:text-white/90">
+              Detail Produk
+            </DialogTitle>
+            <DialogDescription class="text-sm text-gray-500 dark:text-gray-400">
+              {{ detailProduct?.sku ? `SKU: ${detailProduct.sku}` : 'Tanpa SKU' }}
+            </DialogDescription>
+          </DialogHeader>
+
+          <div v-if="detailProduct" class="max-h-[70vh] space-y-5 overflow-y-auto pe-1">
+            <!-- Galeri gambar -->
+            <div class="space-y-2">
+              <div
+                class="flex h-64 items-center justify-center overflow-hidden rounded-xl border border-gray-200 bg-gray-50 dark:border-white/10 dark:bg-white/5"
+              >
+                <img
+                  v-if="detailProduct.imageUrls.length"
+                  :src="detailProduct.imageUrls[activeImageIndex]"
+                  :alt="detailProduct.name ?? 'Gambar produk'"
+                  class="h-full w-full object-contain"
+                />
+                <span v-else class="text-sm text-gray-400">Tidak ada gambar</span>
+              </div>
+              <div v-if="detailProduct.imageUrls.length > 1" class="flex flex-wrap gap-2">
+                <button
+                  v-for="(img, index) in detailProduct.imageUrls"
+                  :key="img"
+                  type="button"
+                  class="h-16 w-16 overflow-hidden rounded-lg border transition"
+                  :class="
+                    index === activeImageIndex
+                      ? 'border-brand-500 ring-2 ring-brand-500/30'
+                      : 'border-gray-200 hover:border-brand-300 dark:border-white/10'
+                  "
+                  @click="activeImageIndex = index"
+                >
+                  <img :src="img" alt="" class="h-full w-full object-cover" />
+                </button>
+              </div>
+            </div>
+
+            <!-- Info utama -->
+            <div class="space-y-1">
+              <h3 class="text-lg font-semibold text-gray-800 dark:text-white/90">
+                {{ detailProduct.name ?? '-' }}
+              </h3>
+              <p class="text-xl font-bold text-brand-600 dark:text-brand-400">
+                {{ formatRupiah(detailProduct.priceIdr) }}
+              </p>
+            </div>
+
+            <!-- Grid detail -->
+            <div class="grid grid-cols-1 gap-3 sm:grid-cols-2">
+              <div class="rounded-lg border border-gray-200 p-3 dark:border-white/10">
+                <p class="text-xs text-gray-500 dark:text-gray-400">Stok</p>
+                <p class="text-sm font-medium text-gray-800 dark:text-white/90">
+                  {{ effectiveStock(detailProduct).toLocaleString('id-ID') }}
+                  <span v-if="isStockDefault(detailProduct)" class="text-xs font-normal text-gray-400">
+                    (default)
+                  </span>
+                </p>
+              </div>
+              <div class="rounded-lg border border-gray-200 p-3 dark:border-white/10">
+                <p class="text-xs text-gray-500 dark:text-gray-400">Harga Asal</p>
+                <p class="text-sm font-medium text-gray-800 dark:text-white/90">
+                  {{ formatRupiah(detailProduct.priceIdr) }}
+                </p>
+              </div>
+              <div class="rounded-lg border border-gray-200 p-3 dark:border-white/10">
+                <p class="text-xs text-gray-500 dark:text-gray-400">Terjual</p>
+                <p class="text-sm font-medium text-gray-800 dark:text-white/90">
+                  {{ detailProduct.sold ?? '-' }}
+                </p>
+              </div>
+              <div class="rounded-lg border border-gray-200 p-3 dark:border-white/10">
+                <p class="text-xs text-gray-500 dark:text-gray-400">Rating</p>
+                <p class="text-sm font-medium text-gray-800 dark:text-white/90">
+                  {{ detailProduct.rating ?? '-' }}
+                </p>
+              </div>
+              <div class="rounded-lg border border-gray-200 p-3 dark:border-white/10">
+                <p class="text-xs text-gray-500 dark:text-gray-400">Status Listing</p>
+                <Badge size="sm" :color="detailProduct.hasListing ? 'success' : 'gray'">
+                  {{ detailProduct.hasListing ? `Listing (${detailProduct.listingCount})` : 'Belum listing' }}
+                </Badge>
+              </div>
+              <div class="rounded-lg border border-gray-200 p-3 dark:border-white/10">
+                <p class="text-xs text-gray-500 dark:text-gray-400">Sinkron Terakhir</p>
+                <p class="text-sm font-medium text-gray-800 dark:text-white/90">
+                  {{ formatDate(detailProduct.lastSyncedAt) }}
+                </p>
+              </div>
+            </div>
+
+            <!-- Deskripsi -->
+            <div>
+              <p class="mb-1 text-xs text-gray-500 dark:text-gray-400">Deskripsi</p>
+              <p class="max-h-40 overflow-y-auto whitespace-pre-line rounded-lg border border-gray-200 p-3 text-sm text-gray-700 dark:border-white/10 dark:text-gray-300">
+                {{ detailProduct.description || 'Tidak ada deskripsi' }}
+              </p>
+            </div>
+
+            <!-- Link Shopee -->
+            <div v-if="detailProduct.shopeeUrl">
+              <a
+                :href="detailProduct.shopeeUrl"
+                target="_blank"
+                rel="noopener noreferrer"
+                class="flex items-center justify-center gap-2 rounded-xl border border-orange-200 bg-orange-50 px-5 py-4 text-base font-semibold text-orange-600 transition hover:border-orange-300 hover:bg-orange-100 dark:border-orange-500/30 dark:bg-orange-500/10 dark:text-orange-400 dark:hover:bg-orange-500/20"
+              >
+                Buka di Shopee
+              </a>
+            </div>
+          </div>
+
+          <DialogFooter class="mx-0 mb-0 gap-3 p-0 pt-2 sm:justify-end">
+            <DialogClose as-child>
+              <Button variant="outline" type="button">Tutup</Button>
+            </DialogClose>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   </AdminLayout>
 </template>

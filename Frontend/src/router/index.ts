@@ -1,4 +1,4 @@
-﻿import { createRouter, createWebHistory } from 'vue-router'
+import { createRouter, createWebHistory } from 'vue-router'
 import { ApiError, apiFetch, tryRefreshSession } from '@/services/api'
 import { useAuthUser } from '@/composables/useAuthUser'
 
@@ -60,15 +60,6 @@ const router = createRouter({
       },
     },
     {
-      path: '/jobs',
-      name: 'Jobs',
-      component: () => import('../views/Jobs/Jobs.vue'),
-      meta: {
-        title: 'Jobs',
-        adminOnly: true,
-      },
-    },
-    {
       path: '/iklan',
       name: 'Iklan',
       component: () => import('../views/Iklan/Iklan.vue'),
@@ -82,7 +73,31 @@ const router = createRouter({
       component: () => import('../views/AkulakuAccounts/AkulakuAccounts.vue'),
       meta: {
         title: 'Akun Akulaku',
-        adminOnly: true,
+      },
+    },
+    {
+      path: '/monitor',
+      name: 'Monitor',
+      component: () => import('../views/Monitor/Monitor.vue'),
+      meta: {
+        title: 'Monitor Sistem',
+        superAdminOnly: true,
+      },
+    },
+    {
+      path: '/notifikasi',
+      name: 'Notifikasi',
+      component: () => import('../views/Notifikasi/Notifikasi.vue'),
+      meta: {
+        title: 'Notifikasi',
+      },
+    },
+    {
+      path: '/pelanggaran',
+      name: 'Pelanggaran',
+      component: () => import('../views/Pelanggaran/Pelanggaran.vue'),
+      meta: {
+        title: 'Pelanggaran',
       },
     },
     {
@@ -257,7 +272,15 @@ router.beforeEach(async (to, from, next) => {
   // Route khusus admin: pegawai dialihkan ke dashboard.
   if (to.meta.adminOnly) {
     const user = await loadAuthUser()
-    if (user && user.role !== 'ADMIN') {
+    if (user && user.role !== 'ADMIN' && user.role !== 'SUPERADMIN') {
+      return next({ path: '/', replace: true })
+    }
+  }
+
+  // Route khusus SUPERADMIN (Monitor sistem & log).
+  if (to.meta.superAdminOnly) {
+    const user = await loadAuthUser()
+    if (!user || user.role !== 'SUPERADMIN') {
       return next({ path: '/', replace: true })
     }
   }

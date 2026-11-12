@@ -3,6 +3,16 @@ import { computed, onMounted, ref } from 'vue'
 import { useToast } from 'vue-toastification'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
+import { Input } from '@/components/ui/input'
+import {
+  Dialog,
+  DialogClose,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from '@/components/ui/dialog'
 import {
   Select,
   SelectContent,
@@ -14,7 +24,14 @@ import { Table, TableBody, TableCell, TableHeader, TableRow } from '@/components
 import ComponentCard from '@/components/common/ComponentCard.vue'
 import PageBreadcrumb from '@/components/common/PageBreadcrumb.vue'
 import AdminLayout from '@/components/layout/AdminLayout.vue'
-import { getDashboardRecap, getDashboardSummary, type DashboardSummary, type RecapEntry } from '@/services/dashboard'
+import { getDashboardSummary, type DashboardSummary } from '@/services/dashboard'
+import { BUCKET_OPTIONS, getRecap, PRESET_OPTIONS, type RecapBucket, type RecapBucketRow, type RecapPreset, type RecapSummary } from '@/services/recap'
+import {
+  getEmployeeDetail,
+  getLeaderboard,
+  type EmployeeDetailResponse,
+  type LeaderboardRow,
+} from '@/services/leaderboard'
 import { listOrders, exportOrders, type AkulakuOrder } from '@/services/akulakuOrders'
 import { formatRupiah } from '@/services/products'
 import { orderStatusMeta } from '@/utils/labels'
@@ -22,17 +39,58 @@ import { orderStatusMeta } from '@/utils/labels'
 const toast = useToast()
 
 const summary = ref<DashboardSummary | null>(null)
-const recap = ref<RecapEntry[]>([])
+const recapBuckets = ref<RecapBucketRow[]>([])
+const recapSummary = ref<RecapSummary>({ omzet: 0, modal: 0, adSpend: 0, profit: 0, orderCount: 0, avgOrderValue: 0 })
+const preset = ref<RecapPreset>('30d')
+const bucket = ref<RecapBucket>('daily')
+const customFrom = ref('')
+const customTo = ref('')
 const orders = ref<AkulakuOrder[]>([])
 const total = ref(0)
 const page = ref(1)
 const limit = 20
-const recapDays = ref(14)
 const loading = ref(false)
 const exporting = ref(false)
 
+// Leaderboard (digabung ke halaman ini)
+const leaderboard = ref<LeaderboardRow[]>([])
+const lbTotals = ref({ omzet: 0, profit: 0, employees: 0 })
+const isLbDetailOpen = ref(false)
+const lbDetail = ref<EmployeeDetailResponse | null>(null)
+
+async function loadLeaderboard() {
+  try {
+    // Ikutkan rentang tanggal dari rekap agar angkanya konsisten.
+    const params =
+      preset.value === 'custom'
+        ? { from: customFrom.value || undefined, to: customTo.value || undefined }
+        : {}
+    const res = await getLeaderboard(params)
+    leaderboard.value = res.leaderboard
+    lbTotals.value = res.totals
+  } catch {
+    leaderboard.value = []
+  }
+}
+
+async function openLbDetail(row: LeaderboardRow) {
+  if (!row.userId) return
+  isLbDetailOpen.value = true
+  lbDetail.value = null
+  try {
+    const params =
+      preset.value === 'custom'
+        ? { from: customFrom.value || undefined, to: customTo.value || undefined }
+        : {}
+    lbDetail.value = await getEmployeeDetail(row.userId, params)
+  } catch (err) {
+    toast.error(err instanceof Error ? err.message : 'Gagal memuat detail')
+    isLbDetailOpen.value = false
+  }
+}
+
 const totalPages = computed(() => Math.max(1, Math.ceil(total.value / limit)))
-const maxRevenue = computed(() => Math.max(1, ...recap.value.map((r) => r.revenue)))
+const maxRecapValue = computed(() => Math.max(1, ...recapBuckets.value.map((r) => Math.max(r.omzet, Math.max(0, r.profit)))))
 
 function statusOf(status: string) {
   return orderStatusMeta[status] ?? orderStatusMeta.new
@@ -41,15 +99,14 @@ function statusOf(status: string) {
 async function load() {
   loading.value = true
   try {
-    const [sum, rec, orderRes] = await Promise.all([
+    const [sum, orderRes] = await Promise.all([
       getDashboardSummary(),
-      getDashboardRecap(recapDays.value),
       listOrders({ page: page.value, limit }),
     ])
     summary.value = sum
-    recap.value = rec.recap
     orders.value = orderRes.orders
     total.value = orderRes.total
+    await loadRecap()
   } catch (err) {
     toast.error(err instanceof Error ? err.message : 'Gagal memuat data penjualan')
   } finally {
@@ -59,9 +116,17 @@ async function load() {
 
 async function loadRecap() {
   try {
-    recap.value = (await getDashboardRecap(recapDays.value)).recap
-  } catch {
-    /* biarkan */
+    const res = await getRecap({
+      preset: preset.value,
+      bucket: bucket.value,
+      from: preset.value === 'custom' ? customFrom.value || undefined : undefined,
+      to: preset.value === 'custom' ? customTo.value || undefined : undefined,
+    })
+    recapBuckets.value = res.buckets
+    recapSummary.value = res.summary
+    await loadLeaderboard()
+  } catch (err) {
+    toast.error(err instanceof Error ? err.message : 'Gagal memuat rekap')
   }
 }
 
@@ -137,42 +202,133 @@ onMounted(load)
           </div>
         </div>
 
-        <ComponentCard title="Rekap Omzet & Profit" desc="Omzet, modal, biaya iklan & profit Akulaku per hari.">
-          <div class="flex items-center justify-end gap-2">
-            <Select :model-value="String(recapDays)" @update:model-value="(v) => { recapDays = Number(v); loadRecap() }">
-              <SelectTrigger class="w-36">
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="7">7 hari</SelectItem>
-                <SelectItem value="14">14 hari</SelectItem>
-                <SelectItem value="30">30 hari</SelectItem>
-              </SelectContent>
-            </Select>
+        <ComponentCard title="Rekap Omzet & Profit" desc="Pilih periode (hari, minggu, bulan, tahun) dan granularitas tampilan.">
+          <div class="flex flex-wrap items-end gap-2">
+            <div class="flex flex-col gap-1">
+              <label class="text-xs text-gray-500 dark:text-gray-400">Periode</label>
+              <Select v-model="preset" @update:model-value="loadRecap">
+                <SelectTrigger class="w-36">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem v-for="opt in PRESET_OPTIONS" :key="opt.value" :value="opt.value">
+                    {{ opt.label }}
+                  </SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+
+            <div class="flex flex-col gap-1">
+              <label class="text-xs text-gray-500 dark:text-gray-400">Tampilan</label>
+              <Select v-model="bucket" @update:model-value="loadRecap">
+                <SelectTrigger class="w-36">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem v-for="opt in BUCKET_OPTIONS" :key="opt.value" :value="opt.value">
+                    {{ opt.label }}
+                  </SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+
+            <template v-if="preset === 'custom'">
+              <div class="flex flex-col gap-1">
+                <label class="text-xs text-gray-500 dark:text-gray-400">Dari</label>
+                <Input v-model="customFrom" type="date" class="w-40" />
+              </div>
+              <div class="flex flex-col gap-1">
+                <label class="text-xs text-gray-500 dark:text-gray-400">Sampai</label>
+                <Input v-model="customTo" type="date" class="w-40" />
+              </div>
+              <Button size="sm" @click="loadRecap">Terapkan</Button>
+            </template>
           </div>
 
-          <div class="mb-3 flex flex-wrap gap-4 text-xs text-gray-500 dark:text-gray-400">
+          <!-- Ringkasan periode terpilih -->
+          <div class="mt-4 grid grid-cols-2 gap-3 sm:grid-cols-5">
+            <div class="rounded-lg border border-gray-200 p-3 dark:border-white/10">
+              <p class="text-xs text-gray-500 dark:text-gray-400">Omzet</p>
+              <p class="text-sm font-semibold text-gray-800 dark:text-white/90">{{ formatRupiah(recapSummary.omzet) }}</p>
+            </div>
+            <div class="rounded-lg border border-gray-200 p-3 dark:border-white/10">
+              <p class="text-xs text-gray-500 dark:text-gray-400">Modal</p>
+              <p class="text-sm font-semibold text-gray-800 dark:text-white/90">{{ formatRupiah(recapSummary.modal) }}</p>
+            </div>
+            <div class="rounded-lg border border-gray-200 p-3 dark:border-white/10">
+              <p class="text-xs text-gray-500 dark:text-gray-400">Iklan</p>
+              <p class="text-sm font-semibold text-gray-800 dark:text-white/90">{{ formatRupiah(recapSummary.adSpend) }}</p>
+            </div>
+            <div class="rounded-lg border border-gray-200 p-3 dark:border-white/10">
+              <p class="text-xs text-gray-500 dark:text-gray-400">Profit</p>
+              <p class="text-sm font-semibold text-success-600 dark:text-success-400">{{ formatRupiah(recapSummary.profit) }}</p>
+            </div>
+            <div class="rounded-lg border border-gray-200 p-3 dark:border-white/10">
+              <p class="text-xs text-gray-500 dark:text-gray-400">Pesanan</p>
+              <p class="text-sm font-semibold text-gray-800 dark:text-white/90">{{ recapSummary.orderCount }}</p>
+              <p class="text-[10px] text-gray-400">rata-rata {{ formatRupiah(recapSummary.avgOrderValue) }}</p>
+            </div>
+          </div>
+
+          <div class="mb-3 mt-4 flex flex-wrap gap-4 text-xs text-gray-500 dark:text-gray-400">
             <span class="flex items-center gap-1.5"><span class="inline-block h-2.5 w-2.5 rounded-sm bg-brand-500/80" /> Omzet</span>
             <span class="flex items-center gap-1.5"><span class="inline-block h-2.5 w-2.5 rounded-sm bg-success-500/80" /> Profit</span>
           </div>
           <div class="flex h-52 items-end gap-1.5 overflow-x-auto">
+            <p v-if="recapBuckets.length === 0" class="w-full py-10 text-center text-sm text-gray-500 dark:text-gray-400">
+              Tidak ada data pada periode ini.
+            </p>
             <div
-              v-for="entry in recap"
-              :key="entry.date"
+              v-for="entry in recapBuckets"
+              v-else
+              :key="entry.key"
               class="group flex min-w-8 flex-1 flex-col items-center justify-end gap-1"
-              :title="`${formatShortDate(entry.date)}\nOmzet: ${formatRupiah(entry.revenue)}\nModal: ${formatRupiah(entry.modal)}\nIklan: ${formatRupiah(entry.adSpend)}\nProfit: ${formatRupiah(entry.profit)}\n(${entry.orders} pesanan)`"
+              :title="`${entry.label}\nOmzet: ${formatRupiah(entry.omzet)}\nModal: ${formatRupiah(entry.modal)}\nIklan: ${formatRupiah(entry.adSpend)}\nProfit: ${formatRupiah(entry.profit)}\n(${entry.orderCount} pesanan)`"
             >
               <div class="flex w-full items-end justify-center gap-0.5">
                 <div
                   class="w-1/2 rounded-t bg-brand-500/80 transition-all group-hover:bg-brand-500"
-                  :style="{ height: Math.max(2, (entry.revenue / maxRevenue) * 180) + 'px' }"
+                  :style="{ height: Math.max(2, (entry.omzet / maxRecapValue) * 180) + 'px' }"
                 />
                 <div
                   class="w-1/2 rounded-t bg-success-500/80 transition-all group-hover:bg-success-500"
-                  :style="{ height: Math.max(2, (Math.max(0, entry.profit) / maxRevenue) * 180) + 'px' }"
+                  :style="{ height: Math.max(2, (Math.max(0, entry.profit) / maxRecapValue) * 180) + 'px' }"
                 />
               </div>
-              <span class="text-[10px] text-gray-400">{{ formatShortDate(entry.date) }}</span>
+              <span class="text-[10px] text-gray-400">{{ entry.label }}</span>
+            </div>
+          </div>
+
+          <!-- Tabel rincian per bucket -->
+          <div class="mt-4 overflow-hidden rounded-xl border border-gray-200 dark:border-white/10">
+            <div class="max-w-full overflow-x-auto">
+              <Table>
+                <TableHeader class="border-b border-gray-100 dark:border-white/5">
+                  <TableRow>
+                    <TableCell isHeader class="px-4 py-3 text-start text-xs font-medium text-gray-500 dark:text-gray-400">Periode</TableCell>
+                    <TableCell isHeader class="px-4 py-3 text-start text-xs font-medium text-gray-500 dark:text-gray-400">Pesanan</TableCell>
+                    <TableCell isHeader class="px-4 py-3 text-start text-xs font-medium text-gray-500 dark:text-gray-400">Omzet</TableCell>
+                    <TableCell isHeader class="px-4 py-3 text-start text-xs font-medium text-gray-500 dark:text-gray-400">Modal</TableCell>
+                    <TableCell isHeader class="px-4 py-3 text-start text-xs font-medium text-gray-500 dark:text-gray-400">Iklan</TableCell>
+                    <TableCell isHeader class="px-4 py-3 text-start text-xs font-medium text-gray-500 dark:text-gray-400">Profit</TableCell>
+                  </TableRow>
+                </TableHeader>
+                <TableBody class="divide-y divide-gray-100 dark:divide-white/5">
+                  <TableRow v-if="recapBuckets.length === 0">
+                    <TableCell colspan="6" class="px-4 py-6 text-center text-sm text-gray-500 dark:text-gray-400">
+                      Tidak ada data.
+                    </TableCell>
+                  </TableRow>
+                  <TableRow v-for="b in recapBuckets" v-else :key="b.key">
+                    <TableCell class="px-4 py-3 text-start text-sm text-gray-800 dark:text-white/90">{{ b.label }}</TableCell>
+                    <TableCell class="px-4 py-3 text-start text-sm text-gray-500 dark:text-gray-400">{{ b.orderCount }}</TableCell>
+                    <TableCell class="px-4 py-3 text-start text-sm text-gray-800 dark:text-white/90">{{ formatRupiah(b.omzet) }}</TableCell>
+                    <TableCell class="px-4 py-3 text-start text-sm text-gray-500 dark:text-gray-400">{{ formatRupiah(b.modal) }}</TableCell>
+                    <TableCell class="px-4 py-3 text-start text-sm text-gray-500 dark:text-gray-400">{{ formatRupiah(b.adSpend) }}</TableCell>
+                    <TableCell class="px-4 py-3 text-start text-sm font-medium text-success-600 dark:text-success-400">{{ formatRupiah(b.profit) }}</TableCell>
+                  </TableRow>
+                </TableBody>
+              </Table>
             </div>
           </div>
         </ComponentCard>
@@ -232,7 +388,135 @@ onMounted(load)
             </div>
           </div>
         </ComponentCard>
+
+        <!-- Leaderboard omzet per pegawai (digabung dari halaman terpisah). -->
+        <ComponentCard
+          title="Leaderboard Omzet Pegawai"
+          desc="Peringkat omzet per pegawai pada periode yang dipilih di atas. Klik Detail untuk rincian per akun."
+        >
+          <div class="mb-3 flex flex-wrap gap-4 text-xs text-gray-500 dark:text-gray-400">
+            <span>Periode mengikuti filter Rekap di atas.</span>
+            <span v-if="leaderboard.length">Total omzet: {{ formatRupiah(lbTotals.omzet) }}</span>
+          </div>
+
+          <div class="overflow-hidden rounded-xl border border-gray-200 dark:border-white/10">
+            <div class="max-w-full overflow-x-auto">
+              <Table>
+                <TableHeader class="border-b border-gray-100 dark:border-white/5">
+                  <TableRow>
+                    <TableCell isHeader class="px-4 py-3 text-start text-xs font-medium text-gray-500 dark:text-gray-400">#</TableCell>
+                    <TableCell isHeader class="px-4 py-3 text-start text-xs font-medium text-gray-500 dark:text-gray-400">Pegawai</TableCell>
+                    <TableCell isHeader class="px-4 py-3 text-start text-xs font-medium text-gray-500 dark:text-gray-400">Akun</TableCell>
+                    <TableCell isHeader class="px-4 py-3 text-start text-xs font-medium text-gray-500 dark:text-gray-400">Pesanan</TableCell>
+                    <TableCell isHeader class="px-4 py-3 text-start text-xs font-medium text-gray-500 dark:text-gray-400">Omzet</TableCell>
+                    <TableCell isHeader class="px-4 py-3 text-start text-xs font-medium text-gray-500 dark:text-gray-400">Profit</TableCell>
+                    <TableCell isHeader class="px-4 py-3 text-start text-xs font-medium text-gray-500 dark:text-gray-400">Aksi</TableCell>
+                  </TableRow>
+                </TableHeader>
+                <TableBody class="divide-y divide-gray-100 dark:divide-white/5">
+                  <TableRow v-if="leaderboard.length === 0">
+                    <TableCell colspan="7" class="px-4 py-6 text-center text-sm text-gray-500 dark:text-gray-400">
+                      Belum ada data omzet.
+                    </TableCell>
+                  </TableRow>
+                  <TableRow v-for="row in leaderboard" v-else :key="row.userId ?? row.name">
+                    <TableCell class="px-4 py-3 text-start text-sm">
+                      <Badge size="sm" :color="row.rank === 1 ? 'warning' : row.rank === 2 ? 'gray' : row.rank === 3 ? 'info' : 'gray'">
+                        {{ row.rank }}
+                      </Badge>
+                    </TableCell>
+                    <TableCell class="px-4 py-3 text-start text-sm text-gray-800 dark:text-white/90">
+                      <div class="font-medium">{{ row.name }}</div>
+                      <div class="text-xs text-gray-400">{{ row.email ?? '-' }}</div>
+                    </TableCell>
+                    <TableCell class="px-4 py-3 text-start text-sm text-gray-500 dark:text-gray-400">
+                      {{ row.activeAccounts }}/{{ row.accountCount }}
+                    </TableCell>
+                    <TableCell class="px-4 py-3 text-start text-sm text-gray-500 dark:text-gray-400">{{ row.orderCount }}</TableCell>
+                    <TableCell class="px-4 py-3 text-start text-sm font-medium text-gray-800 dark:text-white/90">{{ formatRupiah(row.omzet) }}</TableCell>
+                    <TableCell class="px-4 py-3 text-start text-sm font-medium text-success-600 dark:text-success-400">{{ formatRupiah(row.profit) }}</TableCell>
+                    <TableCell class="px-4 py-3 text-start text-sm">
+                      <Button variant="outline" size="sm" :disabled="!row.userId" @click="openLbDetail(row)">Detail</Button>
+                    </TableCell>
+                  </TableRow>
+                </TableBody>
+              </Table>
+            </div>
+          </div>
+        </ComponentCard>
       </div>
     </div>
+
+    <!-- Modal detail leaderboard per pegawai -->
+    <Dialog :open="isLbDetailOpen" @update:open="isLbDetailOpen = $event">
+      <DialogContent class="max-w-[calc(100%-2rem)] rounded-3xl p-6 sm:max-w-3xl sm:p-8">
+        <DialogHeader class="gap-2 pe-14 text-start">
+          <DialogTitle class="text-xl font-semibold text-gray-800 sm:text-2xl dark:text-white/90">
+            Detail Omzet Pegawai
+          </DialogTitle>
+          <DialogDescription class="text-sm text-gray-500 dark:text-gray-400">
+            {{ lbDetail?.employee?.name ?? '-' }}
+            <span v-if="lbDetail?.employee?.email"> · {{ lbDetail.employee.email }}</span>
+          </DialogDescription>
+        </DialogHeader>
+
+        <div v-if="!lbDetail" class="py-8 text-center text-sm text-gray-500 dark:text-gray-400">Memuat...</div>
+        <div v-else class="max-h-[65vh] space-y-3 overflow-y-auto pe-1">
+          <div class="grid grid-cols-2 gap-3 sm:grid-cols-4">
+            <div class="rounded-lg border border-gray-200 p-3 dark:border-white/10">
+              <p class="text-xs text-gray-500 dark:text-gray-400">Omzet</p>
+              <p class="text-sm font-semibold text-gray-800 dark:text-white/90">{{ formatRupiah(lbDetail.totals.omzet) }}</p>
+            </div>
+            <div class="rounded-lg border border-gray-200 p-3 dark:border-white/10">
+              <p class="text-xs text-gray-500 dark:text-gray-400">Modal</p>
+              <p class="text-sm font-semibold text-gray-800 dark:text-white/90">{{ formatRupiah(lbDetail.totals.modal) }}</p>
+            </div>
+            <div class="rounded-lg border border-gray-200 p-3 dark:border-white/10">
+              <p class="text-xs text-gray-500 dark:text-gray-400">Iklan</p>
+              <p class="text-sm font-semibold text-gray-800 dark:text-white/90">{{ formatRupiah(lbDetail.totals.adSpend) }}</p>
+            </div>
+            <div class="rounded-lg border border-gray-200 p-3 dark:border-white/10">
+              <p class="text-xs text-gray-500 dark:text-gray-400">Profit</p>
+              <p class="text-sm font-semibold text-success-600 dark:text-success-400">{{ formatRupiah(lbDetail.totals.profit) }}</p>
+            </div>
+          </div>
+
+          <div class="overflow-hidden rounded-xl border border-gray-200 dark:border-white/10">
+            <div class="max-w-full overflow-x-auto">
+              <Table>
+                <TableHeader class="border-b border-gray-100 dark:border-white/5">
+                  <TableRow>
+                    <TableCell isHeader class="px-4 py-3 text-start text-xs font-medium text-gray-500 dark:text-gray-400">Akun Akulaku</TableCell>
+                    <TableCell isHeader class="px-4 py-3 text-start text-xs font-medium text-gray-500 dark:text-gray-400">Pesanan</TableCell>
+                    <TableCell isHeader class="px-4 py-3 text-start text-xs font-medium text-gray-500 dark:text-gray-400">Omzet</TableCell>
+                    <TableCell isHeader class="px-4 py-3 text-start text-xs font-medium text-gray-500 dark:text-gray-400">Profit</TableCell>
+                  </TableRow>
+                </TableHeader>
+                <TableBody class="divide-y divide-gray-100 dark:divide-white/5">
+                  <TableRow v-if="lbDetail.accounts.length === 0">
+                    <TableCell colspan="4" class="px-4 py-6 text-center text-sm text-gray-500 dark:text-gray-400">Belum ada akun.</TableCell>
+                  </TableRow>
+                  <TableRow v-for="acc in lbDetail.accounts" v-else :key="acc.accountId">
+                    <TableCell class="px-4 py-3 text-start text-sm text-gray-800 dark:text-white/90">
+                      <div class="font-medium">{{ acc.label }}</div>
+                      <div class="text-xs text-gray-400">{{ acc.username }}</div>
+                    </TableCell>
+                    <TableCell class="px-4 py-3 text-start text-sm text-gray-500 dark:text-gray-400">{{ acc.orderCount }}</TableCell>
+                    <TableCell class="px-4 py-3 text-start text-sm font-medium text-gray-800 dark:text-white/90">{{ formatRupiah(acc.omzet) }}</TableCell>
+                    <TableCell class="px-4 py-3 text-start text-sm font-medium text-success-600 dark:text-success-400">{{ formatRupiah(acc.profit) }}</TableCell>
+                  </TableRow>
+                </TableBody>
+              </Table>
+            </div>
+          </div>
+        </div>
+
+        <DialogFooter class="mx-0 mb-0 gap-3 p-0 pt-2 sm:justify-end">
+          <DialogClose as-child>
+            <Button variant="outline" type="button">Tutup</Button>
+          </DialogClose>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
   </AdminLayout>
 </template>

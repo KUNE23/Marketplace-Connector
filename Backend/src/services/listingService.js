@@ -1,8 +1,10 @@
-﻿// Backend/src/services/listingService.js
+// Backend/src/services/listingService.js
 const createError = require('http-errors');
 
 const prisma = require('../lib/prisma');
 const { resolveTierForPrice } = require('./markupTierService');
+const { enqueueJob } = require('./jobService');
+const { accountRelationScope, assertAccountAccess } = require('../utils/scope');
 
 const SELECT = {
   id: true,
@@ -31,12 +33,17 @@ function toNumber(value) {
   return Number(value);
 }
 
+/**
+ * Hitung harga jual dari harga asal + markup.
+ * PENTING: dibulatkan ke rupiah utuh (integer). Harga berdesimal (mis. 81379.8)
+ * ditafsirkan keliru oleh Akulaku (titik dianggap pemisah ribuan -> 813798).
+ * Rupiah tidak memakai sen, jadi pembulatan ke bilangan bulat adalah benar.
+ */
 function computeSellingPrice(basePrice, markupType, markupValue) {
   const base = toNumber(basePrice);
   const markup = toNumber(markupValue);
-  if (markupType === 'fixed') return Math.max(0, base + markup);
-  // percent
-  return Math.max(0, base + (base * markup) / 100);
+  const raw = markupType === 'fixed' ? base + markup : base + (base * markup) / 100;
+  return Math.max(0, Math.round(raw));
 }
 
 function serialize(listing) {
@@ -89,9 +96,10 @@ async function resolveMarkup({ markupType, markupValue, basePrice }) {
   return { markupType: markupType ?? 'percent', markupValue: '0' };
 }
 
-async function createListing({ productId, accountId, markupType, markupValue, categoryPath, specs }) {
+async function createListing({ productId, accountId, markupType, markupValue, categoryPath, specs }, user) {
   const product = await prisma.product.findUnique({ where: { id: productId } });
   if (!product) throw createError(404, 'Product not found');
+  if (user) await assertAccountAccess(prisma, user, accountId);
   const account = await prisma.akulakuAccount.findUnique({ where: { id: accountId } });
   if (!account) throw createError(404, 'Akun Akulaku tidak ditemukan');
 
@@ -124,7 +132,8 @@ async function createListing({ productId, accountId, markupType, markupValue, ca
  * Buat listing untuk banyak produk sekaligus (satu akun, satu markup).
  * Produk yang sudah punya listing di akun sama / harga kosong akan dilewati.
  */
-async function createListingsBulk({ productIds, accountId, markupType, markupValue, categoryPath, specs }) {
+async function createListingsBulk({ productIds, accountId, markupType, markupValue, categoryPath, specs }, user) {
+  if (user) await assertAccountAccess(prisma, user, accountId);
   const account = await prisma.akulakuAccount.findUnique({ where: { id: accountId } });
   if (!account) throw createError(404, 'Akun Akulaku tidak ditemukan');
 
@@ -218,9 +227,76 @@ async function createListingsBulk({ productIds, accountId, markupType, markupVal
   };
 }
 
-async function listListings({ page = 1, limit = 20, search, status, accountId } = {}) {
+/**
+ * Masukkan listing ke antrian posting (worker akan memproses `post_listing`).
+ * Kategori ditentukan otomatis dari nama produk bila belum diisi. Kalau kategori
+ * tidak bisa ditentukan, ditolak cepat (400) supaya tidak gagal di tengah antrian.
+ */
+async function queueListing(id, { priority = 5, user } = {}) {
+  const listing = await prisma.listing.findUnique({
+    where: { id: BigInt(id) },
+    include: { product: { select: { name: true } } },
+  });
+  if (!listing) throw createError(404, 'Listing not found');
+  if (user) await assertAccountAccess(prisma, user, listing.accountId);
+  if (listing.status === 'posted') throw createError(409, 'Listing sudah tayang di Akulaku');
+
+  const account = await prisma.akulakuAccount.findUnique({ where: { id: listing.accountId } });
+  if (!account || account.status !== 'active') {
+    throw createError(400, 'Akun Akulaku tidak aktif');
+  }
+
+  // Tentukan kategori sekarang (otomatis bila kosong) agar gagal cepat & tersimpan.
+  const { resolveListingCategory } = require('./categoryService');
+  const resolved = await resolveListingCategory({
+    productName: listing.product?.name,
+    categoryPath: listing.categoryPath,
+  });
+  if (!resolved) {
+    throw createError(
+      400,
+      `Kategori Akulaku tidak bisa ditentukan untuk produk "${listing.product?.name || '-'}". ` +
+        'Tambahkan aturan kata kunci atau isi kategori manual.',
+    );
+  }
+
+  const updated = await prisma.listing.update({
+    where: { id: listing.id },
+    data: {
+      status: 'queued',
+      errorMessage: null,
+      // Simpan hasil auto-resolve supaya posting & UI konsisten.
+      categoryPath: resolved.path,
+    },
+    select: SELECT,
+  });
+  const job = await enqueueJob({
+    type: 'post_listing',
+    payload: { listingId: listing.id.toString() },
+    priority,
+  });
+  return { listing: serialize(updated), job, category: resolved };
+}
+
+/** Masukkan banyak listing sekaligus ke antrian posting. */
+async function queueListingsBulk(ids, { priority = 5, user } = {}) {
+  const queued = [];
+  const skipped = [];
+  for (const id of ids) {
+    try {
+      const res = await queueListing(id, { priority, user });
+      queued.push(res.listing.id);
+    } catch (err) {
+      skipped.push({ id: String(id), reason: err.message });
+    }
+  }
+  return { queued: queued.length, skipped, queuedIds: queued };
+}
+
+async function listListings({ page = 1, limit = 20, search, status, accountId, user } = {}) {
   const skip = (page - 1) * limit;
-  const where = {};
+  // Isolasi: pegawai hanya melihat listing dari akun miliknya.
+  const where = user ? accountRelationScope(user) : {};
   if (status) where.status = status;
   if (accountId) where.accountId = BigInt(accountId);
   if (search) {
@@ -238,15 +314,18 @@ async function listListings({ page = 1, limit = 20, search, status, accountId } 
   return { listings: listings.map(serialize), total, page, limit };
 }
 
-async function getListingById(id) {
+async function getListingById(id, user) {
   const listing = await prisma.listing.findUnique({ where: { id: BigInt(id) }, select: SELECT });
   if (!listing) throw createError(404, 'Listing not found');
+  // Isolasi: cek kepemilikan akun listing.
+  if (user) await assertAccountAccess(prisma, user, listing.accountId);
   return serialize(listing);
 }
 
-async function updateListing(id, data) {
+async function updateListing(id, data, user) {
   const listing = await prisma.listing.findUnique({ where: { id: BigInt(id) } });
   if (!listing) throw createError(404, 'Listing not found');
+  if (user) await assertAccountAccess(prisma, user, listing.accountId);
 
   const payload = {};
   const markupType = data.markupType ?? listing.markupType;
@@ -257,8 +336,12 @@ async function updateListing(id, data) {
     payload.sellingPrice = computeSellingPrice(listing.basePrice, markupType, markupValue);
   }
   if (data.status !== undefined) {
+    // `posted` hanya boleh dihasilkan dari posting nyata (worker). Update manual
+    // tidak boleh mengklaim tayang � pakai endpoint queue untuk memicu posting.
+    if (data.status === 'posted') {
+      throw createError(400, 'Status "posted" hanya dihasilkan dari posting ke Akulaku. Gunakan aksi Queue/Posting.');
+    }
     payload.status = data.status;
-    if (data.status === 'posted') payload.postedAt = new Date();
   }
   if (data.categoryPath !== undefined) {
     payload.categoryPath = data.categoryPath;
@@ -271,7 +354,9 @@ async function updateListing(id, data) {
   return serialize(updated);
 }
 
-async function deleteListing(id) {
+async function deleteListing(id, user) {
+  const owned = await prisma.listing.findUnique({ where: { id: BigInt(id) }, select: { accountId: true } });
+  if (owned && user) await assertAccountAccess(prisma, user, owned.accountId);
   try {
     await prisma.listing.delete({ where: { id: BigInt(id) } });
     return true;
@@ -284,6 +369,8 @@ async function deleteListing(id) {
 module.exports = {
   createListing,
   createListingsBulk,
+  queueListing,
+  queueListingsBulk,
   listListings,
   getListingById,
   updateListing,

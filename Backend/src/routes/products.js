@@ -11,6 +11,9 @@ const {
   scrapeStatsHandler,
   importBatchHandler,
   resetImportHandler,
+  importRunnerStatusHandler,
+  importRunnerStartHandler,
+  importRunnerStopHandler,
 } = require('../controllers/productController');
 
 // All product routes require authentication
@@ -20,6 +23,10 @@ router.post('/', authorizeRoles('ADMIN'), createProductHandler);
 // Read produk boleh ADMIN & EMPLOYEE
 router.get('/', authorizeRoles('ADMIN', 'EMPLOYEE'), listProductsHandler);
 router.get('/scrape/stats', authorizeRoles('ADMIN'), scrapeStatsHandler);
+// Import di BACKGROUND (server-side): bisa ditinggal, tetap jalan walau tab ditutup.
+router.get('/scrape/runner', authorizeRoles('ADMIN', 'SUPERADMIN'), importRunnerStatusHandler);
+router.post('/scrape/start', authorizeRoles('ADMIN', 'SUPERADMIN'), importRunnerStartHandler);
+router.post('/scrape/stop', authorizeRoles('ADMIN', 'SUPERADMIN'), importRunnerStopHandler);
 router.post('/scrape/import-batch', authorizeRoles('ADMIN'), importBatchHandler);
 router.post('/scrape/reset', authorizeRoles('ADMIN'), resetImportHandler);
 router.get('/:id', authorizeRoles('ADMIN', 'EMPLOYEE'), getProductHandler);

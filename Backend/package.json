@@ -8,6 +8,8 @@
     "dev": "nodemon server.js",
     "worker": "node src/worker.js",
     "akulaku:login": "node scripts/akulakuLogin.js",
+    "playwright:install": "playwright install --with-deps chromium",
+    "postinstall": "playwright install chromium",
     "test": "vitest",
     "prisma": "prisma",
     "seed": "node prisma/admin.seeders.js",
@@ -30,11 +32,11 @@
     "http-errors": "^2.0.1",
     "jsonwebtoken": "^9.0.3",
     "node-cron": "^4.6.0",
+    "playwright": "^1.65.0",
     "zod": "^3.25.76"
   },
   "devDependencies": {
     "nodemon": "^3.1.14",
-    "playwright": "^1.65.0",
     "prisma": "^5.22.0",
     "supertest": "^6.3.3",
     "vitest": "^1.4.0"

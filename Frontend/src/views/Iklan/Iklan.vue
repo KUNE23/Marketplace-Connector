@@ -17,9 +17,14 @@ import PageBreadcrumb from '@/components/common/PageBreadcrumb.vue'
 import AdminLayout from '@/components/layout/AdminLayout.vue'
 import { createAdSpend, deleteAdSpend, listAdSpends, type AdSpend } from '@/services/adSpends'
 import { listAkulakuAccounts, type AkulakuAccount } from '@/services/akulakuAccounts'
+import { useAuthUser } from '@/composables/useAuthUser'
 import { formatRupiah } from '@/services/products'
 
 const toast = useToast()
+
+// Pegawai hanya boleh MELIHAT biaya iklan; kelola hanya admin.
+const { load: loadAuthUser, isAdmin } = useAuthUser()
+const canManage = ref(false)
 
 const adSpends = ref<AdSpend[]>([])
 const accounts = ref<AkulakuAccount[]>([])
@@ -102,7 +107,9 @@ async function remove(row: AdSpend) {
   }
 }
 
-onMounted(() => {
+onMounted(async () => {
+  await loadAuthUser()
+  canManage.value = isAdmin()
   loadAccounts()
   load()
 })
@@ -116,7 +123,12 @@ onMounted(() => {
         title="Biaya Iklan"
         desc="Catat pengeluaran iklan per akun atau umum. Profit = Omzet − Modal − Biaya Iklan."
       >
-        <form class="grid gap-3 sm:grid-cols-2 xl:grid-cols-5 xl:items-end" novalidate @submit.prevent="submit">
+        <form
+          v-if="canManage"
+          class="grid gap-3 sm:grid-cols-2 xl:grid-cols-5 xl:items-end"
+          novalidate
+          @submit.prevent="submit"
+        >
           <Field class="gap-1.5">
             <FieldLabel>Tanggal</FieldLabel>
             <Input v-model="form.period" type="date" />
@@ -174,7 +186,7 @@ onMounted(() => {
                   <TableCell isHeader class="px-5 py-3 text-start text-xs font-medium text-gray-500 sm:px-6 dark:text-gray-400">Akun</TableCell>
                   <TableCell isHeader class="px-5 py-3 text-start text-xs font-medium text-gray-500 sm:px-6 dark:text-gray-400">Nominal</TableCell>
                   <TableCell isHeader class="px-5 py-3 text-start text-xs font-medium text-gray-500 sm:px-6 dark:text-gray-400">Catatan</TableCell>
-                  <TableCell isHeader class="px-5 py-3 text-start text-xs font-medium text-gray-500 sm:px-6 dark:text-gray-400">Aksi</TableCell>
+                  <TableCell v-if="canManage" isHeader class="px-5 py-3 text-start text-xs font-medium text-gray-500 sm:px-6 dark:text-gray-400">Aksi</TableCell>
                 </TableRow>
               </TableHeader>
               <TableBody class="divide-y divide-gray-100 dark:divide-white/5">
@@ -189,7 +201,7 @@ onMounted(() => {
                   <TableCell class="px-5 py-4 text-start text-sm text-gray-500 sm:px-6 dark:text-gray-400">{{ row.accountLabel ?? 'Umum' }}</TableCell>
                   <TableCell class="px-5 py-4 text-start text-sm text-gray-500 sm:px-6 dark:text-gray-400">{{ formatRupiah(row.amount) }}</TableCell>
                   <TableCell class="px-5 py-4 text-start text-sm text-gray-500 sm:px-6 dark:text-gray-400">{{ row.note ?? '-' }}</TableCell>
-                  <TableCell class="px-5 py-4 text-start text-sm sm:px-6">
+                  <TableCell v-if="canManage" class="px-5 py-4 text-start text-sm sm:px-6">
                     <Button variant="outline" size="sm" @click="remove(row)">Hapus</Button>
                   </TableCell>
                 </TableRow>

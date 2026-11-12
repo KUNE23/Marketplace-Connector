@@ -10,6 +10,21 @@ export interface OrderItem {
   qty: number
   unitPrice: string
   total: string
+  imageUrl: string | null
+  variant: string | null
+  shopeeUrl: string | null
+  shopeeItemId: string | null
+}
+
+export interface OrderPayment {
+  payType: number | null
+  label: string | null
+  isCod: boolean
+  payTime: string | null
+  orderCode: string | null
+  refundStatus: number | null
+  deliveryStatus: number | null
+  createTime: string | null
 }
 
 export interface AkulakuOrder {
@@ -27,6 +42,8 @@ export interface AkulakuOrder {
   orderedAt: string
   syncedAt: string
   updatedAt: string
+  payment: OrderPayment | null
+  akulakuUrl: string
   items: OrderItem[]
 }
 

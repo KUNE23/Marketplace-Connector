@@ -117,3 +117,24 @@ export function updateListing(
 export function deleteListing(id: string) {
   return apiFetch<void>(`/listings/${id}`, { method: 'DELETE' })
 }
+
+export interface QueueListingResult {
+  listing: Listing
+  job: { id: string; type: string; status: string }
+}
+
+export interface QueueBulkResult {
+  queued: number
+  skipped: { id: string; reason: string }[]
+  queuedIds: string[]
+}
+
+/** Masukkan listing ke antrian posting Akulaku (worker memprosesnya). */
+export function queueListing(id: string) {
+  return apiFetch<QueueListingResult>(`/listings/${id}/queue`, { method: 'POST' })
+}
+
+/** Masukkan banyak listing sekaligus ke antrian posting. */
+export function queueListingsBulk(ids: string[]) {
+  return apiFetch<QueueBulkResult>('/listings/queue-bulk', { method: 'POST', body: { ids } })
+}

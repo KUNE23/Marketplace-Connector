@@ -34,9 +34,11 @@ function handleError(err, next) {
 async function createUserHandler(req, res, next) {
   try {
     const parsed = createUserSchema.parse(req.body);
-    // Force role to EMPLOYEE regardless of client input (only admin can create users)
-    const safePayload = { ...parsed, role: 'EMPLOYEE' };
-    const user = await createUser(safePayload);
+    // Hanya SUPERADMIN yang boleh membuat user SUPERADMIN; selain itu dipaksa EMPLOYEE.
+    const requestedRole = parsed.role;
+    const isSuper = req.user?.role === 'SUPERADMIN';
+    const safeRole = isSuper && requestedRole === 'SUPERADMIN' ? 'SUPERADMIN' : 'EMPLOYEE';
+    const user = await createUser({ ...parsed, role: safeRole });
     res.status(201).json(user);
   } catch (err) {
     handleError(err, next);
@@ -66,6 +68,7 @@ async function listUsersHandler(req, res, next) {
       page: parsed.page,
       limit: parsed.limit,
       search: parsed.search || undefined,
+      viewerRole: req.user?.role,
     });
     res.json(result);
   } catch (err) {
@@ -80,15 +83,32 @@ async function updateUserHandler(req, res, next) {
   try {
     const { id } = userIdParamSchema.parse(req.params);
     const parsed = updateUserSchema.parse(req.body);
+    const viewerRole = req.user?.role;
+    const isElevated = viewerRole === 'ADMIN' || viewerRole === 'SUPERADMIN';
 
-    // Employees may update their own profile but cannot change privilege fields.
-    if (req.user && req.user.role !== 'ADMIN') {
+    // Pegawai hanya boleh mengubah profilnya sendiri (tanpa field privilege).
+    if (!isElevated) {
       if (parsed.role !== undefined) {
         return next(createError(403, 'Employees cannot change role'));
       }
       if (parsed.active !== undefined) {
         return next(createError(403, 'Employees cannot change active status'));
       }
+    }
+
+    const target = await getUserById(id);
+
+    // Akun SUPERADMIN tidak bisa disentuh selain oleh SUPERADMIN.
+    if (target.role === 'SUPERADMIN' && viewerRole !== 'SUPERADMIN') {
+      return next(createError(403, 'Akun SUPERADMIN tidak dapat diubah'));
+    }
+    // Hanya SUPERADMIN yang boleh memberikan role SUPERADMIN.
+    if (parsed.role === 'SUPERADMIN' && viewerRole !== 'SUPERADMIN') {
+      return next(createError(403, 'Hanya SUPERADMIN yang dapat memberikan role SUPERADMIN'));
+    }
+    // Cegah mengubah role diri sendiri (eskalasi tak sengaja).
+    if (String(req.user.id) === String(id) && parsed.role !== undefined) {
+      return next(createError(403, 'Tidak dapat mengubah role sendiri'));
     }
 
     const user = await updateUser(id, parsed);
@@ -107,6 +127,10 @@ async function deleteUserHandler(req, res, next) {
     // Prevent admin from deleting their own account
     if (req.user && req.user.id === id.toString()) {
       return next(createError(403, 'Cannot delete own account'));
+    }
+    const targetDel = await getUserById(id);
+    if (targetDel.role === 'SUPERADMIN' && req.user?.role !== 'SUPERADMIN') {
+      return next(createError(403, 'Akun SUPERADMIN tidak dapat dihapus'));
     }
     await deleteUser(id);
     res.status(204).send();

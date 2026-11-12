@@ -3,6 +3,7 @@ import { computed } from 'vue'
 import { useRoute } from 'vue-router'
 import { SidebarInset, SidebarProvider } from '@/components/ui/sidebar'
 import { cn } from '@/utils/cn'
+import ChatWidget from '@/components/chat/ChatWidget.vue'
 import AppHeader from './app-layout/header/AppHeader.vue'
 import AppSidebar from './app-layout/sidebar/AppSidebar.vue'
 
@@ -30,6 +31,9 @@ const routeSpecificStyles = computed(() =>
       <div :class="routeSpecificStyles">
         <slot />
       </div>
+
+      <!-- Widget chat mengambang (kanan bawah), tidak menutupi konten. -->
+      <ChatWidget />
     </SidebarInset>
   </SidebarProvider>
 </template>

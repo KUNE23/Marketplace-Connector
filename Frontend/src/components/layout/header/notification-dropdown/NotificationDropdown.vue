@@ -14,7 +14,7 @@ import { BellIcon, DotIcon, XIcon } from '@/icons/layout'
 import { cn } from '@/utils/cn'
 import {
   formatRelativeTime,
-  listNotifications,
+  listNotificationsSimple,
   markNotificationRead,
   type Notification,
 } from '@/services/notifications'
@@ -29,7 +29,7 @@ const hasUnread = computed(() => unreadCount.value > 0)
 async function load() {
   loading.value = true
   try {
-    const response = await listNotifications({ page: 1, limit: 20 })
+    const response = await listNotificationsSimple(20)
     items.value = response.notifications
   } catch {
     items.value = []
@@ -130,11 +130,11 @@ onMounted(load)
       </ScrollArea>
 
       <RouterLink
-        to="/pesanan"
+        to="/notifikasi"
         :class="buttonVariants({ variant: 'outline', size: 'default', class: 'mt-3 w-full' })"
         @click="isOpen = false"
       >
-        Lihat Semua Pesanan
+        Lihat Semua Notifikasi
       </RouterLink>
     </DropdownMenuContent>
   </DropdownMenu>

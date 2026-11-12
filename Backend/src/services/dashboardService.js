@@ -1,6 +1,19 @@
 // Backend/src/services/dashboardService.js
 const prisma = require('../lib/prisma');
 const { sumAdSpend } = require('./adSpendService');
+const { isAdmin } = require('../utils/scope');
+
+/**
+ * Bangun filter akun sesuai role.
+ *   ADMIN    -> null (semua akun)
+ *   EMPLOYEE -> { in: [id akun miliknya] }
+ * Hasil null berarti tanpa pembatasan akun.
+ */
+async function accountIdsFor(user) {
+  if (!user || isAdmin(user)) return null;
+  const rows = await prisma.akulakuAccount.findMany({ where: { ownerId: BigInt(user.id) }, select: { id: true } });
+  return rows.map((r) => r.id);
+}
 
 function startOfToday() {
   const d = new Date();
@@ -13,8 +26,10 @@ function startOfToday() {
  * Profit = omzet - modal produk (dari listing tertaut) - biaya iklan.
  * `matchedItems`/`unmatchedItems` dipakai UI untuk menandai data modal yang belum lengkap.
  */
-async function computeProfit({ from, to } = {}) {
+async function computeProfit({ from, to, user } = {}) {
   const orderWhere = { status: { not: 'cancelled' } };
+  const accIds = await accountIdsFor(user);
+  if (accIds) orderWhere.accountId = { in: accIds };
   if (from || to) {
     orderWhere.orderedAt = {};
     if (from) orderWhere.orderedAt.gte = from;
@@ -41,13 +56,16 @@ async function computeProfit({ from, to } = {}) {
       unmatchedItems += 1;
     }
   }
-  const adSpend = await sumAdSpend({ from, to });
+  const adSpend = await sumAdSpend({ from, to, user });
   const profit = omzet - modal - adSpend;
 
   return { omzet, modal, adSpend, profit, matchedItems, unmatchedItems };
 }
 
-async function getSummary() {
+async function getSummary({ user } = {}) {
+  const accIds = await accountIdsFor(user);
+  const accFilter = accIds ? { accountId: { in: accIds } } : {};
+  const accountWhere = accIds ? { id: { in: accIds } } : {};
   const todayStart = startOfToday();
 
   const [
@@ -63,23 +81,23 @@ async function getSummary() {
     jobsPending,
     jobsFailed,
   ] = await Promise.all([
-    prisma.product.count(),
-    prisma.product.count({ where: { listings: { some: {} } } }),
-    prisma.listing.count(),
-    prisma.listing.groupBy({ by: ['status'], _count: { _all: true } }),
-    prisma.akulakuAccount.count(),
-    prisma.akulakuAccount.count({ where: { status: 'active' } }),
-    prisma.akulakuOrder.count(),
-    prisma.akulakuOrder.groupBy({ by: ['status'], _count: { _all: true } }),
-    prisma.akulakuOrder.count({ where: { orderedAt: { gte: todayStart } } }),
+    prisma.product.count({ where: accIds ? { listings: { some: { accountId: { in: accIds } } } } : {} }),
+    prisma.product.count({ where: { listings: { some: accIds ? { accountId: { in: accIds } } : {} } } }),
+    prisma.listing.count({ where: accIds ? { accountId: { in: accIds } } : {} }),
+    prisma.listing.groupBy({ by: ['status'], _count: { _all: true }, where: accIds ? { accountId: { in: accIds } } : {} }),
+    prisma.akulakuAccount.count({ where: accountWhere }),
+    prisma.akulakuAccount.count({ where: { ...accountWhere, status: 'active' } }),
+    prisma.akulakuOrder.count({ where: accFilter }),
+    prisma.akulakuOrder.groupBy({ by: ['status'], _count: { _all: true }, where: accFilter }),
+    prisma.akulakuOrder.count({ where: { ...accFilter, orderedAt: { gte: todayStart } } }),
     prisma.job.count({ where: { status: 'pending' } }),
     prisma.job.count({ where: { status: 'failed' } }),
   ]);
 
   // Omzet & profit: Akulaku order yang tidak dibatalkan.
   const [profitAll, profitToday] = await Promise.all([
-    computeProfit(),
-    computeProfit({ from: todayStart }),
+    computeProfit({ user }),
+    computeProfit({ from: todayStart, user }),
   ]);
 
   const listingMap = Object.fromEntries(listingByStatus.map((r) => [r.status, r._count._all]));
@@ -133,7 +151,9 @@ async function getSummary() {
 }
 
 /** Rekap omzet, modal, biaya iklan & profit per periode (default 14 hari terakhir). */
-async function getRecap({ days = 14 } = {}) {
+async function getRecap({ days = 14, user } = {}) {
+  const accIds = await accountIdsFor(user);
+  const accFilter = accIds ? { accountId: { in: accIds } } : {};
   const since = new Date();
   since.setHours(0, 0, 0, 0);
   since.setDate(since.getDate() - (days - 1));
@@ -142,11 +162,11 @@ async function getRecap({ days = 14 } = {}) {
 
   const [orders, items, adSpends] = await Promise.all([
     prisma.akulakuOrder.findMany({
-      where: { orderedAt: { gte: since }, status: { not: 'cancelled' } },
+      where: { ...accFilter, orderedAt: { gte: since }, status: { not: 'cancelled' } },
       select: { orderedAt: true, totalAmt: true },
     }),
     prisma.akulakuOrderItem.findMany({
-      where: { order: { orderedAt: { gte: since }, status: { not: 'cancelled' } } },
+      where: { order: { ...accFilter, orderedAt: { gte: since }, status: { not: 'cancelled' } } },
       select: {
         qty: true,
         listingId: true,
@@ -155,7 +175,7 @@ async function getRecap({ days = 14 } = {}) {
       },
     }),
     prisma.adSpend.findMany({
-      where: { period: { gte: since } },
+      where: { ...accFilter, period: { gte: since } },
       select: { period: true, amount: true },
     }),
   ]);
@@ -191,8 +211,10 @@ async function getRecap({ days = 14 } = {}) {
 }
 
 /** Order Akulaku terbaru untuk daftar dashboard. */
-async function getRecentOrders({ limit = 5 } = {}) {
+async function getRecentOrders({ limit = 5, user } = {}) {
+  const accIds = await accountIdsFor(user);
   const rows = await prisma.akulakuOrder.findMany({
+    where: accIds ? { accountId: { in: accIds } } : {},
     take: limit,
     orderBy: { orderedAt: 'desc' },
     select: {

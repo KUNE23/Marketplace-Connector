@@ -1,10 +1,10 @@
 import {
+  BarChartIcon,
   BoxIcon,
   CartIcon,
   DollarIcon,
   LayoutGridIcon,
   PageIcon,
-  PluginIcon,
   TagIcon,
   TargetIcon,
   UserCircleIcon,
@@ -14,12 +14,14 @@ import type { NavItem } from './types'
 
 export interface AppNavItem extends NavItem {
   adminOnly?: boolean
+  superAdminOnly?: boolean
 }
 
 export interface NavSection {
   type: string
   label: string
   adminOnly?: boolean
+  superAdminOnly?: boolean
   items: AppNavItem[]
 }
 
@@ -64,6 +66,17 @@ export const navSections: NavSection[] = [
         name: 'Iklan',
         path: '/iklan',
       },
+      {
+        icon: UserCircleIcon,
+        name: 'Akun Akulaku',
+        path: '/akun-akulaku',
+      },
+      {
+        icon: TargetIcon,
+        name: 'Pelanggaran',
+        path: '/pelanggaran',
+      },
+
     ],
   },
   {
@@ -77,19 +90,21 @@ export const navSections: NavSection[] = [
         path: '/markup',
       },
       {
-        icon: UserCircleIcon,
-        name: 'Akun Akulaku',
-        path: '/akun-akulaku',
-      },
-      {
-        icon: PluginIcon,
-        name: 'Jobs',
-        path: '/jobs',
-      },
-      {
         icon: UsersIcon,
         name: 'Pegawai',
         path: '/pegawai',
+      },
+    ],
+  },
+  {
+    type: 'superadmin',
+    label: 'Superadmin',
+    superAdminOnly: true,
+    items: [
+      {
+        icon: BarChartIcon,
+        name: 'Monitor Sistem',
+        path: '/monitor',
       },
     ],
   },

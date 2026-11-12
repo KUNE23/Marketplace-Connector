@@ -38,7 +38,7 @@ function handleError(err, next) {
 async function listOrdersHandler(req, res, next) {
   try {
     const parsed = listOrdersQuerySchema.parse(req.query);
-    const result = await listAkulakuOrders(parsed);
+    const result = await listAkulakuOrders({ ...parsed, user: req.user });
     res.json(result);
   } catch (err) { handleError(err, next); }
 }
@@ -54,7 +54,7 @@ async function createOrderHandler(req, res, next) {
 async function getOrderHandler(req, res, next) {
   try {
     const { id } = orderIdParamSchema.parse(req.params);
-    const order = await getAkulakuOrderById(id);
+    const order = await getAkulakuOrderById(id, req.user);
     res.json(order);
   } catch (err) { handleError(err, next); }
 }
@@ -72,7 +72,7 @@ async function updateOrderStatusHandler(req, res, next) {
 async function exportOrdersHandler(req, res, next) {
   try {
     const parsed = listOrdersQuerySchema.parse(req.query);
-    const orders = await listAkulakuOrdersForExport(parsed);
+    const orders = await listAkulakuOrdersForExport({ ...parsed, user: req.user });
 
     const header = [
       'No. Order', 'Akun', 'Pembeli', 'Status', 'Tanggal Order', 'Total Order',

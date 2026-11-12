@@ -13,7 +13,10 @@ import type { MenuType, NavItem } from './types'
 const { user: authUser, load } = useAuthUser()
 const router = useRouter()
 
-const isAdmin = computed(() => authUser.value?.role === 'ADMIN')
+const isAdmin = computed(
+  () => authUser.value?.role === 'ADMIN' || authUser.value?.role === 'SUPERADMIN',
+)
+const isSuperAdmin = computed(() => authUser.value?.role === 'SUPERADMIN')
 
 const visibleSections = computed<{ type: MenuType; label: string; items: NavItem[] }[]>(() =>
   navSections
@@ -21,12 +24,15 @@ const visibleSections = computed<{ type: MenuType; label: string; items: NavItem
       type: section.type as MenuType,
       label: section.label,
       sectionAdminOnly: section.adminOnly ?? false,
+      sectionSuperAdminOnly: section.superAdminOnly ?? false,
       items: section.items
         .filter((item) => isAdmin.value || !item.adminOnly)
-        .map(({ adminOnly: _a, ...item }) => item),
+        .filter((item) => isSuperAdmin.value || !item.superAdminOnly)
+        .map(({ adminOnly: _a, superAdminOnly: _sa, ...item }) => item),
     }))
-    .filter((s) => (isAdmin.value || !s.sectionAdminOnly) && s.items.length > 0)
-    .map(({ sectionAdminOnly: _s, ...rest }) => rest),
+    .filter((s) => (isAdmin.value || !s.sectionAdminOnly) && (isSuperAdmin.value || !s.sectionSuperAdminOnly))
+    .filter((s) => s.items.length > 0)
+    .map(({ sectionAdminOnly: _s, sectionSuperAdminOnly: _ss, ...rest }) => rest),
 )
 
 const findMatchingSubmenu = (path: string) => {

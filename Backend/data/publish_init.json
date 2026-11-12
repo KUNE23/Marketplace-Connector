@@ -1,0 +1,3649 @@
+{
+  "data": {
+    "agentEnable": null,
+    "brandInfoVos": [
+      {
+        "associated": null,
+        "deleted": null,
+        "description": "",
+        "id": "1821454",
+        "internationalName": " FLIDA FASHION",
+        "localName": " FLIDA FASHION",
+        "logo": "https://bimg.akulaku.net/goods/brand/624c2ecc013c4fa29c4bcc76677878e09295.jpg",
+        "optional": 0,
+        "source": 1
+      },
+      {
+        "associated": null,
+        "deleted": null,
+        "description": "",
+        "id": "1834813",
+        "internationalName": " SYMPLE.CO",
+        "localName": " SYMPLE.CO",
+        "logo": "https://bimg.akulaku.net/goods/brand/064e13b1dfa447babbf264cfee13ce801720.jpg",
+        "optional": 0,
+        "source": 1
+      },
+      {
+        "associated": null,
+        "deleted": null,
+        "description": "",
+        "id": "1830167",
+        "internationalName": "1489",
+        "localName": "1489",
+        "logo": "https://bimg.akulaku.net/goods/brand/5114a376d8b44029a01cd8c73a40d0d94177.jpeg",
+        "optional": 0,
+        "source": 1
+      },
+      {
+        "associated": null,
+        "deleted": null,
+        "description": "",
+        "id": "1821455",
+        "internationalName": "25oclock",
+        "localName": "25oclock",
+        "logo": "https://bimg.akulaku.net/goods/brand/d494edd3744d47999863032a92c800b46576.jpg",
+        "optional": 0,
+        "source": 1
+      },
+      {
+        "associated": null,
+        "deleted": null,
+        "description": "",
+        "id": "10376",
+        "internationalName": "3Second",
+        "localName": "3Second",
+        "logo": "https://bimg.akulaku.net/goods/brand/1/376.jpg",
+        "optional": 0,
+        "source": 1
+      },
+      {
+        "associated": null,
+        "deleted": null,
+        "description": "",
+        "id": "1823132",
+        "internationalName": "910 NINETEN",
+        "localName": "910 NINETEN",
+        "logo": "https://bimg.akulaku.net/goods/brand/90c14bcef651418aad660e0d1ebf82691360.jpeg",
+        "optional": 0,
+        "source": 1
+      },
+      {
+        "associated": null,
+        "deleted": null,
+        "description": "",
+        "id": "1701635",
+        "internationalName": "Achtung",
+        "localName": "Achtung",
+        "logo": "https://bimg.akulaku.net/goods/category/img_pld.png",
+        "optional": 0,
+        "source": 1
+      },
+      {
+        "associated": null,
+        "deleted": null,
+        "description": "",
+        "id": "1701636",
+        "internationalName": "Adamsbell",
+        "localName": "Adamsbell",
+        "logo": "https://bimg.akulaku.net/goods/category/img_pld.png",
+        "optional": 0,
+        "source": 1
+      },
+      {
+        "associated": null,
+        "deleted": null,
+        "description": "",
+        "id": "1700614",
+        "internationalName": "Addicted Invaders",
+        "localName": "Addicted Invaders",
+        "logo": "https://bimg.akulaku.net/goods/category/img_pld.png",
+        "optional": 0,
+        "source": 1
+      },
+      {
+        "associated": null,
+        "deleted": null,
+        "description": "",
+        "id": "1701638",
+        "internationalName": "Adstar",
+        "localName": "Adstar",
+        "logo": "https://bimg.akulaku.net/goods/category/img_pld.png",
+        "optional": 0,
+        "source": 1
+      },
+      {
+        "associated": null,
+        "deleted": null,
+        "description": "",
+        "id": "1700635",
+        "internationalName": "Aerostreet",
+        "localName": "Aerostreet",
+        "logo": "https://bimg.akulaku.net/goods/brand/477fa67446f84ac480a53149eb8128341375.jpeg",
+        "optional": 0,
+        "source": 1
+      },
+      {
+        "associated": null,
+        "deleted": null,
+        "description": "",
+        "id": "1834306",
+        "internationalName": "Aerostreet Girls",
+        "localName": "Aerostreet Girls",
+        "logo": "https://bimg.akulaku.net/goods/brand/cdeb82bd750c43c591fe73fc04bfa15a5038.jpeg",
+        "optional": 0,
+        "source": 1
+      },
+      {
+        "associated": null,
+        "deleted": null,
+        "description": "",
+        "id": "1701643",
+        "internationalName": "Affa Style",
+        "localName": "Affa Style",
+        "logo": "https://bimg.akulaku.net/goods/category/img_pld.png",
+        "optional": 0,
+        "source": 1
+      },
+      {
+        "associated": null,
+        "deleted": null,
+        "description": "",
+        "id": "1700918",
+        "internationalName": "Afra Kids",
+        "localName": "Afra Kids",
+        "logo": "https://bimg.akulaku.net/goods/category/img_pld.png",
+        "optional": 0,
+        "source": 1
+      },
+      {
+        "associated": null,
+        "deleted": null,
+        "description": "",
+        "id": "1700572",
+        "internationalName": "AHM Astra Honda Motor",
+        "localName": "AHM Astra Honda Motor",
+        "logo": "https://bimg.akulaku.net/goods/category/img_pld.png",
+        "optional": 0,
+        "source": 1
+      },
+      {
+        "associated": null,
+        "deleted": null,
+        "description": "",
+        "id": "1700908",
+        "internationalName": "Aiger",
+        "localName": "Aiger",
+        "logo": "https://bimg.akulaku.net/goods/category/img_pld.png",
+        "optional": 0,
+        "source": 1
+      },
+      {
+        "associated": null,
+        "deleted": null,
+        "description": "",
+        "id": "1700840",
+        "internationalName": "Aigle",
+        "localName": "Aigle",
+        "logo": "https://bimg.akulaku.net/goods/category/img_pld.png",
+        "optional": 0,
+        "source": 1
+      },
+      {
+        "associated": null,
+        "deleted": null,
+        "description": "",
+        "id": "1700681",
+        "internationalName": "Aigner",
+        "localName": "Aigner",
+        "logo": "https://bimg.akulaku.net/goods/category/img_pld.png",
+        "optional": 0,
+        "source": 1
+      },
+      {
+        "associated": null,
+        "deleted": null,
+        "description": "",
+        "id": "1701647",
+        "internationalName": "Air Bone",
+        "localName": "Air Bone",
+        "logo": "https://bimg.akulaku.net/goods/category/img_pld.png",
+        "optional": 0,
+        "source": 1
+      },
+      {
+        "associated": null,
+        "deleted": null,
+        "description": "",
+        "id": "1834770",
+        "internationalName": "Air-Balance",
+        "localName": "Air-Balance",
+        "logo": "https://bimg.akulaku.net/goods/brand/8330a25d65d74392999b063c27114f140859.jpeg",
+        "optional": 0,
+        "source": 1
+      },
+      {
+        "associated": null,
+        "deleted": null,
+        "description": "",
+        "id": "1701648",
+        "internationalName": "Aircee",
+        "localName": "Aircee",
+        "logo": "https://bimg.akulaku.net/goods/category/img_pld.png",
+        "optional": 0,
+        "source": 1
+      },
+      {
+        "associated": null,
+        "deleted": null,
+        "description": "",
+        "id": "1701651",
+        "internationalName": "Akaro",
+        "localName": "Akaro",
+        "logo": "https://bimg.akulaku.net/goods/category/img_pld.png",
+        "optional": 0,
+        "source": 1
+      },
+      {
+        "associated": null,
+        "deleted": null,
+        "description": "",
+        "id": "1701652",
+        "internationalName": "Akhtar",
+        "localName": "Akhtar",
+        "logo": "https://bimg.akulaku.net/goods/brand/83a45ee29a0042a390b5e9a7cdf5045e2053.png",
+        "optional": 0,
+        "source": 1
+      },
+      {
+        "associated": null,
+        "deleted": null,
+        "description": "",
+        "id": "1700853",
+        "internationalName": "Albatros",
+        "localName": "Albatros",
+        "logo": "https://bimg.akulaku.net/goods/category/img_pld.png",
+        "optional": 0,
+        "source": 1
+      },
+      {
+        "associated": null,
+        "deleted": null,
+        "description": "",
+        "id": "1833769",
+        "internationalName": "Aldass Modesty & Grace",
+        "localName": "Aldass Modesty & Grace",
+        "logo": "https://bimg.akulaku.net/goods/brand/9e69910f7fe14b19b748d50b3390a9589833.jpeg",
+        "optional": 0,
+        "source": 1
+      },
+      {
+        "associated": null,
+        "deleted": null,
+        "description": "",
+        "id": "1701659",
+        "internationalName": "Alfaca",
+        "localName": "Alfaca",
+        "logo": "https://bimg.akulaku.net/goods/category/img_pld.png",
+        "optional": 0,
+        "source": 1
+      },
+      {
+        "associated": null,
+        "deleted": null,
+        "description": "",
+        "id": "1832729",
+        "internationalName": "Alghin Exclusive",
+        "localName": "Alghin Exclusive",
+        "logo": "https://bimg.akulaku.net/goods/brand/de19b2d68213401ca16f8db01888df090181.jpeg",
+        "optional": 0,
+        "source": 1
+      },
+      {
+        "associated": null,
+        "deleted": null,
+        "description": "",
+        "id": "1701709",
+        "internationalName": "Alibi Paris",
+        "localName": "Alibi Paris",
+        "logo": "https://bimg.akulaku.net/goods/category/img_pld.png",
+        "optional": 0,
+        "source": 1
+      },
+      {
+        "associated": null,
+        "deleted": null,
+        "description": "",
+        "id": "1701661",
+        "internationalName": "Alius",
+        "localName": "Alius",
+        "logo": "https://bimg.akulaku.net/goods/category/img_pld.png",
+        "optional": 0,
+        "source": 1
+      },
+      {
+        "associated": null,
+        "deleted": null,
+        "description": "",
+        "id": "1701662",
+        "internationalName": "Alive",
+        "localName": "Alive",
+        "logo": "https://bimg.akulaku.net/goods/category/img_pld.png",
+        "optional": 0,
+        "source": 1
+      },
+      {
+        "associated": null,
+        "deleted": null,
+        "description": "",
+        "id": "10287",
+        "internationalName": "Alivelovearts",
+        "localName": "Alivelovearts",
+        "logo": "https://bimg.akulaku.net/goods/brand/1/287.jpg",
+        "optional": 0,
+        "source": 1
+      },
+      {
+        "associated": null,
+        "deleted": null,
+        "description": "",
+        "id": "1832161",
+        "internationalName": "Allhood ",
+        "localName": "Allhood ",
+        "logo": "https://bimg.akulaku.net/goods/brand/eb2135124027418b84c5a6ccf10590331379.jpg",
+        "optional": 0,
+        "source": 1
+      },
+      {
+        "associated": null,
+        "deleted": null,
+        "description": "",
+        "id": "1701666",
+        "internationalName": "Ally Capellino",
+        "localName": "Ally Capellino",
+        "logo": "https://bimg.akulaku.net/goods/category/img_pld.png",
+        "optional": 0,
+        "source": 1
+      },
+      {
+        "associated": null,
+        "deleted": null,
+        "description": "",
+        "id": "1700782",
+        "internationalName": "Alpina",
+        "localName": "Alpina",
+        "logo": "https://bimg.akulaku.net/goods/category/img_pld.png",
+        "optional": 0,
+        "source": 1
+      },
+      {
+        "associated": null,
+        "deleted": null,
+        "description": "",
+        "id": "1700784",
+        "internationalName": "Alsava",
+        "localName": "Alsava",
+        "logo": "https://bimg.akulaku.net/goods/category/img_pld.png",
+        "optional": 0,
+        "source": 1
+      },
+      {
+        "associated": null,
+        "deleted": null,
+        "description": "",
+        "id": "1701617",
+        "internationalName": "Alto",
+        "localName": "Alto",
+        "logo": "https://bimg.akulaku.net/goods/category/img_pld.png",
+        "optional": 0,
+        "source": 1
+      },
+      {
+        "associated": null,
+        "deleted": null,
+        "description": "",
+        "id": "1701675",
+        "internationalName": "Ameiseye",
+        "localName": "Ameiseye",
+        "logo": "https://bimg.akulaku.net/goods/category/img_pld.png",
+        "optional": 0,
+        "source": 1
+      },
+      {
+        "associated": null,
+        "deleted": null,
+        "description": "",
+        "id": "1701677",
+        "internationalName": "Amiri",
+        "localName": "Amiri",
+        "logo": "https://bimg.akulaku.net/goods/category/img_pld.png",
+        "optional": 0,
+        "source": 1
+      },
+      {
+        "associated": null,
+        "deleted": null,
+        "description": "",
+        "id": "1700878",
+        "internationalName": "Ammarkids",
+        "localName": "Ammarkids",
+        "logo": "https://bimg.akulaku.net/goods/category/img_pld.png",
+        "optional": 0,
+        "source": 1
+      },
+      {
+        "associated": null,
+        "deleted": null,
+        "description": "",
+        "id": "1700879",
+        "internationalName": "Ammossi",
+        "localName": "Ammossi",
+        "logo": "https://bimg.akulaku.net/goods/category/img_pld.png",
+        "optional": 0,
+        "source": 1
+      },
+      {
+        "associated": null,
+        "deleted": null,
+        "description": "",
+        "id": "1701680",
+        "internationalName": "Amooba",
+        "localName": "Amooba",
+        "logo": "https://bimg.akulaku.net/goods/category/img_pld.png",
+        "optional": 0,
+        "source": 1
+      },
+      {
+        "associated": null,
+        "deleted": null,
+        "description": "",
+        "id": "1821584",
+        "internationalName": "animous",
+        "localName": "animous",
+        "logo": "https://bimg.akulaku.net/goods/brand/bbeccfcc44ef4aa18162da8d7a2c37c76876.jpg",
+        "optional": 0,
+        "source": 1
+      },
+      {
+        "associated": null,
+        "deleted": null,
+        "description": "",
+        "id": "1822655",
+        "internationalName": "Arcadia Shopping Center",
+        "localName": "Arcadia Shopping Center",
+        "logo": "https://bimg.akulaku.net/goods/brand/f39e2245a94d45fb8aefa7e162f113ee4815.jpg",
+        "optional": 0,
+        "source": 1
+      },
+      {
+        "associated": null,
+        "deleted": null,
+        "description": "",
+        "id": "1701628",
+        "internationalName": "Arcio",
+        "localName": "Arcio",
+        "logo": "https://bimg.akulaku.net/goods/category/img_pld.png",
+        "optional": 0,
+        "source": 1
+      },
+      {
+        "associated": null,
+        "deleted": null,
+        "description": "",
+        "id": "1791961",
+        "internationalName": "ARF Footwear",
+        "localName": "ARF Footwear",
+        "logo": "https://bimg.akulaku.net/goods/brand/4678ec5f1f944b8d8f1e2a34df2126a96214.jpeg",
+        "optional": 0,
+        "source": 1
+      },
+      {
+        "associated": null,
+        "deleted": null,
+        "description": "",
+        "id": "1832507",
+        "internationalName": "Army86",
+        "localName": "Army86",
+        "logo": "https://bimg.akulaku.net/goods/brand/703f91d93dc742e49876db7eb7d37bac0666.jpg",
+        "optional": 0,
+        "source": 1
+      },
+      {
+        "associated": null,
+        "deleted": null,
+        "description": "",
+        "id": "1703028",
+        "internationalName": "Artic",
+        "localName": "Artic",
+        "logo": "https://bimg.akulaku.net/goods/category/img_pld.png",
+        "optional": 0,
+        "source": 1
+      },
+      {
+        "associated": null,
+        "deleted": null,
+        "description": "",
+        "id": "1700580",
+        "internationalName": "ARWVS Attitude",
+        "localName": "ARWVS Attitude",
+        "logo": "https://bimg.akulaku.net/goods/category/img_pld.png",
+        "optional": 0,
+        "source": 1
+      },
+      {
+        "associated": null,
+        "deleted": null,
+        "description": "",
+        "id": "1704649",
+        "internationalName": "Asics",
+        "localName": "Asics",
+        "logo": "https://bimg.akulaku.net/goods/brand/a57a5377863b444abb66ef53ac98ece29187.png",
+        "optional": 0,
+        "source": 1
+      },
+      {
+        "associated": null,
+        "deleted": null,
+        "description": "",
+        "id": "1704650",
+        "internationalName": "Astec",
+        "localName": "Astec",
+        "logo": "https://bimg.akulaku.net/goods/category/img_pld.png",
+        "optional": 0,
+        "source": 1
+      },
+      {
+        "associated": null,
+        "deleted": null,
+        "description": "",
+        "id": "1701761",
+        "internationalName": "Atva",
+        "localName": "Atva",
+        "logo": "https://bimg.akulaku.net/goods/category/img_pld.png",
+        "optional": 0,
+        "source": 1
+      },
+      {
+        "associated": null,
+        "deleted": null,
+        "description": "",
+        "id": "1830693",
+        "internationalName": "AVEKA",
+        "localName": "AVEKA",
+        "logo": "https://bimg.akulaku.net/goods/brand/b62b1a4d3f3c4760b0b9c220b64f22790961.jpg",
+        "optional": 0,
+        "source": 1
+      },
+      {
+        "associated": null,
+        "deleted": null,
+        "description": "",
+        "id": "1700392",
+        "internationalName": "Avtech",
+        "localName": "Avtech",
+        "logo": "https://bimg.akulaku.net/goods/category/img_pld.png",
+        "optional": 0,
+        "source": 1
+      },
+      {
+        "associated": null,
+        "deleted": null,
+        "description": "",
+        "id": "1832686",
+        "internationalName": "AWDS",
+        "localName": "AWDS",
+        "logo": "https://bimg.akulaku.net/goods/brand/2a1fa198b5c049a5bf861204bfbc75850352.jpg",
+        "optional": 0,
+        "source": 1
+      },
+      {
+        "associated": null,
+        "deleted": null,
+        "description": "",
+        "id": "1701624",
+        "internationalName": "B Bag",
+        "localName": "B Bag",
+        "logo": "https://bimg.akulaku.net/goods/category/img_pld.png",
+        "optional": 0,
+        "source": 1
+      },
+      {
+        "associated": null,
+        "deleted": null,
+        "description": "",
+        "id": "1821599",
+        "internationalName": "B-First",
+        "localName": "B-First",
+        "logo": "https://bimg.akulaku.net/goods/brand/f8ae6641d11d4c35a97e290047a8d5b07165.png",
+        "optional": 0,
+        "source": 1
+      },
+      {
+        "associated": null,
+        "deleted": null,
+        "description": "",
+        "id": "1700594",
+        "internationalName": "Badger",
+        "localName": "Badger",
+        "logo": "https://bimg.akulaku.net/goods/category/img_pld.png",
+        "optional": 0,
+        "source": 1
+      },
+      {
+        "associated": null,
+        "deleted": null,
+        "description": "",
+        "id": "1701455",
+        "internationalName": "Baepack",
+        "localName": "Baepack",
+        "logo": "https://bimg.akulaku.net/goods/category/img_pld.png",
+        "optional": 0,
+        "source": 1
+      },
+      {
+        "associated": null,
+        "deleted": null,
+        "description": "",
+        "id": "1701631",
+        "internationalName": "Bagbone",
+        "localName": "Bagbone",
+        "logo": "https://bimg.akulaku.net/goods/category/img_pld.png",
+        "optional": 0,
+        "source": 1
+      },
+      {
+        "associated": null,
+        "deleted": null,
+        "description": "",
+        "id": "1701633",
+        "internationalName": "Baibu",
+        "localName": "Baibu",
+        "logo": "https://bimg.akulaku.net/goods/category/img_pld.png",
+        "optional": 0,
+        "source": 1
+      },
+      {
+        "associated": null,
+        "deleted": null,
+        "description": "",
+        "id": "1700892",
+        "internationalName": "Balistic",
+        "localName": "Balistic",
+        "logo": "https://bimg.akulaku.net/goods/category/img_pld.png",
+        "optional": 0,
+        "source": 1
+      },
+      {
+        "associated": null,
+        "deleted": null,
+        "description": "",
+        "id": "1701642",
+        "internationalName": "Barklana",
+        "localName": "Barklana",
+        "logo": "https://bimg.akulaku.net/goods/category/img_pld.png",
+        "optional": 0,
+        "source": 1
+      },
+      {
+        "associated": null,
+        "deleted": null,
+        "description": "",
+        "id": "1701546",
+        "internationalName": "Basama Soga",
+        "localName": "Basama Soga",
+        "logo": "https://bimg.akulaku.net/goods/category/img_pld.png",
+        "optional": 0,
+        "source": 1
+      },
+      {
+        "associated": null,
+        "deleted": null,
+        "description": "",
+        "id": "1700643",
+        "internationalName": "Basedclub",
+        "localName": "Basedclub",
+        "logo": "https://bimg.akulaku.net/goods/category/img_pld.png",
+        "optional": 0,
+        "source": 1
+      },
+      {
+        "associated": null,
+        "deleted": null,
+        "description": "",
+        "id": "10107",
+        "internationalName": "Bata",
+        "localName": "Bata",
+        "logo": "https://bimg.akulaku.net/goods/brand/1/107.jpg",
+        "optional": 0,
+        "source": 1
+      },
+      {
+        "associated": null,
+        "deleted": null,
+        "description": "",
+        "id": "1821449",
+        "internationalName": "Bata Comfit",
+        "localName": "Bata Comfit",
+        "logo": "https://bimg.akulaku.net/goods/brand/367b78c4292f437d87b528ae38adde2f8706.png",
+        "optional": 0,
+        "source": 1
+      },
+      {
+        "associated": null,
+        "deleted": null,
+        "description": "",
+        "id": "1821448",
+        "internationalName": "Bata Flexible",
+        "localName": "Bata Flexible",
+        "logo": "https://bimg.akulaku.net/goods/brand/a215167487ab4602ae92d22c3b158c097310.png",
+        "optional": 0,
+        "source": 1
+      },
+      {
+        "associated": null,
+        "deleted": null,
+        "description": "",
+        "id": "1701646",
+        "internationalName": "Batobo",
+        "localName": "Batobo",
+        "logo": "https://bimg.akulaku.net/goods/category/img_pld.png",
+        "optional": 0,
+        "source": 1
+      },
+      {
+        "associated": null,
+        "deleted": null,
+        "description": "",
+        "id": "1700684",
+        "internationalName": "Bayt",
+        "localName": "Bayt",
+        "logo": "https://bimg.akulaku.net/goods/category/img_pld.png",
+        "optional": 0,
+        "source": 1
+      },
+      {
+        "associated": null,
+        "deleted": null,
+        "description": "",
+        "id": "1700763",
+        "internationalName": "Beanpole",
+        "localName": "Beanpole",
+        "logo": "https://bimg.akulaku.net/goods/category/img_pld.png",
+        "optional": 0,
+        "source": 1
+      },
+      {
+        "associated": null,
+        "deleted": null,
+        "description": "",
+        "id": "1701649",
+        "internationalName": "Beaucoup",
+        "localName": "Beaucoup",
+        "logo": "https://bimg.akulaku.net/goods/category/img_pld.png",
+        "optional": 0,
+        "source": 1
+      },
+      {
+        "associated": null,
+        "deleted": null,
+        "description": "",
+        "id": "1701913",
+        "internationalName": "Beauty Gum",
+        "localName": "Beauty Gum",
+        "logo": "https://bimg.akulaku.net/goods/category/img_pld.png",
+        "optional": 0,
+        "source": 1
+      },
+      {
+        "associated": null,
+        "deleted": null,
+        "description": "",
+        "id": "1701653",
+        "internationalName": "Bedaz",
+        "localName": "Bedaz",
+        "logo": "https://bimg.akulaku.net/goods/category/img_pld.png",
+        "optional": 0,
+        "source": 1
+      },
+      {
+        "associated": null,
+        "deleted": null,
+        "description": "",
+        "id": "1701654",
+        "internationalName": "Beegie",
+        "localName": "Beegie",
+        "logo": "https://bimg.akulaku.net/goods/category/img_pld.png",
+        "optional": 0,
+        "source": 1
+      },
+      {
+        "associated": null,
+        "deleted": null,
+        "description": "",
+        "id": "1700770",
+        "internationalName": "Beholder",
+        "localName": "Beholder",
+        "logo": "https://bimg.akulaku.net/goods/category/img_pld.png",
+        "optional": 0,
+        "source": 1
+      },
+      {
+        "associated": null,
+        "deleted": null,
+        "description": "",
+        "id": "1701657",
+        "internationalName": "Bemzo",
+        "localName": "Bemzo",
+        "logo": "https://bimg.akulaku.net/goods/category/img_pld.png",
+        "optional": 0,
+        "source": 1
+      },
+      {
+        "associated": null,
+        "deleted": null,
+        "description": "",
+        "id": "1700713",
+        "internationalName": "Berak",
+        "localName": "Berak",
+        "logo": "https://bimg.akulaku.net/goods/category/img_pld.png",
+        "optional": 0,
+        "source": 1
+      },
+      {
+        "associated": null,
+        "deleted": null,
+        "description": "",
+        "id": "1701660",
+        "internationalName": "Beready",
+        "localName": "Beready",
+        "logo": "https://bimg.akulaku.net/goods/category/img_pld.png",
+        "optional": 0,
+        "source": 1
+      },
+      {
+        "associated": null,
+        "deleted": null,
+        "description": "",
+        "id": "1700714",
+        "internationalName": "Berghaus",
+        "localName": "Berghaus",
+        "logo": "https://bimg.akulaku.net/goods/category/img_pld.png",
+        "optional": 0,
+        "source": 1
+      },
+      {
+        "associated": null,
+        "deleted": null,
+        "description": "",
+        "id": "1700725",
+        "internationalName": "Betterdays",
+        "localName": "Betterdays",
+        "logo": "https://bimg.akulaku.net/goods/category/img_pld.png",
+        "optional": 0,
+        "source": 1
+      },
+      {
+        "associated": null,
+        "deleted": null,
+        "description": "",
+        "id": "1702681",
+        "internationalName": "Beverly Hills Polo Club",
+        "localName": "Beverly Hills Polo Club",
+        "logo": "https://bimg.akulaku.net/goods/category/img_pld.png",
+        "optional": 0,
+        "source": 1
+      },
+      {
+        "associated": null,
+        "deleted": null,
+        "description": "",
+        "id": "1701602",
+        "internationalName": "BFLY",
+        "localName": "BFLY",
+        "logo": "https://bimg.akulaku.net/goods/category/img_pld.png",
+        "optional": 0,
+        "source": 1
+      },
+      {
+        "associated": null,
+        "deleted": null,
+        "description": "",
+        "id": "1701665",
+        "internationalName": "Biaowang",
+        "localName": "Biaowang",
+        "logo": "https://bimg.akulaku.net/goods/category/img_pld.png",
+        "optional": 0,
+        "source": 1
+      },
+      {
+        "associated": null,
+        "deleted": null,
+        "description": "",
+        "id": "1701667",
+        "internationalName": "Bidigi",
+        "localName": "Bidigi",
+        "logo": "https://bimg.akulaku.net/goods/category/img_pld.png",
+        "optional": 0,
+        "source": 1
+      },
+      {
+        "associated": null,
+        "deleted": null,
+        "description": "",
+        "id": "1701668",
+        "internationalName": "Bigmo",
+        "localName": "Bigmo",
+        "logo": "https://bimg.akulaku.net/goods/category/img_pld.png",
+        "optional": 0,
+        "source": 1
+      },
+      {
+        "associated": null,
+        "deleted": null,
+        "description": "",
+        "id": "1700870",
+        "internationalName": "Birdie",
+        "localName": "Birdie",
+        "logo": "https://bimg.akulaku.net/goods/category/img_pld.png",
+        "optional": 0,
+        "source": 1
+      },
+      {
+        "associated": null,
+        "deleted": null,
+        "description": "",
+        "id": "1701674",
+        "internationalName": "Bison Denim",
+        "localName": "Bison Denim",
+        "logo": "https://bimg.akulaku.net/goods/category/img_pld.png",
+        "optional": 0,
+        "source": 1
+      },
+      {
+        "associated": null,
+        "deleted": null,
+        "description": "",
+        "id": "1701676",
+        "internationalName": "Bivaly Wyld",
+        "localName": "Bivaly Wyld",
+        "logo": "https://bimg.akulaku.net/goods/category/img_pld.png",
+        "optional": 0,
+        "source": 1
+      },
+      {
+        "associated": null,
+        "deleted": null,
+        "description": "",
+        "id": "1700793",
+        "internationalName": "Black Yak",
+        "localName": "Black Yak",
+        "logo": "https://bimg.akulaku.net/goods/category/img_pld.png",
+        "optional": 0,
+        "source": 1
+      },
+      {
+        "associated": null,
+        "deleted": null,
+        "description": "",
+        "id": "1701574",
+        "internationalName": "Blackkelly",
+        "localName": "Blackkelly",
+        "logo": "https://bimg.akulaku.net/goods/category/img_pld.png",
+        "optional": 0,
+        "source": 1
+      },
+      {
+        "associated": null,
+        "deleted": null,
+        "description": "",
+        "id": "1700258",
+        "internationalName": "Blanker",
+        "localName": "Blanker",
+        "logo": "https://bimg.akulaku.net/goods/category/img_pld.png",
+        "optional": 0,
+        "source": 1
+      },
+      {
+        "associated": null,
+        "deleted": null,
+        "description": "",
+        "id": "1701678",
+        "internationalName": "Blasted",
+        "localName": "Blasted",
+        "logo": "https://bimg.akulaku.net/goods/category/img_pld.png",
+        "optional": 0,
+        "source": 1
+      },
+      {
+        "associated": null,
+        "deleted": null,
+        "description": "",
+        "id": "1701679",
+        "internationalName": "Blesco",
+        "localName": "Blesco",
+        "logo": "https://bimg.akulaku.net/goods/category/img_pld.png",
+        "optional": 0,
+        "source": 1
+      },
+      {
+        "associated": null,
+        "deleted": null,
+        "description": "",
+        "id": "1701728",
+        "internationalName": "Bodypack",
+        "localName": "Bodypack",
+        "logo": "https://bimg.akulaku.net/goods/category/img_pld.png",
+        "optional": 0,
+        "source": 1
+      },
+      {
+        "associated": null,
+        "deleted": null,
+        "description": "",
+        "id": "1822216",
+        "internationalName": "BRAVHOM",
+        "localName": "BRAVHOM",
+        "logo": "https://bimg.akulaku.net/goods/brand/e6dd51155a2746b7ac9e85bcfe7154b89546.jpg",
+        "optional": 0,
+        "source": 1
+      },
+      {
+        "associated": null,
+        "deleted": null,
+        "description": "",
+        "id": "1701745",
+        "internationalName": "Bruno Cavalli",
+        "localName": "Bruno Cavalli",
+        "logo": "https://bimg.akulaku.net/goods/category/img_pld.png",
+        "optional": 0,
+        "source": 1
+      },
+      {
+        "associated": null,
+        "deleted": null,
+        "description": "",
+        "id": "10840",
+        "internationalName": "Bubblegummers",
+        "localName": "Bubblegummers",
+        "logo": "https://bimg.akulaku.net/goods/brand/82f0ef8852db430dbc70253a47c2aba14748.png",
+        "optional": 0,
+        "source": 1
+      },
+      {
+        "associated": null,
+        "deleted": null,
+        "description": "",
+        "id": "1832159",
+        "internationalName": "Bulfaro ",
+        "localName": "Bulfaro ",
+        "logo": "https://bimg.akulaku.net/goods/brand/d9dba1e724a24f139e7f45d91d5346f30830.jpeg",
+        "optional": 0,
+        "source": 1
+      },
+      {
+        "associated": null,
+        "deleted": null,
+        "description": "",
+        "id": "1832935",
+        "internationalName": "BWX",
+        "localName": "BWX",
+        "logo": "https://bimg.akulaku.net/goods/brand/7c1010cf4cf54928b3b4ff6e86accbf88175.jpg",
+        "optional": 0,
+        "source": 1
+      },
+      {
+        "associated": null,
+        "deleted": null,
+        "description": "",
+        "id": "1702607",
+        "internationalName": "Byford",
+        "localName": "Byford",
+        "logo": "https://bimg.akulaku.net/goods/brand/86fa116935c84e45b69dfd95e4bdafc06176.png",
+        "optional": 0,
+        "source": 1
+      },
+      {
+        "associated": null,
+        "deleted": null,
+        "description": "",
+        "id": "1701627",
+        "internationalName": "Cabs",
+        "localName": "Cabs",
+        "logo": "https://bimg.akulaku.net/goods/category/img_pld.png",
+        "optional": 0,
+        "source": 1
+      },
+      {
+        "associated": null,
+        "deleted": null,
+        "description": "",
+        "id": "1823617",
+        "internationalName": "Cagho",
+        "localName": "Cagho",
+        "logo": "https://bimg.akulaku.net/goods/brand/7231481fa7fe4c6fb931cc91b50d6a9a9690.png",
+        "optional": 0,
+        "source": 1
+      },
+      {
+        "associated": null,
+        "deleted": null,
+        "description": "",
+        "id": "1701629",
+        "internationalName": "Calandiva",
+        "localName": "Calandiva",
+        "logo": "https://bimg.akulaku.net/goods/category/img_pld.png",
+        "optional": 0,
+        "source": 1
+      },
+      {
+        "associated": null,
+        "deleted": null,
+        "description": "",
+        "id": "1700819",
+        "internationalName": "Calci",
+        "localName": "Calci",
+        "logo": "https://bimg.akulaku.net/goods/brand/a58c19c9b1784719b4d4173d44e275989359.png",
+        "optional": 0,
+        "source": 1
+      },
+      {
+        "associated": null,
+        "deleted": null,
+        "description": "",
+        "id": "1701630",
+        "internationalName": "Camelano",
+        "localName": "Camelano",
+        "logo": "https://bimg.akulaku.net/goods/category/img_pld.png",
+        "optional": 0,
+        "source": 1
+      },
+      {
+        "associated": null,
+        "deleted": null,
+        "description": "",
+        "id": "1700888",
+        "internationalName": "Camo",
+        "localName": "Camo",
+        "logo": "https://bimg.akulaku.net/goods/category/img_pld.png",
+        "optional": 0,
+        "source": 1
+      },
+      {
+        "associated": null,
+        "deleted": null,
+        "description": "",
+        "id": "1700208",
+        "internationalName": "Camowarbroke",
+        "localName": "Camowarbroke",
+        "logo": "https://bimg.akulaku.net/goods/category/img_pld.png",
+        "optional": 0,
+        "source": 1
+      },
+      {
+        "associated": null,
+        "deleted": null,
+        "description": "",
+        "id": "1701632",
+        "internationalName": "Canifer",
+        "localName": "Canifer",
+        "logo": "https://bimg.akulaku.net/goods/category/img_pld.png",
+        "optional": 0,
+        "source": 1
+      },
+      {
+        "associated": null,
+        "deleted": null,
+        "description": "",
+        "id": "1701634",
+        "internationalName": "Cano",
+        "localName": "Cano",
+        "logo": "https://bimg.akulaku.net/goods/category/img_pld.png",
+        "optional": 0,
+        "source": 1
+      },
+      {
+        "associated": null,
+        "deleted": null,
+        "description": "",
+        "id": "1701637",
+        "internationalName": "Carboni",
+        "localName": "Carboni",
+        "logo": "https://bimg.akulaku.net/goods/category/img_pld.png",
+        "optional": 0,
+        "source": 1
+      },
+      {
+        "associated": null,
+        "deleted": null,
+        "description": "",
+        "id": "1700626",
+        "internationalName": "Cardinal",
+        "localName": "Cardinal",
+        "logo": "https://bimg.akulaku.net/goods/category/img_pld.png",
+        "optional": 0,
+        "source": 1
+      },
+      {
+        "associated": null,
+        "deleted": null,
+        "description": "",
+        "id": "1701639",
+        "internationalName": "Caribee",
+        "localName": "Caribee",
+        "logo": "https://bimg.akulaku.net/goods/category/img_pld.png",
+        "optional": 0,
+        "source": 1
+      },
+      {
+        "associated": null,
+        "deleted": null,
+        "description": "",
+        "id": "1700830",
+        "internationalName": "Carion",
+        "localName": "Carion",
+        "logo": "https://bimg.akulaku.net/goods/category/img_pld.png",
+        "optional": 0,
+        "source": 1
+      },
+      {
+        "associated": null,
+        "deleted": null,
+        "description": "",
+        "id": "1701640",
+        "internationalName": "Carlington",
+        "localName": "Carlington",
+        "logo": "https://bimg.akulaku.net/goods/category/img_pld.png",
+        "optional": 0,
+        "source": 1
+      },
+      {
+        "associated": null,
+        "deleted": null,
+        "description": "",
+        "id": "1701641",
+        "internationalName": "Carlo",
+        "localName": "Carlo",
+        "logo": "https://bimg.akulaku.net/goods/category/img_pld.png",
+        "optional": 0,
+        "source": 1
+      },
+      {
+        "associated": null,
+        "deleted": null,
+        "description": "",
+        "id": "1700639",
+        "internationalName": "Carousel",
+        "localName": "Carousel",
+        "logo": "https://bimg.akulaku.net/goods/category/img_pld.png",
+        "optional": 0,
+        "source": 1
+      },
+      {
+        "associated": null,
+        "deleted": null,
+        "description": "",
+        "id": "1700644",
+        "internationalName": "Cartenz",
+        "localName": "Cartenz",
+        "logo": "https://bimg.akulaku.net/goods/category/img_pld.png",
+        "optional": 0,
+        "source": 1
+      },
+      {
+        "associated": null,
+        "deleted": null,
+        "description": "",
+        "id": "1701644",
+        "internationalName": "Catbean",
+        "localName": "Catbean",
+        "logo": "https://bimg.akulaku.net/goods/category/img_pld.png",
+        "optional": 0,
+        "source": 1
+      },
+      {
+        "associated": null,
+        "deleted": null,
+        "description": "",
+        "id": "1701547",
+        "internationalName": "Catenar",
+        "localName": "Catenar",
+        "logo": "https://bimg.akulaku.net/goods/category/img_pld.png",
+        "optional": 0,
+        "source": 1
+      },
+      {
+        "associated": null,
+        "deleted": null,
+        "description": "",
+        "id": "1700753",
+        "internationalName": "Catenzo",
+        "localName": "Catenzo",
+        "logo": "https://bimg.akulaku.net/goods/category/img_pld.png",
+        "optional": 0,
+        "source": 1
+      },
+      {
+        "associated": null,
+        "deleted": null,
+        "description": "",
+        "id": "1701645",
+        "internationalName": "Cavero",
+        "localName": "Cavero",
+        "logo": "https://bimg.akulaku.net/goods/category/img_pld.png",
+        "optional": 0,
+        "source": 1
+      },
+      {
+        "associated": null,
+        "deleted": null,
+        "description": "",
+        "id": "1700565",
+        "internationalName": "CBR Six",
+        "localName": "CBR Six",
+        "logo": "https://bimg.akulaku.net/goods/category/img_pld.png",
+        "optional": 0,
+        "source": 1
+      },
+      {
+        "associated": null,
+        "deleted": null,
+        "description": "",
+        "id": "1700911",
+        "internationalName": "Ceviro",
+        "localName": "Ceviro",
+        "logo": "https://bimg.akulaku.net/goods/category/img_pld.png",
+        "optional": 0,
+        "source": 1
+      },
+      {
+        "associated": null,
+        "deleted": null,
+        "description": "",
+        "id": "1701650",
+        "internationalName": "Chansin",
+        "localName": "Chansin",
+        "logo": "https://bimg.akulaku.net/goods/category/img_pld.png",
+        "optional": 0,
+        "source": 1
+      },
+      {
+        "associated": null,
+        "deleted": null,
+        "description": "",
+        "id": "1700232",
+        "internationalName": "Chemistry Straight",
+        "localName": "Chemistry Straight",
+        "logo": "https://bimg.akulaku.net/goods/category/img_pld.png",
+        "optional": 0,
+        "source": 1
+      },
+      {
+        "associated": null,
+        "deleted": null,
+        "description": "",
+        "id": "1823197",
+        "internationalName": "Chic star",
+        "localName": "Chic star",
+        "logo": "https://bimg.akulaku.net/goods/brand/38bfb3a9241d445fa8dd17aabd1d7a814751.png",
+        "optional": 0,
+        "source": 1
+      },
+      {
+        "associated": null,
+        "deleted": null,
+        "description": "",
+        "id": "1705480",
+        "internationalName": "Chief",
+        "localName": "Chief",
+        "logo": "https://bimg.akulaku.net/goods/category/img_pld.png",
+        "optional": 0,
+        "source": 1
+      },
+      {
+        "associated": null,
+        "deleted": null,
+        "description": "",
+        "id": "1701655",
+        "internationalName": "Chisel",
+        "localName": "Chisel",
+        "logo": "https://bimg.akulaku.net/goods/category/img_pld.png",
+        "optional": 0,
+        "source": 1
+      },
+      {
+        "associated": null,
+        "deleted": null,
+        "description": "",
+        "id": "1701656",
+        "internationalName": "Choral",
+        "localName": "Choral",
+        "logo": "https://bimg.akulaku.net/goods/category/img_pld.png",
+        "optional": 0,
+        "source": 1
+      },
+      {
+        "associated": null,
+        "deleted": null,
+        "description": "",
+        "id": "1701658",
+        "internationalName": "Chrome",
+        "localName": "Chrome",
+        "logo": "https://bimg.akulaku.net/goods/category/img_pld.png",
+        "optional": 0,
+        "source": 1
+      },
+      {
+        "associated": null,
+        "deleted": null,
+        "description": "",
+        "id": "1832862",
+        "internationalName": "CILLICIO",
+        "localName": "CILLICIO",
+        "logo": "https://bimg.akulaku.net/goods/brand/fd8a5271e0b34ccd9b9a78a900abf59b4693.jpeg",
+        "optional": 0,
+        "source": 1
+      },
+      {
+        "associated": null,
+        "deleted": null,
+        "description": "",
+        "id": "1701663",
+        "internationalName": "Clarion",
+        "localName": "Clarion",
+        "logo": "https://bimg.akulaku.net/goods/category/img_pld.png",
+        "optional": 0,
+        "source": 1
+      },
+      {
+        "associated": null,
+        "deleted": null,
+        "description": "",
+        "id": "1701664",
+        "internationalName": "Classa",
+        "localName": "Classa",
+        "logo": "https://bimg.akulaku.net/goods/category/img_pld.png",
+        "optional": 0,
+        "source": 1
+      },
+      {
+        "associated": null,
+        "deleted": null,
+        "description": "",
+        "id": "1700858",
+        "internationalName": "Claw",
+        "localName": "Claw",
+        "logo": "https://bimg.akulaku.net/goods/category/img_pld.png",
+        "optional": 0,
+        "source": 1
+      },
+      {
+        "associated": null,
+        "deleted": null,
+        "description": "",
+        "id": "1701669",
+        "internationalName": "Click",
+        "localName": "Click",
+        "logo": "https://bimg.akulaku.net/goods/category/img_pld.png",
+        "optional": 0,
+        "source": 1
+      },
+      {
+        "associated": null,
+        "deleted": null,
+        "description": "",
+        "id": "1701670",
+        "internationalName": "Clowny",
+        "localName": "Clowny",
+        "logo": "https://bimg.akulaku.net/goods/category/img_pld.png",
+        "optional": 0,
+        "source": 1
+      },
+      {
+        "associated": null,
+        "deleted": null,
+        "description": "",
+        "id": "1701625",
+        "internationalName": "CMSTR",
+        "localName": "CMSTR",
+        "logo": "https://bimg.akulaku.net/goods/category/img_pld.png",
+        "optional": 0,
+        "source": 1
+      },
+      {
+        "associated": null,
+        "deleted": null,
+        "description": "",
+        "id": "1700868",
+        "internationalName": "Co-Trek Adventure",
+        "localName": "Co-Trek Adventure",
+        "logo": "https://bimg.akulaku.net/goods/category/img_pld.png",
+        "optional": 0,
+        "source": 1
+      },
+      {
+        "associated": null,
+        "deleted": null,
+        "description": "",
+        "id": "1701671",
+        "internationalName": "Coaster",
+        "localName": "Coaster",
+        "logo": "https://bimg.akulaku.net/goods/category/img_pld.png",
+        "optional": 0,
+        "source": 1
+      },
+      {
+        "associated": null,
+        "deleted": null,
+        "description": "",
+        "id": "1701672",
+        "internationalName": "Coastline",
+        "localName": "Coastline",
+        "logo": "https://bimg.akulaku.net/goods/category/img_pld.png",
+        "optional": 0,
+        "source": 1
+      },
+      {
+        "associated": null,
+        "deleted": null,
+        "description": "",
+        "id": "1701673",
+        "internationalName": "Coffeepark",
+        "localName": "Coffeepark",
+        "logo": "https://bimg.akulaku.net/goods/category/img_pld.png",
+        "optional": 0,
+        "source": 1
+      },
+      {
+        "associated": null,
+        "deleted": null,
+        "description": "",
+        "id": "1834898",
+        "internationalName": "COMPLETE SELULAR",
+        "localName": "COMPLETE SELULAR",
+        "logo": "https://bimg.akulaku.net/goods/brand/0e0fcbe9f30a402a93e54bf96297d1b25090.jpg",
+        "optional": 0,
+        "source": 1
+      },
+      {
+        "associated": null,
+        "deleted": null,
+        "description": "",
+        "id": "1700799",
+        "internationalName": "Consina",
+        "localName": "Consina",
+        "logo": "https://bimg.akulaku.net/goods/category/img_pld.png",
+        "optional": 0,
+        "source": 1
+      },
+      {
+        "associated": null,
+        "deleted": null,
+        "description": "",
+        "id": "1700265",
+        "internationalName": "Cowboy",
+        "localName": "Cowboy",
+        "logo": "https://bimg.akulaku.net/goods/category/img_pld.png",
+        "optional": 0,
+        "source": 1
+      },
+      {
+        "associated": null,
+        "deleted": null,
+        "description": "",
+        "id": "1701731",
+        "internationalName": "Cozmeed",
+        "localName": "Cozmeed",
+        "logo": "https://bimg.akulaku.net/goods/category/img_pld.png",
+        "optional": 0,
+        "source": 1
+      },
+      {
+        "associated": null,
+        "deleted": null,
+        "description": "",
+        "id": "1701626",
+        "internationalName": "CVS",
+        "localName": "CVS",
+        "logo": "https://bimg.akulaku.net/goods/category/img_pld.png",
+        "optional": 0,
+        "source": 1
+      },
+      {
+        "associated": null,
+        "deleted": null,
+        "description": "",
+        "id": "1834350",
+        "internationalName": "DCAVCA",
+        "localName": "DCAVCA",
+        "logo": "https://bimg.akulaku.net/goods/brand/77216dbd76e74b01828a4f1f6204bc139145.jpg",
+        "optional": 0,
+        "source": 1
+      },
+      {
+        "associated": null,
+        "deleted": null,
+        "description": "",
+        "id": "1830536",
+        "internationalName": "DertA",
+        "localName": "DertA",
+        "logo": "https://bimg.akulaku.net/goods/brand/3a32edcc2b6647739eb373b9ef57fac37501.jpg",
+        "optional": 0,
+        "source": 1
+      },
+      {
+        "associated": null,
+        "deleted": null,
+        "description": "",
+        "id": "100058",
+        "internationalName": "DR Kevin",
+        "localName": "DR Kevin",
+        "logo": "https://bimg.akulaku.net/goods/brand/1/4tK2uTIOFVeMCm4NzfKXSA_1571039437044.png",
+        "optional": 0,
+        "source": 1
+      },
+      {
+        "associated": null,
+        "deleted": null,
+        "description": "",
+        "id": "10500",
+        "internationalName": "Dr Kevin Kids",
+        "localName": "Dr Kevin Kids",
+        "logo": "https://bimg.akulaku.net/goods/brand/1/500.jpg",
+        "optional": 0,
+        "source": 1
+      },
+      {
+        "associated": null,
+        "deleted": null,
+        "description": "",
+        "id": "1831439",
+        "internationalName": "DryRoots Inc",
+        "localName": "DryRoots Inc",
+        "logo": "https://bimg.akulaku.net/goods/brand/0f0f8fe966cf4efb834f0d2440ca84de0001.jpg",
+        "optional": 0,
+        "source": 1
+      },
+      {
+        "associated": null,
+        "deleted": null,
+        "description": "",
+        "id": "1821583",
+        "internationalName": "Dthree",
+        "localName": "Dthree",
+        "logo": "https://bimg.akulaku.net/goods/brand/888a0e6c71284bd1a66cab28cd2146b61510.jpeg",
+        "optional": 0,
+        "source": 1
+      },
+      {
+        "associated": null,
+        "deleted": null,
+        "description": "",
+        "id": "1832691",
+        "internationalName": "DURACHY",
+        "localName": "DURACHY",
+        "logo": "https://bimg.akulaku.net/goods/brand/5a29602bc43b4aec9545c89017af77d90517.jpeg",
+        "optional": 0,
+        "source": 1
+      },
+      {
+        "associated": null,
+        "deleted": null,
+        "description": "",
+        "id": "1832695",
+        "internationalName": "Eagle Shoes",
+        "localName": "Eagle Shoes",
+        "logo": "https://bimg.akulaku.net/goods/brand/8e0cb8e83c3f42e1a565c454ff69426f8239.png",
+        "optional": 0,
+        "source": 1
+      },
+      {
+        "associated": null,
+        "deleted": null,
+        "description": "",
+        "id": "1822205",
+        "internationalName": "Ehem",
+        "localName": "Ehem",
+        "logo": "https://bimg.akulaku.net/goods/brand/876d12eeffc340d2836396457ecbf5570650.jpg",
+        "optional": 0,
+        "source": 1
+      },
+      {
+        "associated": null,
+        "deleted": null,
+        "description": "",
+        "id": "11182",
+        "internationalName": "Eiger",
+        "localName": "Eiger",
+        "logo": "https://bimg.akulaku.net/goods/brand/86071b8ba8344905ac07e16a3f3913687635.jpg",
+        "optional": 0,
+        "source": 1
+      },
+      {
+        "associated": null,
+        "deleted": null,
+        "description": "",
+        "id": "1823790",
+        "internationalName": "Ellevelle",
+        "localName": "Ellevelle",
+        "logo": "https://bimg.akulaku.net/goods/brand/34aa15ab058d416a9f6a39bb990183dc5740.jpeg",
+        "optional": 0,
+        "source": 1
+      },
+      {
+        "associated": null,
+        "deleted": null,
+        "description": "",
+        "id": "1825880",
+        "internationalName": "Elzaura",
+        "localName": "Elzaura",
+        "logo": "https://bimg.akulaku.net/goods/brand/8204e20b636e4085b60d7e2bd70174941654.jpg",
+        "optional": 0,
+        "source": 1
+      },
+      {
+        "associated": null,
+        "deleted": null,
+        "description": "",
+        "id": "1832170",
+        "internationalName": "Enough For Today /KUIY,-",
+        "localName": "Enough For Today /KUIY,-",
+        "logo": "https://bimg.akulaku.net/goods/brand/24105b8de0e24c51861ebaea25fc4aea9611.jpg",
+        "optional": 0,
+        "source": 1
+      },
+      {
+        "associated": null,
+        "deleted": null,
+        "description": "",
+        "id": "1701796",
+        "internationalName": "Erigo",
+        "localName": "Erigo",
+        "logo": "https://bimg.akulaku.net/goods/category/img_pld.png",
+        "optional": 0,
+        "source": 1
+      },
+      {
+        "associated": null,
+        "deleted": null,
+        "description": "",
+        "id": "1821577",
+        "internationalName": "Escortbag",
+        "localName": "Escortbag",
+        "logo": "https://bimg.akulaku.net/goods/brand/7d039088988547b7b5fdd461810a848f8364.jpeg",
+        "optional": 0,
+        "source": 1
+      },
+      {
+        "associated": null,
+        "deleted": null,
+        "description": "",
+        "id": "1832696",
+        "internationalName": "Evolusion",
+        "localName": "Evolusion",
+        "logo": "https://bimg.akulaku.net/goods/brand/e4814fe38933457c97b9e404260a1fea5695.jpeg",
+        "optional": 0,
+        "source": 1
+      },
+      {
+        "associated": null,
+        "deleted": null,
+        "description": "",
+        "id": "1823288",
+        "internationalName": "Famo",
+        "localName": "Famo",
+        "logo": "https://bimg.akulaku.net/goods/brand/18e7e07712f849319b470824f5a482427180.jpg",
+        "optional": 0,
+        "source": 1
+      },
+      {
+        "associated": null,
+        "deleted": null,
+        "description": "",
+        "id": "1700402",
+        "internationalName": "Firefly",
+        "localName": "Firefly",
+        "logo": "https://bimg.akulaku.net/goods/category/img_pld.png",
+        "optional": 0,
+        "source": 1
+      },
+      {
+        "associated": null,
+        "deleted": null,
+        "description": "",
+        "id": "1821438",
+        "internationalName": "Fixch",
+        "localName": "Fixch",
+        "logo": "https://bimg.akulaku.net/goods/brand/25786b367bcb4cf697f8561bb823fb7b1429.png",
+        "optional": 0,
+        "source": 1
+      },
+      {
+        "associated": null,
+        "deleted": null,
+        "description": "",
+        "id": "1823290",
+        "internationalName": "FMC",
+        "localName": "FMC",
+        "logo": "https://bimg.akulaku.net/goods/brand/6d951696ada54284903f983dd6aea31e6440.jpg",
+        "optional": 0,
+        "source": 1
+      },
+      {
+        "associated": null,
+        "deleted": null,
+        "description": "",
+        "id": "1829119",
+        "internationalName": "Footstep Footwear",
+        "localName": "Footstep Footwear",
+        "logo": "https://bimg.akulaku.net/goods/brand/41e3a7b6190e42a0a76624203eea1e1d0077.png",
+        "optional": 0,
+        "source": 1
+      },
+      {
+        "associated": null,
+        "deleted": null,
+        "description": "",
+        "id": "1702200",
+        "internationalName": "Fortuner",
+        "localName": "Fortuner",
+        "logo": "https://bimg.akulaku.net/goods/brand/632e811d018d49d9956a7858f24752dc7081.jpg",
+        "optional": 0,
+        "source": 1
+      },
+      {
+        "associated": null,
+        "deleted": null,
+        "description": "",
+        "id": "100071",
+        "internationalName": "FREE KNIGHT",
+        "localName": "FREE KNIGHT",
+        "logo": "https://bimg.akulaku.net/goods/brand/1/eLgEaD8SSkGs8SseZl5VHQ_1571040877689.png",
+        "optional": 0,
+        "source": 1
+      },
+      {
+        "associated": null,
+        "deleted": null,
+        "description": "",
+        "id": "1810893",
+        "internationalName": "Freeknight",
+        "localName": "Freeknight",
+        "logo": "https://bimg.akulaku.net/goods/brand/75397b5a4b59485ab96b3e7dc5e817832188.jpg",
+        "optional": 0,
+        "source": 1
+      },
+      {
+        "associated": null,
+        "deleted": null,
+        "description": "",
+        "id": "1832486",
+        "internationalName": "GARDIO",
+        "localName": "GARDIO",
+        "logo": "https://bimg.akulaku.net/goods/brand/38f429b199e243979451e9ff86c576b39404.jpeg",
+        "optional": 0,
+        "source": 1
+      },
+      {
+        "associated": null,
+        "deleted": null,
+        "description": "",
+        "id": "1701780",
+        "internationalName": "Geoff Max",
+        "localName": "Geoff Max",
+        "logo": "https://bimg.akulaku.net/goods/category/img_pld.png",
+        "optional": 0,
+        "source": 1
+      },
+      {
+        "associated": null,
+        "deleted": null,
+        "description": "",
+        "id": "1701794",
+        "internationalName": "Gobelini",
+        "localName": "Gobelini",
+        "logo": "https://bimg.akulaku.net/goods/category/img_pld.png",
+        "optional": 0,
+        "source": 1
+      },
+      {
+        "associated": null,
+        "deleted": null,
+        "description": "",
+        "id": "1703480",
+        "internationalName": "Goto Hardware",
+        "localName": "Goto Hardware",
+        "logo": "https://bimg.akulaku.net/goods/category/img_pld.png",
+        "optional": 0,
+        "source": 1
+      },
+      {
+        "associated": null,
+        "deleted": null,
+        "description": "",
+        "id": "1802361",
+        "internationalName": "GOTO LIVING",
+        "localName": "GOTO LIVING",
+        "logo": "https://bimg.akulaku.net/goods/brand/82e7388316cd4cac89e152cea83aeeb83473.png",
+        "optional": 0,
+        "source": 1
+      },
+      {
+        "associated": null,
+        "deleted": null,
+        "description": "",
+        "id": "1832274",
+        "internationalName": "GRAHANGGRA ",
+        "localName": "GRAHANGGRA ",
+        "logo": "https://bimg.akulaku.net/goods/brand/f4e8ad6531d446d996618c3aaf5050797745.jpeg",
+        "optional": 0,
+        "source": 1
+      },
+      {
+        "associated": null,
+        "deleted": null,
+        "description": "",
+        "id": "1833995",
+        "internationalName": "GREEN FOX",
+        "localName": "GREEN FOX",
+        "logo": "https://bimg.akulaku.net/goods/brand/92188c28b3eb44a0bb31843ec533f63b0743.jpg",
+        "optional": 0,
+        "source": 1
+      },
+      {
+        "associated": null,
+        "deleted": null,
+        "description": "",
+        "id": "10374",
+        "internationalName": "Greenlight",
+        "localName": "Greenlight",
+        "logo": "https://bimg.akulaku.net/goods/brand/1/374.jpg",
+        "optional": 0,
+        "source": 1
+      },
+      {
+        "associated": null,
+        "deleted": null,
+        "description": "",
+        "id": "1833893",
+        "internationalName": "HAENHA",
+        "localName": "HAENHA",
+        "logo": "https://bimg.akulaku.net/goods/brand/1a01140320364771adeb92f70e69e1ab6043.jpg",
+        "optional": 0,
+        "source": 1
+      },
+      {
+        "associated": null,
+        "deleted": null,
+        "description": "",
+        "id": "1823291",
+        "internationalName": "Hanna",
+        "localName": "Hanna",
+        "logo": "https://bimg.akulaku.net/goods/brand/e28e0a7d0f0f4a248fe178c6e09076152457.jpg",
+        "optional": 0,
+        "source": 1
+      },
+      {
+        "associated": null,
+        "deleted": null,
+        "description": "",
+        "id": "1832511",
+        "internationalName": "HEDON STATE",
+        "localName": "HEDON STATE",
+        "logo": "https://bimg.akulaku.net/goods/brand/a6659c6d411246c4910f8e28e104bf511128.jpeg",
+        "optional": 0,
+        "source": 1
+      },
+      {
+        "associated": null,
+        "deleted": null,
+        "description": "",
+        "id": "1832951",
+        "internationalName": "Hiban Signature",
+        "localName": "Hiban Signature",
+        "logo": "https://bimg.akulaku.net/goods/brand/1cbc692c782c4179a6eb4d4fc947c7853198.png",
+        "optional": 0,
+        "source": 1
+      },
+      {
+        "associated": null,
+        "deleted": null,
+        "description": "",
+        "id": "1832693",
+        "internationalName": "HUNDRED",
+        "localName": "HUNDRED",
+        "logo": "https://bimg.akulaku.net/goods/brand/4f13dae733364c38934fb19e1d3c8a0c3680.jpeg",
+        "optional": 0,
+        "source": 1
+      },
+      {
+        "associated": null,
+        "deleted": null,
+        "description": "",
+        "id": "1706419",
+        "internationalName": "Hurricane",
+        "localName": "Hurricane",
+        "logo": "https://bimg.akulaku.net/goods/category/img_pld.png",
+        "optional": 0,
+        "source": 1
+      },
+      {
+        "associated": null,
+        "deleted": null,
+        "description": "",
+        "id": "1705663",
+        "internationalName": "IKEA",
+        "localName": "IKEA",
+        "logo": "https://bimg.akulaku.net/goods/category/img_pld.png",
+        "optional": 0,
+        "source": 1
+      },
+      {
+        "associated": null,
+        "deleted": null,
+        "description": "",
+        "id": "11190",
+        "internationalName": "Ipanema",
+        "localName": "Ipanema",
+        "logo": "https://bimg.akulaku.net/goods/brand/1/1190.jpg",
+        "optional": 0,
+        "source": 1
+      },
+      {
+        "associated": null,
+        "deleted": null,
+        "description": "",
+        "id": "1702118",
+        "internationalName": "Jack Nicklaus",
+        "localName": "Jack Nicklaus",
+        "logo": "https://bimg.akulaku.net/goods/category/img_pld.png",
+        "optional": 0,
+        "source": 1
+      },
+      {
+        "associated": null,
+        "deleted": null,
+        "description": "",
+        "id": "1823890",
+        "internationalName": "John Carter",
+        "localName": "John Carter",
+        "logo": "https://bimg.akulaku.net/goods/brand/e9f9ca299d90490dba2f800bc7ec6fab9832.png",
+        "optional": 0,
+        "source": 1
+      },
+      {
+        "associated": null,
+        "deleted": null,
+        "description": "",
+        "id": "1820702",
+        "internationalName": "Jonas",
+        "localName": "Jonas",
+        "logo": "https://bimg.akulaku.net/goods/brand/cc2a73f59fa44276b76e741b649c44936972.png",
+        "optional": 0,
+        "source": 1
+      },
+      {
+        "associated": null,
+        "deleted": null,
+        "description": "",
+        "id": "1832517",
+        "internationalName": "KAHASIL",
+        "localName": "KAHASIL",
+        "logo": "https://bimg.akulaku.net/goods/brand/9c24488e50064cffb05071f747f833244857.jpg",
+        "optional": 0,
+        "source": 1
+      },
+      {
+        "associated": null,
+        "deleted": null,
+        "description": "",
+        "id": "10938",
+        "internationalName": "Kalibre",
+        "localName": "Kalibre",
+        "logo": "https://bimg.akulaku.net/goods/brand/1/938.jpg",
+        "optional": 0,
+        "source": 1
+      },
+      {
+        "associated": null,
+        "deleted": null,
+        "description": "",
+        "id": "1823516",
+        "internationalName": "KHN",
+        "localName": "KHN",
+        "logo": "https://bimg.akulaku.net/goods/brand/094163e469aa4272a5f87ec54d8607c76648.jpeg",
+        "optional": 0,
+        "source": 1
+      },
+      {
+        "associated": null,
+        "deleted": null,
+        "description": "",
+        "id": "1832990",
+        "internationalName": "Laser",
+        "localName": "Laser",
+        "logo": "https://bimg.akulaku.net/goods/brand/15d3274d7af8494b96d4d1158873be424486.jpeg",
+        "optional": 0,
+        "source": 1
+      },
+      {
+        "associated": null,
+        "deleted": null,
+        "description": "",
+        "id": "1821282",
+        "internationalName": "Lassie Alpha",
+        "localName": "Lassie Alpha",
+        "logo": "https://bimg.akulaku.net/goods/brand/22d25ec75e43460ea1bb248af01fd7492308.png",
+        "optional": 0,
+        "source": 1
+      },
+      {
+        "associated": null,
+        "deleted": null,
+        "description": "",
+        "id": "1834900",
+        "internationalName": "Lavio Footwear",
+        "localName": "Lavio Footwear",
+        "logo": "https://bimg.akulaku.net/goods/brand/73a8b25bcb3c4b86bd9670fa120cd2f75302.jpeg",
+        "optional": 0,
+        "source": 1
+      },
+      {
+        "associated": null,
+        "deleted": null,
+        "description": "",
+        "id": "10274",
+        "internationalName": "Li-Ning",
+        "localName": "Li-Ning",
+        "logo": "https://bimg.akulaku.net/goods/brand/1/274.jpg",
+        "optional": 0,
+        "source": 1
+      },
+      {
+        "associated": null,
+        "deleted": null,
+        "description": "",
+        "id": "1832986",
+        "internationalName": "Liger Footwear",
+        "localName": "Liger Footwear",
+        "logo": "https://bimg.akulaku.net/goods/brand/8dcc02dbb06a4f30ab2290907ba7f5f70732.png",
+        "optional": 0,
+        "source": 1
+      },
+      {
+        "associated": null,
+        "deleted": null,
+        "description": "",
+        "id": "1832165",
+        "internationalName": "Lotse ",
+        "localName": "Lotse ",
+        "logo": "https://bimg.akulaku.net/goods/brand/a067e80158c346038972ed792a0fa5da4369.png",
+        "optional": 0,
+        "source": 1
+      },
+      {
+        "associated": null,
+        "deleted": null,
+        "description": "",
+        "id": "1805673",
+        "internationalName": "LOVA",
+        "localName": "LOVA",
+        "logo": "https://bimg.akulaku.net/goods/brand/eeed2a4a9f404f4fa4988641985643667623.png",
+        "optional": 0,
+        "source": 1
+      },
+      {
+        "associated": null,
+        "deleted": null,
+        "description": "",
+        "id": "1834890",
+        "internationalName": "Lovera",
+        "localName": "Lovera",
+        "logo": "https://bimg.akulaku.net/goods/brand/e44beb63d36749639be5eb35edf6d5940333.png",
+        "optional": 0,
+        "source": 1
+      },
+      {
+        "associated": null,
+        "deleted": null,
+        "description": "",
+        "id": "1830168",
+        "internationalName": "Lucky Fan Store",
+        "localName": "Lucky Fan Store",
+        "logo": "https://bimg.akulaku.net/goods/brand/d19fb37da43f4ad5ad8eac27c47063148925.jpg",
+        "optional": 0,
+        "source": 1
+      },
+      {
+        "associated": null,
+        "deleted": null,
+        "description": "",
+        "id": "1808509",
+        "internationalName": "LUXLACE",
+        "localName": "LUXLACE",
+        "logo": "https://bimg.akulaku.net/goods/brand/0266588d529a47888bf8f1ea784203b53802.jpg",
+        "optional": 0,
+        "source": 1
+      },
+      {
+        "associated": null,
+        "deleted": null,
+        "description": "",
+        "id": "1830691",
+        "internationalName": "M&T",
+        "localName": "M&T",
+        "logo": "https://bimg.akulaku.net/goods/brand/8deb0c4f3a0b426cae2c125eda164e440627.jpg",
+        "optional": 0,
+        "source": 1
+      },
+      {
+        "associated": null,
+        "deleted": null,
+        "description": "",
+        "id": "1825827",
+        "internationalName": "Mahameru",
+        "localName": "Mahameru",
+        "logo": "https://bimg.akulaku.net/goods/brand/ba1298f00663445d874766eafd31a65c3876.jpg",
+        "optional": 0,
+        "source": 1
+      },
+      {
+        "associated": null,
+        "deleted": null,
+        "description": "",
+        "id": "1831438",
+        "internationalName": "Market Monkey",
+        "localName": "Market Monkey",
+        "logo": "https://bimg.akulaku.net/goods/brand/a071bd2836284c0fb54a8c04000d84e66715.jpg",
+        "optional": 0,
+        "source": 1
+      },
+      {
+        "associated": null,
+        "deleted": null,
+        "description": "",
+        "id": "1822600",
+        "internationalName": "Martin Versa",
+        "localName": "Martin Versa",
+        "logo": "https://bimg.akulaku.net/goods/brand/8c8812c857bd455fb484f2ddde58ec051499.jpeg",
+        "optional": 0,
+        "source": 1
+      },
+      {
+        "associated": null,
+        "deleted": null,
+        "description": "",
+        "id": "1823537",
+        "internationalName": "Melissa",
+        "localName": "Melissa",
+        "logo": "https://bimg.akulaku.net/goods/brand/0de18af1615f4ac282628aad9e80dfb24057.jpg",
+        "optional": 0,
+        "source": 1
+      },
+      {
+        "associated": null,
+        "deleted": null,
+        "description": "",
+        "id": "1805499",
+        "internationalName": "MIISOO",
+        "localName": "MIISOO",
+        "logo": "https://bimg.akulaku.net/goods/brand/5811b0f78b56460487a36e3799f246384583.jpg",
+        "optional": 0,
+        "source": 1
+      },
+      {
+        "associated": null,
+        "deleted": null,
+        "description": "",
+        "id": "1820703",
+        "internationalName": "Mills",
+        "localName": "Mills",
+        "logo": "https://bimg.akulaku.net/goods/brand/52e6de26bcab42c7827433bb59ce057d8787.png",
+        "optional": 0,
+        "source": 1
+      },
+      {
+        "associated": null,
+        "deleted": null,
+        "description": "",
+        "id": "1832934",
+        "internationalName": "MIRAGE",
+        "localName": "MIRAGE",
+        "logo": "https://bimg.akulaku.net/goods/brand/db1c68edc0404368820e9686c3145cb92352.jpg",
+        "optional": 0,
+        "source": 1
+      },
+      {
+        "associated": null,
+        "deleted": null,
+        "description": "",
+        "id": "1820704",
+        "internationalName": "Mizuno",
+        "localName": "Mizuno",
+        "logo": "https://bimg.akulaku.net/goods/brand/f268da4d2e2e4be1bb6877f6ebda08949253.png",
+        "optional": 0,
+        "source": 1
+      },
+      {
+        "associated": null,
+        "deleted": null,
+        "description": "",
+        "id": "1821439",
+        "internationalName": "Monexo",
+        "localName": "Monexo",
+        "logo": "https://bimg.akulaku.net/goods/brand/3a74b5336a604d6f9f0e49829e3aaeba9738.png",
+        "optional": 0,
+        "source": 1
+      },
+      {
+        "associated": null,
+        "deleted": null,
+        "description": "",
+        "id": "1831436",
+        "internationalName": "Mool Leather",
+        "localName": "Mool Leather",
+        "logo": "https://bimg.akulaku.net/goods/brand/361a07158f8b4871901d45cd91fb69a60739.png",
+        "optional": 0,
+        "source": 1
+      },
+      {
+        "associated": null,
+        "deleted": null,
+        "description": "",
+        "id": "1823289",
+        "internationalName": "Moutley",
+        "localName": "Moutley",
+        "logo": "https://bimg.akulaku.net/goods/brand/e27b593dc5b04979b5005d6634bd13803558.jpg",
+        "optional": 0,
+        "source": 1
+      },
+      {
+        "associated": null,
+        "deleted": null,
+        "description": "",
+        "id": "1821291",
+        "internationalName": "Munich",
+        "localName": "Munich",
+        "logo": "https://bimg.akulaku.net/goods/brand/47f37e578851445394abf24bd5841a8d1525.jpg",
+        "optional": 0,
+        "source": 1
+      },
+      {
+        "associated": null,
+        "deleted": null,
+        "description": "",
+        "id": "10444",
+        "internationalName": "Navy Club",
+        "localName": "Navy Club",
+        "logo": "https://bimg.akulaku.net/goods/brand/1/444.jpg",
+        "optional": 0,
+        "source": 1
+      },
+      {
+        "associated": null,
+        "deleted": null,
+        "description": "",
+        "id": "100049",
+        "internationalName": "Nike",
+        "localName": "Nike",
+        "logo": "https://bimg.akulaku.net/goods/brand/1/NtphWw26TUreMT-KuJsBnw_1566492694924.png",
+        "optional": 0,
+        "source": 1
+      },
+      {
+        "associated": null,
+        "deleted": null,
+        "description": "",
+        "id": "1834880",
+        "internationalName": "Noeiki",
+        "localName": "Noeiki",
+        "logo": "https://bimg.akulaku.net/goods/brand/79aa3664d34e40099b6a8a6ef1d0d07e6056.png",
+        "optional": 0,
+        "source": 1
+      },
+      {
+        "associated": null,
+        "deleted": null,
+        "description": "",
+        "id": "1832213",
+        "internationalName": "Noron ",
+        "localName": "Noron ",
+        "logo": "https://bimg.akulaku.net/goods/brand/d5d80d1f83d548bca5e1c56f544a21fd2325.jpg",
+        "optional": 0,
+        "source": 1
+      },
+      {
+        "associated": null,
+        "deleted": null,
+        "description": "",
+        "id": "1821446",
+        "internationalName": "North Star",
+        "localName": "North Star",
+        "logo": "https://bimg.akulaku.net/goods/brand/4f236da68c42498d8af886477dc991444035.png",
+        "optional": 0,
+        "source": 1
+      },
+      {
+        "associated": null,
+        "deleted": null,
+        "description": "",
+        "id": "1831725",
+        "internationalName": "Northre ",
+        "localName": "Northre ",
+        "logo": "https://bimg.akulaku.net/goods/brand/87c5b6cf2efe45e38e4035906b583b669503.png",
+        "optional": 0,
+        "source": 1
+      },
+      {
+        "associated": null,
+        "deleted": null,
+        "description": "",
+        "id": "1832687",
+        "internationalName": "NYENTRIK",
+        "localName": "NYENTRIK",
+        "logo": "https://bimg.akulaku.net/goods/brand/a80ed6ed62bb4d4ba17b5ab1d221d7ae1417.png",
+        "optional": 0,
+        "source": 1
+      },
+      {
+        "associated": null,
+        "deleted": null,
+        "description": "",
+        "id": "1833891",
+        "internationalName": "Omeo",
+        "localName": "Omeo",
+        "logo": "https://bimg.akulaku.net/goods/brand/6b2e4017abae48269846816256b6a30a9209.jpg",
+        "optional": 0,
+        "source": 1
+      },
+      {
+        "associated": null,
+        "deleted": null,
+        "description": "",
+        "id": "10686",
+        "internationalName": "Ortuseight",
+        "localName": "Ortuseight",
+        "logo": "https://bimg.akulaku.net/goods/brand/1/686.jpg",
+        "optional": 0,
+        "source": 1
+      },
+      {
+        "associated": null,
+        "deleted": null,
+        "description": "",
+        "id": "1808696",
+        "internationalName": "PANARYBODY",
+        "localName": "PANARYBODY",
+        "logo": "https://bimg.akulaku.net/goods/brand/2af785b08df94bc98a3e3cdeb57ba58c4204.jpeg",
+        "optional": 0,
+        "source": 1
+      },
+      {
+        "associated": null,
+        "deleted": null,
+        "description": "",
+        "id": "1821451",
+        "internationalName": "Pata-Pata",
+        "localName": "Pata-Pata",
+        "logo": "https://bimg.akulaku.net/goods/brand/e846e98be4a74d1dbbdf5f032e3ddc165747.png",
+        "optional": 0,
+        "source": 1
+      },
+      {
+        "associated": null,
+        "deleted": null,
+        "description": "",
+        "id": "1702303",
+        "internationalName": "Peonia",
+        "localName": "Peonia",
+        "logo": "https://bimg.akulaku.net/goods/category/img_pld.png",
+        "optional": 0,
+        "source": 1
+      },
+      {
+        "associated": null,
+        "deleted": null,
+        "description": "",
+        "id": "11315",
+        "internationalName": "Piero",
+        "localName": "Piero",
+        "logo": "https://bimg.akulaku.net/goods/brand/1/1315.jpg",
+        "optional": 0,
+        "source": 1
+      },
+      {
+        "associated": null,
+        "deleted": null,
+        "description": "",
+        "id": "1823076",
+        "internationalName": "Pilipili",
+        "localName": "Pilipili",
+        "logo": "https://bimg.akulaku.net/goods/brand/2012a72a85e246fc836163ebfcd030bf5620.png",
+        "optional": 0,
+        "source": 1
+      },
+      {
+        "associated": null,
+        "deleted": null,
+        "description": "",
+        "id": "1703692",
+        "internationalName": "Pioneer",
+        "localName": "Pioneer",
+        "logo": "https://bimg.akulaku.net/goods/category/img_pld.png",
+        "optional": 0,
+        "source": 1
+      },
+      {
+        "associated": null,
+        "deleted": null,
+        "description": "",
+        "id": "1821447",
+        "internationalName": "Power",
+        "localName": "Power",
+        "logo": "https://bimg.akulaku.net/goods/brand/17975f18ba6d45acb63e28ea9a013f8f3536.png",
+        "optional": 0,
+        "source": 1
+      },
+      {
+        "associated": null,
+        "deleted": null,
+        "description": "",
+        "id": "1822590",
+        "internationalName": "PRAYER KIDS",
+        "localName": "PRAYER KIDS",
+        "logo": "https://bimg.akulaku.net/goods/brand/b95b9bf7a43d4b8e88cf31fc345d4c762966.jpeg",
+        "optional": 0,
+        "source": 1
+      },
+      {
+        "associated": null,
+        "deleted": null,
+        "description": "",
+        "id": "1832276",
+        "internationalName": "Pripoen Batik",
+        "localName": "Pripoen Batik",
+        "logo": "https://bimg.akulaku.net/goods/brand/4f71f6b9a24d4d94880db8f2e6b713013398.png",
+        "optional": 0,
+        "source": 1
+      },
+      {
+        "associated": null,
+        "deleted": null,
+        "description": "",
+        "id": "100057",
+        "internationalName": "PUMA",
+        "localName": "PUMA",
+        "logo": "https://bimg.akulaku.net/goods/brand/2846153cc3be4437ab26b2b85fda4d683110.png",
+        "optional": 0,
+        "source": 1
+      },
+      {
+        "associated": null,
+        "deleted": null,
+        "description": "",
+        "id": "1821644",
+        "internationalName": "Putroe Label",
+        "localName": "Putroe Label",
+        "logo": "https://bimg.akulaku.net/goods/brand/86cb501bf9d547078c454bb49e0b292a9339.png",
+        "optional": 0,
+        "source": 1
+      },
+      {
+        "associated": null,
+        "deleted": null,
+        "description": "",
+        "id": "1821608",
+        "internationalName": "qwertylife",
+        "localName": "qwertylife",
+        "logo": "https://bimg.akulaku.net/goods/brand/5710b9ed2aeb46938bb88f06c37f39f76860.png",
+        "optional": 0,
+        "source": 1
+      },
+      {
+        "associated": null,
+        "deleted": null,
+        "description": "",
+        "id": "1827944",
+        "internationalName": "QXZ94",
+        "localName": "QXZ94",
+        "logo": "https://bimg.akulaku.net/goods/brand/5515006689cf4b778afddbe68bb1b4a02251.jpg",
+        "optional": 0,
+        "source": 1
+      },
+      {
+        "associated": null,
+        "deleted": null,
+        "description": "",
+        "id": "1832688",
+        "internationalName": "Rabbani Official Shop",
+        "localName": "Rabbani Official Shop",
+        "logo": "https://bimg.akulaku.net/goods/brand/4f677aa39913441d963d9a214e2a043f7410.png",
+        "optional": 0,
+        "source": 1
+      },
+      {
+        "associated": null,
+        "deleted": null,
+        "description": "",
+        "id": "1831102",
+        "internationalName": "Reach ",
+        "localName": "Reach ",
+        "logo": "https://bimg.akulaku.net/goods/brand/663cee8a327145e784cb7ba871a61c707063.jpeg",
+        "optional": 0,
+        "source": 1
+      },
+      {
+        "associated": null,
+        "deleted": null,
+        "description": "",
+        "id": "1830045",
+        "internationalName": "Redtrack",
+        "localName": "Redtrack",
+        "logo": "https://bimg.akulaku.net/goods/brand/cd6c328d92aa44deb43fc6df32cf513a8314.png",
+        "optional": 0,
+        "source": 1
+      },
+      {
+        "associated": null,
+        "deleted": null,
+        "description": "",
+        "id": "1831441",
+        "internationalName": "REDWELL",
+        "localName": "REDWELL",
+        "logo": "https://bimg.akulaku.net/goods/brand/51c4ddf2cd8245579befdbef8259387f8075.jpg",
+        "optional": 0,
+        "source": 1
+      },
+      {
+        "associated": null,
+        "deleted": null,
+        "description": "",
+        "id": "1705673",
+        "internationalName": "Remax",
+        "localName": "Remax",
+        "logo": "https://bimg.akulaku.net/goods/category/img_pld.png",
+        "optional": 0,
+        "source": 1
+      },
+      {
+        "associated": null,
+        "deleted": null,
+        "description": "",
+        "id": "1830990",
+        "internationalName": "RIONZ ",
+        "localName": "RIONZ ",
+        "logo": "https://bimg.akulaku.net/goods/brand/a9da2af70db74a588602a3679abe80215133.jpg",
+        "optional": 0,
+        "source": 1
+      },
+      {
+        "associated": null,
+        "deleted": null,
+        "description": "",
+        "id": "1831831",
+        "internationalName": "RMC Republic",
+        "localName": "RMC Republic",
+        "logo": "https://bimg.akulaku.net/goods/brand/b1ec326ad096443daf0dba40a01eee2b5869.jpg",
+        "optional": 0,
+        "source": 1
+      },
+      {
+        "associated": null,
+        "deleted": null,
+        "description": "",
+        "id": "1819102",
+        "internationalName": "Roan&Kloss",
+        "localName": "Roan&Kloss",
+        "logo": "https://bimg.akulaku.net/goods/brand/9b1a2ab4f944415e8033dc0c51fb953c3943.png",
+        "optional": 0,
+        "source": 1
+      },
+      {
+        "associated": null,
+        "deleted": null,
+        "description": "",
+        "id": "1797329",
+        "internationalName": "Samono",
+        "localName": "Samono",
+        "logo": "https://bimg.akulaku.net/goods/brand/9475101ac431470592063b736476ebd86422.jpg",
+        "optional": 0,
+        "source": 1
+      },
+      {
+        "associated": null,
+        "deleted": null,
+        "description": "",
+        "id": "1821452",
+        "internationalName": "Sandak by Bata",
+        "localName": "Sandak by Bata",
+        "logo": "https://bimg.akulaku.net/goods/brand/824332e58c704943acbde5ccfc74171b6455.jpeg",
+        "optional": 0,
+        "source": 1
+      },
+      {
+        "associated": null,
+        "deleted": null,
+        "description": "",
+        "id": "1825380",
+        "internationalName": "Shohib",
+        "localName": "Shohib",
+        "logo": "https://bimg.akulaku.net/goods/brand/499096f62f05462ab6acf17b3e03ff770078.jpeg",
+        "optional": 0,
+        "source": 1
+      },
+      {
+        "associated": null,
+        "deleted": null,
+        "description": "",
+        "id": "10551",
+        "internationalName": "Specs",
+        "localName": "Specs",
+        "logo": "https://bimg.akulaku.net/goods/brand/f16aaef836594ccb9c4ea9061a0c64579449.png",
+        "optional": 0,
+        "source": 1
+      },
+      {
+        "associated": null,
+        "deleted": null,
+        "description": "",
+        "id": "1825536",
+        "internationalName": "Straight Vision",
+        "localName": "Straight Vision",
+        "logo": "https://bimg.akulaku.net/goods/brand/3f68cbfc397440c08a237b38311815182803.jpg",
+        "optional": 0,
+        "source": 1
+      },
+      {
+        "associated": null,
+        "deleted": null,
+        "description": "",
+        "id": "1821431",
+        "internationalName": "Suicide Anthem",
+        "localName": "Suicide Anthem",
+        "logo": "https://bimg.akulaku.net/goods/brand/a057046c119443c3b228a7bff50a510a9645.jpeg",
+        "optional": 0,
+        "source": 1
+      },
+      {
+        "associated": null,
+        "deleted": null,
+        "description": "",
+        "id": "1823538",
+        "internationalName": "Superga",
+        "localName": "Superga",
+        "logo": "https://bimg.akulaku.net/goods/brand/e61a90fb336e467f8569cdf5614d14211710.png",
+        "optional": 0,
+        "source": 1
+      },
+      {
+        "associated": null,
+        "deleted": null,
+        "description": "",
+        "id": "1832275",
+        "internationalName": "SYZLO ",
+        "localName": "SYZLO ",
+        "logo": "https://bimg.akulaku.net/goods/brand/97ff5b2adf2a409eb6ba226f4bcd9dff3879.jpeg",
+        "optional": 0,
+        "source": 1
+      },
+      {
+        "associated": null,
+        "deleted": null,
+        "description": "",
+        "id": "10908",
+        "internationalName": "The X Woof",
+        "localName": "The X Woof",
+        "logo": "https://bimg.akulaku.net/goods/brand/1/908.jpg",
+        "optional": 0,
+        "source": 1
+      },
+      {
+        "associated": null,
+        "deleted": null,
+        "description": "",
+        "id": "1824395",
+        "internationalName": "THEACASTOR",
+        "localName": "THEACASTOR",
+        "logo": "https://bimg.akulaku.net/goods/brand/1a9a9a1515ec423da4446098f8b890b95764.jpg",
+        "optional": 0,
+        "source": 1
+      },
+      {
+        "associated": null,
+        "deleted": null,
+        "description": "",
+        "id": "1700000",
+        "internationalName": "Tidak ada merek",
+        "localName": "Tidak ada merek",
+        "logo": "https://bimg.akulaku.net/goods/category/img_pld.png",
+        "optional": 0,
+        "source": 1
+      },
+      {
+        "associated": null,
+        "deleted": null,
+        "description": "",
+        "id": "1703375",
+        "internationalName": "Tigernu",
+        "localName": "Tigernu",
+        "logo": "https://bimg.akulaku.net/goods/category/img_pld.png",
+        "optional": 0,
+        "source": 1
+      },
+      {
+        "associated": null,
+        "deleted": null,
+        "description": "",
+        "id": "1821952",
+        "internationalName": "Tino Tino",
+        "localName": "Tino Tino",
+        "logo": "https://bimg.akulaku.net/goods/brand/25d9b6d91866464393de554e4a7213cf1080.png",
+        "optional": 0,
+        "source": 1
+      },
+      {
+        "associated": null,
+        "deleted": null,
+        "description": "",
+        "id": "1831723",
+        "internationalName": "TOGOPIGI ",
+        "localName": "TOGOPIGI ",
+        "logo": "https://bimg.akulaku.net/goods/brand/659b72a75e48452cba7309436c369b961002.jpg",
+        "optional": 0,
+        "source": 1
+      },
+      {
+        "associated": null,
+        "deleted": null,
+        "description": "",
+        "id": "1823246",
+        "internationalName": "Trijee Sportwear",
+        "localName": "Trijee Sportwear",
+        "logo": "https://bimg.akulaku.net/goods/brand/d8dbc4dd42794b4eb3ee35cedb3a58267612.jpg",
+        "optional": 0,
+        "source": 1
+      },
+      {
+        "associated": null,
+        "deleted": null,
+        "description": "",
+        "id": "1830020",
+        "internationalName": "Tysmoon",
+        "localName": "Tysmoon",
+        "logo": "https://bimg.akulaku.net/goods/brand/feb0728dc2b7464887e663ed3bca64789594.jpg",
+        "optional": 0,
+        "source": 1
+      },
+      {
+        "associated": null,
+        "deleted": null,
+        "description": "",
+        "id": "1834903",
+        "internationalName": "Uffamme",
+        "localName": "Uffamme",
+        "logo": "https://bimg.akulaku.net/goods/brand/afd2187ddc6c4ed4b8ce608119f2c22f3112.png",
+        "optional": 0,
+        "source": 1
+      },
+      {
+        "associated": null,
+        "deleted": null,
+        "description": "",
+        "id": "1702285",
+        "internationalName": "Uneed",
+        "localName": "Uneed",
+        "logo": "https://bimg.akulaku.net/goods/category/img_pld.png",
+        "optional": 0,
+        "source": 1
+      },
+      {
+        "associated": null,
+        "deleted": null,
+        "description": "",
+        "id": "1804064",
+        "internationalName": "URBAN FACTOR INDONESIA",
+        "localName": "URBAN FACTOR INDONESIA",
+        "logo": "https://bimg.akulaku.net/goods/brand/f8c8a5faf9ed4dfc9752e4cc913ff9318941.png",
+        "optional": 0,
+        "source": 1
+      },
+      {
+        "associated": null,
+        "deleted": null,
+        "description": "",
+        "id": "1834902",
+        "internationalName": "Urban Factor Official",
+        "localName": "Urban Factor Official",
+        "logo": "https://bimg.akulaku.net/goods/brand/b2b1242c6ded46e4b8f9016f7f6b30fe8679.png",
+        "optional": 0,
+        "source": 1
+      },
+      {
+        "associated": null,
+        "deleted": null,
+        "description": "",
+        "id": "1832989",
+        "internationalName": "Velo",
+        "localName": "Velo",
+        "logo": "https://bimg.akulaku.net/goods/brand/e7fa162aa6e049ac8946ee440cfbb3e37118.jpeg",
+        "optional": 0,
+        "source": 1
+      },
+      {
+        "associated": null,
+        "deleted": null,
+        "description": "",
+        "id": "1805617",
+        "internationalName": "Veltra",
+        "localName": "Veltra",
+        "logo": "https://bimg.akulaku.net/goods/brand/90a5992628c04c5f888bdd88c6d1aabc0120.png",
+        "optional": 0,
+        "source": 1
+      },
+      {
+        "associated": null,
+        "deleted": null,
+        "description": "",
+        "id": "1823293",
+        "internationalName": "Vengoz",
+        "localName": "Vengoz",
+        "logo": "https://bimg.akulaku.net/goods/brand/ead3b5271d344e1a963983b0ba9493f36420.jpg",
+        "optional": 0,
+        "source": 1
+      },
+      {
+        "associated": null,
+        "deleted": null,
+        "description": "",
+        "id": "1832943",
+        "internationalName": "Viamor",
+        "localName": "Viamor",
+        "logo": "https://bimg.akulaku.net/goods/brand/db60bc5d507f4d44a548ca36f1277ea15726.jpg",
+        "optional": 0,
+        "source": 1
+      },
+      {
+        "associated": null,
+        "deleted": null,
+        "description": "",
+        "id": "1829774",
+        "internationalName": "Vioners",
+        "localName": "Vioners",
+        "logo": "https://bimg.akulaku.net/goods/brand/4421a4c42f924877866cff7bbb3b3d375498.jpg",
+        "optional": 0,
+        "source": 1
+      },
+      {
+        "associated": null,
+        "deleted": null,
+        "description": "",
+        "id": "1831437",
+        "internationalName": "Volstice ",
+        "localName": "Volstice ",
+        "logo": "https://bimg.akulaku.net/goods/brand/d5d64b722ec84c109d2f35f1060b6cb47040.jpg",
+        "optional": 0,
+        "source": 1
+      },
+      {
+        "associated": null,
+        "deleted": null,
+        "description": "",
+        "id": "1821450",
+        "internationalName": "Weinbrenner",
+        "localName": "Weinbrenner",
+        "logo": "https://bimg.akulaku.net/goods/brand/41db826d5fdf41f3a594a468552a399c9450.png",
+        "optional": 0,
+        "source": 1
+      },
+      {
+        "associated": null,
+        "deleted": null,
+        "description": "",
+        "id": "1831086",
+        "internationalName": "WellPlans ",
+        "localName": "WellPlans ",
+        "logo": "https://bimg.akulaku.net/goods/brand/efc5849ed92f4f1aa28b1c5e50b98d962707.jpeg",
+        "optional": 0,
+        "source": 1
+      },
+      {
+        "associated": null,
+        "deleted": null,
+        "description": "",
+        "id": "1821360",
+        "internationalName": "WIBI",
+        "localName": "WIBI",
+        "logo": "https://bimg.akulaku.net/goods/brand/2b7bc61fa45049adb673671683be57742312.jpeg",
+        "optional": 0,
+        "source": 1
+      },
+      {
+        "associated": null,
+        "deleted": null,
+        "description": "",
+        "id": "11040",
+        "internationalName": "Winod",
+        "localName": "Winod",
+        "logo": "https://bimg.akulaku.net/goods/brand/1/1040.jpg",
+        "optional": 0,
+        "source": 1
+      },
+      {
+        "associated": null,
+        "deleted": null,
+        "description": "",
+        "id": "1821598",
+        "internationalName": "Yongki Komaladi",
+        "localName": "Yongki Komaladi",
+        "logo": "https://bimg.akulaku.net/goods/brand/86c2faa6110340f3a655c528ec547b668463.jpeg",
+        "optional": 0,
+        "source": 1
+      },
+      {
+        "associated": null,
+        "deleted": null,
+        "description": "",
+        "id": "10967",
+        "internationalName": "Yongkidz",
+        "localName": "Yongkidz",
+        "logo": "https://bimg.akulaku.net/goods/brand/e130fd6eb62f40c9b5b6a010dd53f5636853.png",
+        "optional": 0,
+        "source": 1
+      },
+      {
+        "associated": null,
+        "deleted": null,
+        "description": "",
+        "id": "1805124",
+        "internationalName": "Yoowoo",
+        "localName": "Yoowoo",
+        "logo": "https://bimg.akulaku.net/goods/brand/b21dbe681aa441b98090bb635e91a3c64227.jpg",
+        "optional": 0,
+        "source": 1
+      },
+      {
+        "associated": null,
+        "deleted": null,
+        "description": "",
+        "id": "1834771",
+        "internationalName": "Youth Balance",
+        "localName": "Youth Balance",
+        "logo": "https://bimg.akulaku.net/goods/brand/cbe354120eb143898b22f246dae268608719.jpeg",
+        "optional": 0,
+        "source": 1
+      },
+      {
+        "associated": null,
+        "deleted": null,
+        "description": "",
+        "id": "1823536",
+        "internationalName": "Zaxy",
+        "localName": "Zaxy",
+        "logo": "https://bimg.akulaku.net/goods/brand/c14474aaf3604516bb47f6f02989f0982949.png",
+        "optional": 0,
+        "source": 1
+      }
+    ],
+    "canUserModel": false,
+    "currencyCode": "",
+    "existsWarehouse": null,
+    "fulfillmentType": 2,
+    "mustFillPicture": false,
+    "platformLogisticsSign": 0,
+    "publishInitModelProp": [],
+    "salePropCustomized": 1,
+    "spuPublishInitBaseProp": [
+      {
+        "customized": null,
+        "enumerable": 1,
+        "keyDesc": "",
+        "keyId": "60002",
+        "keyName": "Negara Asal",
+        "mandatory": 0,
+        "multiple": 0,
+        "propType": 1,
+        "values": [
+          {
+            "id": "600018",
+            "sort": 125,
+            "value": "Amerika",
+            "valueImage": ""
+          },
+          {
+            "id": "600020",
+            "sort": 123,
+            "value": "China",
+            "valueImage": ""
+          },
+          {
+            "id": "600022",
+            "sort": 121,
+            "value": "Indonesia",
+            "valueImage": ""
+          },
+          {
+            "id": "600023",
+            "sort": 120,
+            "value": "Jepang",
+            "valueImage": ""
+          },
+          {
+            "id": "600024",
+            "sort": 119,
+            "value": "Korea",
+            "valueImage": ""
+          },
+          {
+            "id": "600026",
+            "sort": 117,
+            "value": "Lainnya",
+            "valueImage": ""
+          },
+          {
+            "id": "600029",
+            "sort": 114,
+            "value": "Taiwan",
+            "valueImage": ""
+          },
+          {
+            "id": "600030",
+            "sort": 113,
+            "value": "Thailand",
+            "valueImage": ""
+          },
+          {
+            "id": "600031",
+            "sort": 112,
+            "value": "Vietnam",
+            "valueImage": ""
+          },
+          {
+            "id": "600300",
+            "sort": 95,
+            "value": "Bangladesh",
+            "valueImage": ""
+          },
+          {
+            "id": "600301",
+            "sort": 93,
+            "value": "India",
+            "valueImage": ""
+          }
+        ]
+      },
+      {
+        "customized": null,
+        "enumerable": 1,
+        "keyDesc": "",
+        "keyId": "60012",
+        "keyName": "Masa Garansi",
+        "mandatory": 0,
+        "multiple": 0,
+        "propType": 1,
+        "values": [
+          {
+            "id": "600101",
+            "sort": 87,
+            "value": "Tidak Garansi",
+            "valueImage": ""
+          },
+          {
+            "id": "600102",
+            "sort": 86,
+            "value": "5 Tahun",
+            "valueImage": ""
+          },
+          {
+            "id": "600103",
+            "sort": 85,
+            "value": "3 Tahun",
+            "valueImage": ""
+          },
+          {
+            "id": "600104",
+            "sort": 84,
+            "value": "24 Bulan",
+            "valueImage": ""
+          },
+          {
+            "id": "600105",
+            "sort": 83,
+            "value": "12 Bulan",
+            "valueImage": ""
+          },
+          {
+            "id": "600106",
+            "sort": 82,
+            "value": "6 Bulan",
+            "valueImage": ""
+          },
+          {
+            "id": "600107",
+            "sort": 81,
+            "value": "3 Bulan",
+            "valueImage": ""
+          },
+          {
+            "id": "600108",
+            "sort": 80,
+            "value": "2 Bulan",
+            "valueImage": ""
+          },
+          {
+            "id": "600109",
+            "sort": 79,
+            "value": "1 Bulan",
+            "valueImage": ""
+          }
+        ]
+      },
+      {
+        "customized": null,
+        "enumerable": 1,
+        "keyDesc": "",
+        "keyId": "60052",
+        "keyName": "Bahan",
+        "mandatory": 1,
+        "multiple": 1,
+        "propType": 1,
+        "values": [
+          {
+            "id": "600312",
+            "sort": 134,
+            "value": "Kulit",
+            "valueImage": ""
+          },
+          {
+            "id": "600314",
+            "sort": 132,
+            "value": "Nilon",
+            "valueImage": ""
+          },
+          {
+            "id": "600315",
+            "sort": 131,
+            "value": "Lainnya",
+            "valueImage": ""
+          },
+          {
+            "id": "600317",
+            "sort": 129,
+            "value": "Sintetis",
+            "valueImage": ""
+          },
+          {
+            "id": "600318",
+            "sort": 128,
+            "value": "Tekstil",
+            "valueImage": ""
+          },
+          {
+            "id": "600501",
+            "sort": 363,
+            "value": "PVC",
+            "valueImage": ""
+          },
+          {
+            "id": "600506",
+            "sort": 354,
+            "value": "Kanvas",
+            "valueImage": ""
+          }
+        ]
+      },
+      {
+        "customized": null,
+        "enumerable": 1,
+        "keyDesc": "",
+        "keyId": "60094",
+        "keyName": "Acara",
+        "mandatory": 0,
+        "multiple": 0,
+        "propType": 1,
+        "values": [
+          {
+            "id": "600638",
+            "sort": 33,
+            "value": "Business",
+            "valueImage": ""
+          },
+          {
+            "id": "600639",
+            "sort": 32,
+            "value": "Kasual",
+            "valueImage": ""
+          },
+          {
+            "id": "600640",
+            "sort": 31,
+            "value": "Formal",
+            "valueImage": ""
+          },
+          {
+            "id": "600641",
+            "sort": 30,
+            "value": "Lainnya",
+            "valueImage": ""
+          }
+        ]
+      },
+      {
+        "customized": null,
+        "enumerable": 1,
+        "keyDesc": "",
+        "keyId": "60054",
+        "keyName": "Motif",
+        "mandatory": 0,
+        "multiple": 1,
+        "propType": 1,
+        "values": [
+          {
+            "id": "600324",
+            "sort": 85,
+            "value": "Kotak-kotak",
+            "valueImage": ""
+          },
+          {
+            "id": "600327",
+            "sort": 82,
+            "value": "Polos",
+            "valueImage": ""
+          },
+          {
+            "id": "600329",
+            "sort": 80,
+            "value": "Print",
+            "valueImage": ""
+          },
+          {
+            "id": "600330",
+            "sort": 79,
+            "value": "Garis-garis",
+            "valueImage": ""
+          },
+          {
+            "id": "600562",
+            "sort": 88,
+            "value": "Grafik",
+            "valueImage": ""
+          },
+          {
+            "id": "600642",
+            "sort": 60,
+            "value": "Loreng",
+            "valueImage": ""
+          },
+          {
+            "id": "600643",
+            "sort": 58,
+            "value": "Logo",
+            "valueImage": ""
+          }
+        ]
+      },
+      {
+        "customized": null,
+        "enumerable": 1,
+        "keyDesc": "",
+        "keyId": "60095",
+        "keyName": "Tampilan Kulit",
+        "mandatory": 0,
+        "multiple": 0,
+        "propType": 1,
+        "values": [
+          {
+            "id": "600644",
+            "sort": 16,
+            "value": "Mengkilap",
+            "valueImage": ""
+          },
+          {
+            "id": "600645",
+            "sort": 15,
+            "value": "Matte",
+            "valueImage": ""
+          }
+        ]
+      },
+      {
+        "customized": null,
+        "enumerable": 1,
+        "keyDesc": "",
+        "keyId": "60065",
+        "keyName": "Jenis Kulit",
+        "mandatory": 0,
+        "multiple": 0,
+        "propType": 1,
+        "values": [
+          {
+            "id": "600375",
+            "sort": 28,
+            "value": "Kulit Sapi",
+            "valueImage": ""
+          },
+          {
+            "id": "600376",
+            "sort": 27,
+            "value": "Kulit Domba Muda",
+            "valueImage": ""
+          },
+          {
+            "id": "600646",
+            "sort": 106,
+            "value": "Kulit Sapi Muda",
+            "valueImage": ""
+          },
+          {
+            "id": "600647",
+            "sort": 104,
+            "value": "Kulit Hewan Eksotis",
+            "valueImage": ""
+          },
+          {
+            "id": "600648",
+            "sort": 103,
+            "value": "Kulit Kambing",
+            "valueImage": ""
+          },
+          {
+            "id": "600649",
+            "sort": 101,
+            "value": "Kulit Babi",
+            "valueImage": ""
+          },
+          {
+            "id": "600650",
+            "sort": 100,
+            "value": "Kulit Domba",
+            "valueImage": ""
+          }
+        ]
+      },
+      {
+        "customized": null,
+        "enumerable": 1,
+        "keyDesc": "",
+        "keyId": "60096",
+        "keyName": "Fitur",
+        "mandatory": 0,
+        "multiple": 1,
+        "propType": 1,
+        "values": [
+          {
+            "id": "600651",
+            "sort": 59,
+            "value": "Anti-Pencurian",
+            "valueImage": ""
+          },
+          {
+            "id": "600652",
+            "sort": 58,
+            "value": "Slot Laptop",
+            "valueImage": ""
+          },
+          {
+            "id": "600653",
+            "sort": 57,
+            "value": "Lainnya",
+            "valueImage": ""
+          },
+          {
+            "id": "600654",
+            "sort": 56,
+            "value": "Slot Tablet",
+            "valueImage": ""
+          },
+          {
+            "id": "600655",
+            "sort": 55,
+            "value": "Port USB",
+            "valueImage": ""
+          }
+        ]
+      },
+      {
+        "customized": null,
+        "enumerable": 1,
+        "keyDesc": "",
+        "keyId": "60097",
+        "keyName": "Tekstur Kulit",
+        "mandatory": 0,
+        "multiple": 0,
+        "propType": 1,
+        "values": [
+          {
+            "id": "600656",
+            "sort": 32,
+            "value": "Timbul",
+            "valueImage": ""
+          },
+          {
+            "id": "600657",
+            "sort": 31,
+            "value": "Berlapis",
+            "valueImage": ""
+          },
+          {
+            "id": "600658",
+            "sort": 30,
+            "value": "Halus",
+            "valueImage": ""
+          },
+          {
+            "id": "600659",
+            "sort": 29,
+            "value": "Anyaman",
+            "valueImage": ""
+          }
+        ]
+      },
+      {
+        "customized": null,
+        "enumerable": 1,
+        "keyDesc": "",
+        "keyId": "60098",
+        "keyName": "Ukuran Tas",
+        "mandatory": 0,
+        "multiple": 0,
+        "propType": 1,
+        "values": [
+          {
+            "id": "600660",
+            "sort": 14,
+            "value": "Kecil",
+            "valueImage": ""
+          },
+          {
+            "id": "600661",
+            "sort": 13,
+            "value": "Lainnya",
+            "valueImage": ""
+          }
+        ]
+      },
+      {
+        "customized": null,
+        "enumerable": 1,
+        "keyDesc": "",
+        "keyId": "60099",
+        "keyName": "Penutup Tas",
+        "mandatory": 0,
+        "multiple": 0,
+        "propType": 1,
+        "values": [
+          {
+            "id": "600662",
+            "sort": 46,
+            "value": "Tali Serut",
+            "valueImage": ""
+          },
+          {
+            "id": "600663",
+            "sort": 45,
+            "value": "Kunci",
+            "valueImage": ""
+          },
+          {
+            "id": "600664",
+            "sort": 44,
+            "value": "Lainnya",
+            "valueImage": ""
+          },
+          {
+            "id": "600665",
+            "sort": 43,
+            "value": "Kancing",
+            "valueImage": ""
+          },
+          {
+            "id": "600666",
+            "sort": 42,
+            "value": "Resleting",
+            "valueImage": ""
+          }
+        ]
+      },
+      {
+        "customized": null,
+        "enumerable": 0,
+        "keyDesc": "",
+        "keyId": "60013",
+        "keyName": "Jenis Garansi",
+        "mandatory": 0,
+        "multiple": 0,
+        "propType": 1,
+        "values": [
+          {
+            "id": "600110",
+            "sort": 72,
+            "value": "Garansi Supplier",
+            "valueImage": ""
+          },
+          {
+            "id": "600111",
+            "sort": 71,
+            "value": "Garansi Produsen",
+            "valueImage": ""
+          },
+          {
+            "id": "600112",
+            "sort": 70,
+            "value": "Garansi Internasional",
+            "valueImage": ""
+          },
+          {
+            "id": "600113",
+            "sort": 69,
+            "value": "Tidak Garansi",
+            "valueImage": ""
+          }
+        ]
+      }
+    ],
+    "spuPublishInitSaleProp": [],
+    "useErp": 0,
+    "vat": null
+  },
+  "errCode": "",
+  "errMsg": "",
+  "success": true
+}

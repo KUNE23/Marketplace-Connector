@@ -12,9 +12,11 @@ const {
 router.use(authenticate);
 router.use(authorizeRoles('ADMIN', 'EMPLOYEE'));
 
+// Pegawai hanya MELIHAT biaya iklan (terbatas akun miliknya).
+// Kelola (tambah/ubah/hapus) khusus ADMIN.
 router.get('/', listAdSpendsHandler);
-router.post('/', createAdSpendHandler);
-router.patch('/:id', updateAdSpendHandler);
-router.delete('/:id', deleteAdSpendHandler);
+router.post('/', authorizeRoles('ADMIN'), createAdSpendHandler);
+router.patch('/:id', authorizeRoles('ADMIN'), updateAdSpendHandler);
+router.delete('/:id', authorizeRoles('ADMIN'), deleteAdSpendHandler);
 
 module.exports = router;

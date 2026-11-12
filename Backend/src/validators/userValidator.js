@@ -1,8 +1,8 @@
 // Backend/src/validators/userValidator.js
 const { z } = require('zod');
 
-const roleSchema = z.enum(['ADMIN', 'EMPLOYEE'], {
-  errorMap: () => ({ message: 'Role must be ADMIN or EMPLOYEE' }),
+const roleSchema = z.enum(['ADMIN', 'EMPLOYEE', 'SUPERADMIN'], {
+  errorMap: () => ({ message: 'Role must be ADMIN, EMPLOYEE, or SUPERADMIN' }),
 });
 
 // For creating a new user

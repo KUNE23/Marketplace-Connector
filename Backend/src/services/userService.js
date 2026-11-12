@@ -49,8 +49,9 @@ async function createUser({ email, password, role, active = true, name }) {
   const passwordHash = await bcrypt.hash(password, 10);
 
   try {
-    // Force EMPLOYEE unless role explicitly ADMIN (should never happen due to controller)
-    const sanitizedRole = role === 'ADMIN' ? 'ADMIN' : 'EMPLOYEE';
+    // Whitelist peran: selain yang dikenal -> EMPLOYEE.
+    const allowedRoles = ['ADMIN', 'EMPLOYEE', 'SUPERADMIN'];
+    const sanitizedRole = allowedRoles.includes(role) ? role : 'EMPLOYEE';
     const user = await prisma.user.create({
       data: { email, passwordHash, role: sanitizedRole, active, name },
       select: PUBLIC_USER_SELECT,
@@ -75,19 +76,28 @@ async function getUserById(userId) {
 
 /**
  * List users with pagination and optional search by email.
- * query: { page?, limit?, search? }
+ * query: { page?, limit?, search?, viewerRole? }
+ *
+ * SUPERADMIN disembunyikan dari ADMIN: bila viewer bukan SUPERADMIN, user dengan
+ * role SUPERADMIN tidak disertakan sama sekali.
  */
-async function listUsers({ page = 1, limit = 20, search }) {
+async function listUsers({ page = 1, limit = 20, search, viewerRole } = {}) {
   const skip = (page - 1) * limit;
-  let whereClause = {};
+  const and = [];
   if (search) {
-    whereClause = {
+    and.push({
       OR: [
         { email: { contains: search, mode: 'insensitive' } },
         { name: { contains: search, mode: 'insensitive' } },
       ],
-    };
+    });
   }
+  // Sembunyikan SUPERADMIN dari siapa pun selain SUPERADMIN.
+  if (viewerRole !== 'SUPERADMIN') {
+    and.push({ role: { not: 'SUPERADMIN' } });
+  }
+  const whereClause = and.length ? { AND: and } : {};
+
   const [users, total] = await Promise.all([
     prisma.user.findMany({
       skip,

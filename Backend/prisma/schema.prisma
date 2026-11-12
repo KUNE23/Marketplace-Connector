@@ -17,6 +17,7 @@ model User {
   active        Boolean        @default(true)
   refreshTokens RefreshToken[]
   notifications Notification[]
+  ownedAccounts AkulakuAccount[]
 }
 
 model RefreshToken {
@@ -68,12 +69,21 @@ model AkulakuAccount {
   passwordEnc String
   status     String    @default("active") @db.VarChar(20)
   note       String?
+  // Pemilik akun (pegawai yang membuat/mengelola). null = dipegang admin lama.
+  // Pegawai hanya melihat akun miliknya; admin melihat semua.
+  ownerId    BigInt?
+  owner      User?     @relation(fields: [ownerId], references: [id])
   listings   Listing[]
   orders     AkulakuOrder[]
   session    AkulakuSession?
   adSpends   AdSpend[]
+  violations Violation[]
+  violationSummaries ViolationSummary[]
+  chatConversations  ChatConversation[]
   createdAt  DateTime  @default(now()) @db.Timestamptz
   updatedAt  DateTime  @updatedAt @db.Timestamptz
+
+  @@index([ownerId])
 }
 
 // Jembatan produk Shopee -> akun Akulaku, dengan markup harga & status posting.
@@ -135,6 +145,7 @@ model AkulakuOrder {
   updatedAt      DateTime            @updatedAt @db.Timestamptz
   rawPayload     Json?
   items          AkulakuOrderItem[]
+  extra          AkulakuOrderExtra?
 }
 
 model AkulakuOrderItem {
@@ -148,6 +159,8 @@ model AkulakuOrderItem {
   qty       Int
   unitPrice Decimal       @db.Decimal(14, 2)
   total     Decimal       @db.Decimal(14, 2)
+  imageUrl  String?       @db.VarChar(500)
+  variant   String?       @db.VarChar(200)
 }
 
 model SaleOrderItem {
@@ -277,4 +290,166 @@ model AdSpend {
 
   @@index([period])
   @@index([accountId])
+}
+
+// Daftar kategori Akulaku (hasil scrape API /goods/category/tree).
+// path = jalur cascader dipisah "/", contoh: "Tas dan penyimpanan/Tas Pria/Tas ransel".
+model AkulakuCategory {
+  id        BigInt   @id @default(autoincrement())
+  path      String   @unique @db.VarChar(500)
+  akulakuId String?  @db.VarChar(50) // id leaf dari Akulaku
+  level     Int      @default(1)
+  rootName  String?  @db.VarChar(150)
+  scrapedAt DateTime @default(now()) @db.Timestamptz
+
+  @@index([rootName])
+  @@index([level])
+}
+
+// Aturan pemetaan otomatis nama produk -> kategori Akulaku.
+model CategoryRule {
+  id       BigInt   @id @default(autoincrement())
+  keyword  String   @db.VarChar(200)
+  path     String   @db.VarChar(500)
+  priority Int      @default(0)
+  active   Boolean  @default(true)
+  note     String?  @db.VarChar(300)
+  createdAt DateTime @default(now()) @db.Timestamptz
+  updatedAt DateTime @updatedAt @db.Timestamptz
+
+  @@index([keyword])
+  @@index([priority])
+}
+
+// Catatan pelanggaran toko Akulaku (hasil sinkron dari Seller Center).
+// Skor/denda disimpan per periode penilaian yang diberikan Akulaku.
+model Violation {
+  id           BigInt          @id @default(autoincrement())
+  accountId    BigInt
+  account      AkulakuAccount  @relation(fields: [accountId], references: [id], onDelete: Cascade)
+  // Jenis pelanggaran dari Akulaku (violationTypeList).
+  violationKey String          @db.VarChar(150) // gabungan firstClassificationId:secondClassificationId
+  name         String          @db.VarChar(255) // secondLevelName / noteDetail
+  category     String?         @db.VarChar(150) // klasifikasi pertama (Produk/Pesanan/Layanan/...)
+  note         String?         @db.VarChar(500)
+  // Angka dari Akulaku (null = tidak ada pelanggaran pada kategori tsb).
+  score        Int?            // pengurangan skor
+  penalty      Decimal?        @db.Decimal(14, 2) // denda
+  count        Int?            // jumlah kejadian
+  severity     String          @default("info") @db.VarChar(20) // info | warning | critical
+  periodStart  DateTime?       @db.Timestamptz
+  periodEnd    DateTime?       @db.Timestamptz
+  rawPayload   Json?
+  detectedAt   DateTime        @default(now()) @db.Timestamptz
+  syncedAt     DateTime        @updatedAt @db.Timestamptz
+
+  @@unique([accountId, violationKey])
+  @@index([accountId])
+  @@index([detectedAt])
+}
+
+// Snapshot ringkasan kondisi toko (skor toko & total denda) per akun per sync.
+// Dipakai untuk melihat tren & kondisi terkini di halaman Pelanggaran.
+model ViolationSummary {
+  id             BigInt          @id @default(autoincrement())
+  accountId      BigInt
+  account        AkulakuAccount  @relation(fields: [accountId], references: [id], onDelete: Cascade)
+  shopScore      Int?            // shopIntegral
+  totalScore     Int?            // akumulasi pengurangan skor
+  totalPenalty   Decimal?        @db.Decimal(14, 2)
+  violationCount Int             @default(0)
+  condition      String?         @db.VarChar(100) // ringkasan kondisi (mis. "sangat baik")
+  assessmentCycle String?        @db.VarChar(100)
+  rawPayload     Json?
+  capturedAt     DateTime        @default(now()) @db.Timestamptz
+
+  @@index([accountId, capturedAt])
+}
+
+// Percakapan LiveChat Akulaku dengan buyer (hasil sinkron dari UI LiveChat).
+model ChatConversation {
+  id            BigInt          @id @default(autoincrement())
+  accountId     BigInt
+  account       AkulakuAccount  @relation(fields: [accountId], references: [id], onDelete: Cascade)
+  convKey       String          @db.VarChar(255) // penanda unik percakapan dalam akun
+  buyerLabel    String          @db.VarChar(150) // nama/nomor buyer (bisa disamarkan Akulaku)
+  lastPreview   String?         @db.VarChar(500)
+  lastMessageAt DateTime?       @db.Timestamptz
+  unread        Int             @default(0)
+  messages      ChatMessage[]
+  createdAt     DateTime        @default(now()) @db.Timestamptz
+  updatedAt     DateTime        @updatedAt @db.Timestamptz
+
+  @@unique([accountId, convKey])
+  @@index([accountId])
+  @@index([lastMessageAt])
+}
+
+// Pesan dalam percakapan LiveChat.
+model ChatMessage {
+  id             BigInt           @id @default(autoincrement())
+  conversationId BigInt
+  conversation   ChatConversation @relation(fields: [conversationId], references: [id], onDelete: Cascade)
+  msgKey         String           @db.VarChar(200) // kunci dedupe
+  from           String           @db.VarChar(10) // us | buyer
+  sender         String?          @db.VarChar(150)
+  text           String
+  createdAt      DateTime         @default(now()) @db.Timestamptz
+
+  @@unique([conversationId, msgKey])
+  @@index([conversationId])
+}
+
+// Kolom hasil ekstraksi dari rawPayload Akulaku (gambar, varian, pembayaran).
+// Dipisah agar bisa di-query & ditampilkan tanpa parse JSON tiap kali.
+model AkulakuOrderExtra {
+  id             BigInt        @id @default(autoincrement())
+  orderId        BigInt        @unique
+  order          AkulakuOrder  @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  payType        Int?
+  payTypeLabel   String?       @db.VarChar(50)
+  orderCode      String?       @db.VarChar(100)
+  orderType      Int?
+  refundStatus   Int?
+  deliveryStatus Int?
+  isCod          Boolean       @default(false)
+  payTime        DateTime?     @db.Timestamptz
+  createTime     DateTime?     @db.Timestamptz
+  updatedAt      DateTime      @updatedAt @db.Timestamptz
+}
+
+// Audit trail aktivitas user (login, perubahan data, perubahan role).
+model AuditLog {
+  id         BigInt   @id @default(autoincrement())
+  userId     BigInt?
+  userEmail  String?  @db.VarChar(200)
+  userRole   String?  @db.VarChar(30)
+  action     String   @db.VarChar(100) // login | create | update | delete | role_change | ...
+  resource   String?  @db.VarChar(100) // users | listings | akulaku-accounts | ...
+  resourceId String?  @db.VarChar(100)
+  status     String   @default("success") @db.VarChar(20) // success | failed
+  ip         String?  @db.VarChar(60)
+  userAgent  String?  @db.VarChar(300)
+  detail     Json?
+  createdAt  DateTime @default(now()) @db.Timestamptz
+
+  @@index([createdAt])
+  @@index([userId])
+  @@index([action])
+  @@index([resource])
+}
+
+// Metrik request HTTP (untuk halaman Monitor: kecepatan, endpoint tersibuk, error rate).
+model RequestMetric {
+  id         BigInt   @id @default(autoincrement())
+  method     String   @db.VarChar(10)
+  path       String   @db.VarChar(200)
+  statusCode Int
+  durationMs Int
+  userId     BigInt?
+  createdAt  DateTime @default(now()) @db.Timestamptz
+
+  @@index([createdAt])
+  @@index([path])
+  @@index([statusCode])
 }

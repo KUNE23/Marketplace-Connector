@@ -1,6 +1,7 @@
 ﻿// Backend/src/services/akulakuAccountService.js
 const createError = require('http-errors');
 const { encryptSecret } = require('../utils/crypto');
+const { accountScope, assertAccountAccess, isAdmin } = require('../utils/scope');
 
 const prisma = require('../lib/prisma');
 
@@ -10,6 +11,8 @@ const SELECT = {
   username: true,
   status: true,
   note: true,
+  ownerId: true,
+  owner: { select: { id: true, name: true, email: true, role: true } },
   createdAt: true,
   updatedAt: true,
   session: { select: { status: true, updatedAt: true } },
@@ -23,6 +26,9 @@ function serialize(account) {
     username: account.username,
     status: account.status,
     note: account.note,
+    ownerId: account.ownerId ? account.ownerId.toString() : null,
+    ownerName: account.owner?.name ?? null,
+    ownerEmail: account.owner?.email ?? null,
     listingCount: account._count?.listings ?? 0,
     sessionStatus: account.session?.status ?? 'missing',
     sessionUpdatedAt: account.session?.updatedAt ?? null,
@@ -44,9 +50,13 @@ async function getAkulakuSessionInfo(id) {
   };
 }
 
-async function listAkulakuAccounts({ page = 1, limit = 20, search, status } = {}) {
+/**
+ * Daftar akun Akulaku. Admin melihat semua; pegawai hanya miliknya.
+ * `user` wajib diisi agar isolasi data konsisten.
+ */
+async function listAkulakuAccounts({ page = 1, limit = 20, search, status, user } = {}) {
   const skip = (page - 1) * limit;
-  const where = {};
+  const where = accountScope(user);
   if (status) where.status = status;
   if (search) {
     where.OR = [
@@ -61,7 +71,12 @@ async function listAkulakuAccounts({ page = 1, limit = 20, search, status } = {}
   return { accounts: accounts.map(serialize), total, page, limit };
 }
 
-async function createAkulakuAccount({ label, username, password, status, note }) {
+/**
+ * Buat akun Akulaku. Pemilik = user yang membuat (admin bisa menetapkan owner lain).
+ */
+async function createAkulakuAccount({ label, username, password, status, note, ownerId }, user) {
+  // Admin boleh menentukan pemilik; pegawai selalu menjadi pemilik akunnya sendiri.
+  const resolvedOwner = isAdmin(user) && ownerId ? BigInt(ownerId) : BigInt(user.id);
   const account = await prisma.akulakuAccount.create({
     data: {
       label,
@@ -69,23 +84,31 @@ async function createAkulakuAccount({ label, username, password, status, note })
       passwordEnc: encryptSecret(password),
       status: status ?? 'active',
       note,
+      ownerId: resolvedOwner,
     },
     select: SELECT,
   });
   return serialize(account);
 }
 
-async function getAkulakuAccountById(id) {
+async function getAkulakuAccountById(id, user) {
+  await assertAccountAccess(prisma, user, id);
   const account = await prisma.akulakuAccount.findUnique({ where: { id: BigInt(id) }, select: SELECT });
   if (!account) throw createError(404, 'Akun Akulaku tidak ditemukan');
   return serialize(account);
 }
 
-async function updateAkulakuAccount(id, data) {
+async function updateAkulakuAccount(id, data, user) {
+  await assertAccountAccess(prisma, user, id);
   const payload = { ...data };
   if (payload.password !== undefined) {
     payload.passwordEnc = encryptSecret(payload.password);
     delete payload.password;
+  }
+  // Hanya admin yang boleh memindahkan kepemilikan akun.
+  if (payload.ownerId !== undefined) {
+    if (!isAdmin(user)) delete payload.ownerId;
+    else payload.ownerId = payload.ownerId === null ? null : BigInt(payload.ownerId);
   }
   try {
     const account = await prisma.akulakuAccount.update({
@@ -100,7 +123,8 @@ async function updateAkulakuAccount(id, data) {
   }
 }
 
-async function deleteAkulakuAccount(id) {
+async function deleteAkulakuAccount(id, user) {
+  await assertAccountAccess(prisma, user, id);
   try {
     await prisma.akulakuAccount.delete({ where: { id: BigInt(id) } });
     return true;
@@ -117,5 +141,6 @@ module.exports = {
   updateAkulakuAccount,
   deleteAkulakuAccount,
   getAkulakuSessionInfo,
+  serialize,
+  SELECT,
 };
-

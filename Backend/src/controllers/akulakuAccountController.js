@@ -15,6 +15,8 @@ const {
   getAkulakuSessionInfo,
 } = require('../services/akulakuAccountService');
 const { startLogin, submitOtp, cancelLogin } = require('../services/akulakuLoginFlow');
+const { assertAccountAccess } = require('../utils/scope');
+const prisma = require('../lib/prisma');
 const { z } = require('zod');
 
 const otpSchema = z.object({
@@ -32,7 +34,7 @@ function handleError(err, next) {
 async function listAkulakuAccountsHandler(req, res, next) {
   try {
     const parsed = listAkulakuAccountsQuerySchema.parse(req.query);
-    const result = await listAkulakuAccounts(parsed);
+    const result = await listAkulakuAccounts({ ...parsed, user: req.user });
     res.json(result);
   } catch (err) { handleError(err, next); }
 }
@@ -40,7 +42,7 @@ async function listAkulakuAccountsHandler(req, res, next) {
 async function createAkulakuAccountHandler(req, res, next) {
   try {
     const parsed = createAkulakuAccountSchema.parse(req.body);
-    const account = await createAkulakuAccount(parsed);
+    const account = await createAkulakuAccount(parsed, req.user);
     res.status(201).json(account);
   } catch (err) { handleError(err, next); }
 }
@@ -48,7 +50,7 @@ async function createAkulakuAccountHandler(req, res, next) {
 async function getAkulakuAccountHandler(req, res, next) {
   try {
     const { id } = akulakuAccountIdParamSchema.parse(req.params);
-    const account = await getAkulakuAccountById(id);
+    const account = await getAkulakuAccountById(id, req.user);
     res.json(account);
   } catch (err) { handleError(err, next); }
 }
@@ -57,7 +59,7 @@ async function updateAkulakuAccountHandler(req, res, next) {
   try {
     const { id } = akulakuAccountIdParamSchema.parse(req.params);
     const parsed = updateAkulakuAccountSchema.parse(req.body);
-    const account = await updateAkulakuAccount(id, parsed);
+    const account = await updateAkulakuAccount(id, parsed, req.user);
     res.json(account);
   } catch (err) { handleError(err, next); }
 }
@@ -65,7 +67,7 @@ async function updateAkulakuAccountHandler(req, res, next) {
 async function deleteAkulakuAccountHandler(req, res, next) {
   try {
     const { id } = akulakuAccountIdParamSchema.parse(req.params);
-    await deleteAkulakuAccount(id);
+    await deleteAkulakuAccount(id, req.user);
     res.status(204).send();
   } catch (err) { handleError(err, next); }
 }
@@ -74,6 +76,7 @@ async function deleteAkulakuAccountHandler(req, res, next) {
 async function loginStartHandler(req, res, next) {
   try {
     const { id } = akulakuAccountIdParamSchema.parse(req.params);
+    await assertAccountAccess(prisma, req.user, id);
     const result = await startLogin(id);
     res.json(result);
   } catch (err) { handleError(err, next); }
@@ -83,6 +86,7 @@ async function loginStartHandler(req, res, next) {
 async function loginOtpHandler(req, res, next) {
   try {
     const { id } = akulakuAccountIdParamSchema.parse(req.params);
+    await assertAccountAccess(prisma, req.user, id);
     const parsed = otpSchema.parse(req.body);
     const result = await submitOtp(id, parsed.code, parsed.channel);
     res.json(result);
@@ -93,6 +97,7 @@ async function loginOtpHandler(req, res, next) {
 async function loginCancelHandler(req, res, next) {
   try {
     const { id } = akulakuAccountIdParamSchema.parse(req.params);
+    await assertAccountAccess(prisma, req.user, id);
     await cancelLogin(id);
     res.status(204).send();
   } catch (err) { handleError(err, next); }
@@ -102,6 +107,7 @@ async function loginCancelHandler(req, res, next) {
 async function sessionInfoHandler(req, res, next) {
   try {
     const { id } = akulakuAccountIdParamSchema.parse(req.params);
+    await assertAccountAccess(prisma, req.user, id);
     res.json(await getAkulakuSessionInfo(id));
   } catch (err) { handleError(err, next); }
 }

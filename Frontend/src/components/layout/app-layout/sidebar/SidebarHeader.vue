@@ -1,12 +1,18 @@
 <script setup lang="ts">
+import { computed } from 'vue'
 import { RouterLink } from 'vue-router'
 import { SidebarHeader } from '@/components/ui/sidebar'
+import { useAuthUser } from '@/composables/useAuthUser'
 
 interface AppSidebarHeaderProps {
   showContent: boolean
 }
 
 defineProps<AppSidebarHeaderProps>()
+
+// Label panel mengikuti role user yang login (Admin Panel / Panel Pegawai).
+const { user } = useAuthUser()
+const panelLabel = computed(() => (user.value?.role === 'ADMIN' ? 'Admin Panel' : 'Panel Pegawai'))
 </script>
 
 <template>
@@ -29,7 +35,7 @@ defineProps<AppSidebarHeaderProps>()
       v-if="showContent"
       class="mt-1.5 text-center text-xs font-medium text-gray-400 dark:text-gray-500"
     >
-      Admin Panel
+      {{ panelLabel }}
       <span class="mx-1 text-gray-300 dark:text-gray-600">·</span>
       Enzyy
     </p>

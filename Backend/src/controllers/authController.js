@@ -44,11 +44,28 @@ async function loginHandler(req, res, next) {
     const persist = Boolean(req.body?.keepLoggedIn);
     const result = await login(parsed);
     setAuthCookies(res, result, persist);
+
+    // Audit: login berhasil.
+    req.audit?.('login', {
+      resource: 'auth',
+      status: 'success',
+      userEmail: result.user?.email,
+      userRole: result.user?.role,
+      detail: { email: parsed.email },
+    });
+
     res.json({ user: publicUser(result.user) });
   } catch (err) {
     if (err.name === 'ZodError') {
       return next(createError(400, err.errors.map((e) => e.message).join(', ')));
     }
+    // Audit: login gagal.
+    req.audit?.('login', {
+      resource: 'auth',
+      status: 'failed',
+      userEmail: req.body?.email,
+      detail: { reason: String(err.message || err).slice(0, 200) },
+    });
     next(err);
   }
 }

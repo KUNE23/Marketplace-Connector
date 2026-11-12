@@ -20,3 +20,6 @@ Backend/login.json
 # Log PM2
 logs/
 Backend/logs/
+
+# Backup database (berisi data sensitif)
+Backend/backups/

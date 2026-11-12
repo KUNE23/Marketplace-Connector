@@ -78,6 +78,7 @@ async function deleteProductHandler(req, res, next) {
 }
 
 const { importNextBatch, getScrapeStats, resetImport } = require('../services/shopeeImportService');
+const shopeeImportRunner = require('../services/shopeeImportRunner');
 
 async function scrapeStatsHandler(req, res, next) {
   try {
@@ -107,6 +108,37 @@ async function resetImportHandler(req, res, next) {
   }
 }
 
+/** GET /api/products/scrape/runner — status import background. */
+async function importRunnerStatusHandler(req, res, next) {
+  try {
+    res.json(await shopeeImportRunner.getStatus());
+  } catch (err) {
+    handleError(err, next);
+  }
+}
+
+/** POST /api/products/scrape/start — mulai import di background. Body: { reset?: boolean } */
+async function importRunnerStartHandler(req, res, next) {
+  try {
+    const result = await shopeeImportRunner.start({ reset: Boolean(req.body?.reset) });
+    req.audit?.('shopee_import.start', { resource: 'product', detail: result });
+    res.status(result.started ? 202 : 200).json(result);
+  } catch (err) {
+    handleError(err, next);
+  }
+}
+
+/** POST /api/products/scrape/stop — hentikan import background. */
+async function importRunnerStopHandler(req, res, next) {
+  try {
+    const result = shopeeImportRunner.stop();
+    req.audit?.('shopee_import.stop', { resource: 'product' });
+    res.json(result);
+  } catch (err) {
+    handleError(err, next);
+  }
+}
+
 module.exports = {
   createProductHandler,
   getProductHandler,
@@ -116,5 +148,8 @@ module.exports = {
   scrapeStatsHandler,
   importBatchHandler,
   resetImportHandler,
+  importRunnerStatusHandler,
+  importRunnerStartHandler,
+  importRunnerStopHandler,
 };
 

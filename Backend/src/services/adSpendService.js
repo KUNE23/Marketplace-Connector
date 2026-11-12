@@ -1,6 +1,7 @@
 // Backend/src/services/adSpendService.js
 const createError = require('http-errors');
 const prisma = require('../lib/prisma');
+const { isAdmin, assertAccountAccess } = require('../utils/scope');
 
 const INCLUDE = { account: { select: { id: true, label: true } } };
 
@@ -29,8 +30,10 @@ function normalizeAccountId(value) {
   return BigInt(value);
 }
 
-async function listAdSpends({ from, to, accountId } = {}) {
+async function listAdSpends({ from, to, accountId, user } = {}) {
   const where = {};
+  // Isolasi: pegawai hanya melihat biaya iklan milik akunnya.
+  if (user && !isAdmin(user)) where.account = { ownerId: BigInt(user.id) };
   if (from || to) {
     where.period = {};
     if (from) where.period.gte = toDateOnly(from);
@@ -45,7 +48,10 @@ async function listAdSpends({ from, to, accountId } = {}) {
   return { adSpends: rows.map(serialize), total: total.toFixed(2) };
 }
 
-async function createAdSpend({ period, amount, note, accountId }) {
+async function createAdSpend({ period, amount, note, accountId }, user) {
+  if (user && accountId && accountId !== 'general' && accountId !== 'all') {
+    await assertAccountAccess(prisma, user, accountId);
+  }
   const row = await prisma.adSpend.create({
     data: {
       period: toDateOnly(period),
@@ -84,8 +90,9 @@ async function deleteAdSpend(id) {
 }
 
 /** Total biaya iklan dalam rentang tanggal (semua iklan, dipakai profit total). */
-async function sumAdSpend({ from, to } = {}) {
+async function sumAdSpend({ from, to, user } = {}) {
   const where = {};
+  if (user && !isAdmin(user)) where.account = { ownerId: BigInt(user.id) };
   if (from || to) {
     where.period = {};
     if (from) where.period.gte = toDateOnly(from);

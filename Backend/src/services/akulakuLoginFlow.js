@@ -10,7 +10,13 @@
  * Selektor & teks dikonfigurasi lewat env supaya mudah diperbaiki tanpa ubah kode.
  */
 const createError = require('http-errors');
-const { CONFIG, getAccountCredentials, saveSessionState, loadPlaywright } = require('./akulakuBrowser');
+const {
+  CONFIG,
+  getAccountCredentials,
+  saveSessionState,
+  loadPlaywright,
+  assertBrowserInstalled,
+} = require('./akulakuBrowser');
 
 const LOGIN = {
   otpInput:
@@ -39,13 +45,37 @@ async function closeFlow(accountId) {
   }
 }
 
+/** Apakah browser masih hidup? Playwright tidak sediakan flag, cek lewat page. */
+function isFlowAlive(flow) {
+  try {
+    return Boolean(flow?.browser?.isConnected?.());
+  } catch {
+    return false;
+  }
+}
+
+/** Pesan error seragam saat browser server mati / ditutup di tengah alur OTP. */
+function browserGoneError() {
+  return createError(
+    409,
+    'Browser login Akulaku sudah tertutup. Klik "Login Akulaku" lagi untuk memulai ulang proses OTP.',
+  );
+}
+
 async function closeAllFlows() {
   for (const id of [...flows.keys()]) await closeFlow(id);
 }
 
 /** Baca kondisi halaman: sudah masuk? butuh OTP? */
 async function detectState(page) {
-  const url = page.url();
+  // page.url() ikut melempar bila page/context sudah ditutup.
+  const url = (() => {
+    try {
+      return page.url();
+    } catch {
+      return '';
+    }
+  })();
   const onLogin = url.includes(CONFIG.loginPath);
   const hasPasswordField = (await page.locator(CONFIG.passwordSelector).count().catch(() => 0)) > 0;
   const bodyText = await page.evaluate(() => document.body.innerText.slice(0, 3000)).catch(() => '');
@@ -75,6 +105,7 @@ async function startLogin(accountId) {
   const key = String(accountId);
   await closeFlow(key); // mulai bersih kalau ada proses sebelumnya
 
+  assertBrowserInstalled();
   const { chromium } = loadPlaywright();
   const { account, username, password } = await getAccountCredentials(accountId);
 
@@ -107,11 +138,25 @@ async function startLogin(accountId) {
       return { state: 'success', message: `Login ${account.label} berhasil, sesi tersimpan.` };
     }
 
+    // state 'otp_required' / 'pending': PERTAHANKAN browser hidup supaya user
+    // bisa mengirim OTP ke halaman yang sama. Jangan tandai sesi expired di sini.
     return detected;
   } catch (err) {
     await closeFlow(key);
-    throw err;
+    throw normalizeBrowserError(err);
   }
+}
+
+/**
+ * Ubah error Playwright yang tidak informatif ("Target page, context or browser
+ * has been closed") jadi pesan yang bisa ditindaklanjuti di UI.
+ */
+function normalizeBrowserError(err) {
+  const msg = String(err?.message || '');
+  if (/has been closed|Target closed|browser has been closed/i.test(msg)) {
+    return browserGoneError();
+  }
+  return err;
 }
 
 /** Ketik kode OTP ke halaman, lalu submit. */
@@ -119,6 +164,12 @@ async function submitOtp(accountId, code, channel) {
   const key = String(accountId);
   const flow = flows.get(key);
   if (!flow) throw createError(400, 'Tidak ada proses login yang berjalan. Klik Login Akulaku dulu.');
+  // Browser bisa mati (TTL habis / crash) di antara startLogin dan submitOtp.
+  // Tanpa cek ini, operasi pertama akan melempar "Target page ... closed".
+  if (!isFlowAlive(flow)) {
+    await closeFlow(key);
+    throw browserGoneError();
+  }
 
   const { context, page } = flow;
   try {
@@ -165,12 +216,13 @@ async function submitOtp(accountId, code, channel) {
       return { state: 'success', message: 'Verifikasi berhasil. Sesi tersimpan.' };
     }
     if (detected.state === 'otp_required') {
+      // Kode salah/expired: browser TETAP hidup, sesi valid tidak disentuh.
       return { state: 'otp_required', channels: detected.channels, phoneHint: detected.phoneHint, message: 'Kode belum diterima. Periksa lagi / minta kode baru.' };
     }
     return detected;
   } catch (err) {
     await closeFlow(key);
-    throw err;
+    throw normalizeBrowserError(err);
   }
 }
 
@@ -179,4 +231,4 @@ async function cancelLogin(accountId) {
   return true;
 }
 
-module.exports = { startLogin, submitOtp, cancelLogin, closeAllFlows, LOGIN };
+module.exports = { startLogin, submitOtp, cancelLogin, closeAllFlows, LOGIN, isFlowAlive };

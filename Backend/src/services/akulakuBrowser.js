@@ -12,6 +12,7 @@
  * baru muncul ketika fungsi dijalankan.
  */
 const createError = require('http-errors');
+const fs = require('fs');
 const { decryptSecret } = require('../utils/crypto');
 
 const prisma = require('../lib/prisma');
@@ -41,6 +42,30 @@ function loadPlaywright() {
       500,
       'Playwright belum terpasang. Jalankan: npm i playwright && npx playwright install --with-deps chromium',
     );
+  }
+}
+
+/**
+ * Pastikan browser binary Playwright tersedia SEBELUM launch.
+ * `npm i playwright` hanya memasang package-nya; binary Chromium diunduh
+ * terpisah dengan `npx playwright install`. Tanpa ini, error aslinya
+ * membingungkan ("Target page, context or browser has been closed").
+ */
+const BROWSER_MISSING_MSG =
+  'Browser Chromium Playwright belum terpasang di server ini. ' +
+  'Jalankan: npx playwright install --with-deps chromium ' +
+  '(di VPS/Docker: npm ci && npx playwright install --with-deps chromium).';
+
+function assertBrowserInstalled() {
+  const pw = loadPlaywright();
+  let execPath;
+  try {
+    execPath = pw.chromium.executablePath();
+  } catch {
+    throw createError(500, BROWSER_MISSING_MSG);
+  }
+  if (!execPath || !fs.existsSync(execPath)) {
+    throw createError(500, BROWSER_MISSING_MSG);
   }
 }
 
@@ -79,6 +104,7 @@ async function saveSessionState(accountId, state, status = 'valid') {
  * Mengembalikan { browser, context, page }.
  */
 async function openLoggedInContext(accountId) {
+  assertBrowserInstalled();
   const { chromium } = loadPlaywright();
   const { username, password } = await getAccountCredentials(accountId);
 
@@ -114,15 +140,55 @@ async function openLoggedInContext(accountId) {
       await page.waitForLoadState('networkidle', { timeout: 60000 }).catch(() => {});
     }
 
+    // Verifikasi bahwa kita BENAR-BENAR sudah masuk sebelum menandai sesi valid.
+    // Tanpa cek ini, login yang gagal (masih di halaman login) tetap tersimpan
+    // sebagai 'valid' dan menyesatkan fitur lain.
+    await page.goto(CONFIG.baseUrl, { waitUntil: 'domcontentloaded', timeout: 60000 }).catch(() => {});
+    await page.waitForLoadState('networkidle', { timeout: 20000 }).catch(() => {});
+
+    const stillOnLogin =
+      page.url().includes(CONFIG.loginPath) ||
+      (await page.locator(CONFIG.passwordSelector).count().catch(() => 0)) > 0;
+
+    if (stillOnLogin) {
+      // Gagal masuk: tandai expired agar UI/job tahu sesi perlu login ulang.
+      await saveSessionState(accountId, {}, 'expired').catch(() => {});
+      throw createError(
+        401,
+        'Sesi Akulaku tidak valid dan login otomatis gagal (kemungkinan butuh OTP). ' +
+          'Silakan login ulang lewat halaman Akun Akulaku.',
+      );
+    }
+
     await saveSessionState(accountId, await context.storageState(), 'valid');
     return { browser, context, page };
   } catch (err) {
-    await browser.close();
-    // Hanya tandai sesi expired bila login otomatis yang gagal. Error lain
-    // (network sementara, dsb) tidak boleh menghapus sesi valid yang tersimpan.
-    if (attemptedLogin) await saveSessionState(accountId, {}, 'expired');
+    await browser.close().catch(() => {});
+    // JANGAN hapus sesi tersimpan untuk error yang bukan kegagalan kredensial.
+    // OTP yang menunggu, timeout jaringan, atau browser mati mendadak bukan
+    // alasan membuang state yang masih valid. Hanya tandai expired bila form
+    // login benar-benar sudah disubmit (attemptedLogin) DAN errornya memang
+    // kegagalan autentikasi (mis. masih berakhir di halaman login).
+    if (attemptedLogin && isAuthFailure(err)) {
+      await saveSessionState(accountId, {}, 'expired').catch(() => {});
+    }
     throw err;
   }
+}
+
+/**
+ * Bedakan kegagalan autentikasi (kredensial/OTP gagal) dari error operasional
+ * (navigasi putus, browser ditutup, timeout jaringan). Yang operasional tidak
+ * boleh menghapus sesi valid yang sudah tersimpan.
+ */
+function isAuthFailure(err) {
+  const msg = String(err?.message || '').toLowerCase();
+  return (
+    msg.includes('invalid credentials') ||
+    msg.includes('login gagal') ||
+    msg.includes('password salah') ||
+    msg.includes('akun terkunci')
+  );
 }
 
 /**
@@ -133,6 +199,7 @@ async function openLoggedInContext(accountId) {
  * Mengembalikan { accountId, status, url }.
  */
 async function loginInteractively(accountId, { timeoutMs = 10 * 60 * 1000 } = {}) {
+  assertBrowserInstalled();
   const { chromium } = loadPlaywright();
   const { account, username, password } = await getAccountCredentials(accountId);
 
@@ -179,11 +246,13 @@ async function loginInteractively(accountId, { timeoutMs = 10 * 60 * 1000 } = {}
 
 module.exports = {
   CONFIG,
+  BROWSER_MISSING_MSG,
   getAccountCredentials,
   getSessionState,
   saveSessionState,
   openLoggedInContext,
   loginInteractively,
   loadPlaywright,
+  assertBrowserInstalled,
 };
 

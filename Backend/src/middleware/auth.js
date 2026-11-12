@@ -61,6 +61,20 @@ function authorizeRoles(...allowedRoles) {
 }
 
 /**
+ * Guard khusus SUPERADMIN (halaman Monitor / log sistem).
+ * SUPERADMIN selalu lolos; role lain ditolak.
+ */
+function authorizeSuperAdmin() {
+  return (req, res, next) => {
+    if (!req.user) return next(createError(401, 'Unauthenticated'));
+    if (req.user.role !== 'SUPERADMIN') {
+      return next(createError(403, 'Forbidden: hanya SUPERADMIN'));
+    }
+    next();
+  };
+}
+
+/**
  * Authorization guard that allows either:
  *   - a user with one of the allowedRoles (e.g., ADMIN), OR
  *   - the owner of the resource (when req.params.id matches req.user.id).
@@ -77,4 +91,4 @@ function authorizeSelfOrRoles(...allowedRoles) {
   };
 }
 
-module.exports = { authenticate, authorizeRoles, authorizeSelfOrRoles };
+module.exports = { authenticate, authorizeRoles, authorizeSuperAdmin, authorizeSelfOrRoles };
