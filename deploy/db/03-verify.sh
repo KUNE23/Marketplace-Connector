@@ -8,8 +8,15 @@
 
 set -euo pipefail
 
+# Muat DATABASE_URL dari .env bila belum ada di environment shell.
+if [ -z "${DATABASE_URL:-}" ] && [ -f .env ]; then
+  DATABASE_URL="$(node -e "require('dotenv').config({quiet:true});process.stdout.write(process.env.DATABASE_URL||'')" 2>/dev/null)"
+  export DATABASE_URL
+fi
+
 if [ -z "${DATABASE_URL:-}" ]; then
-  echo "ERROR: DATABASE_URL belum di-set." >&2
+  echo "ERROR: DATABASE_URL tidak ditemukan." >&2
+  echo "Isi di Backend/.env, atau jalankan dengan DATABASE_URL='postgresql://...' bash $0" >&2
   exit 1
 fi
 

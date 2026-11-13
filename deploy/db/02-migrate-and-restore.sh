@@ -23,13 +23,32 @@ if [ -z "$BACKUP_FILE" ] || [ ! -f "$BACKUP_FILE" ]; then
   exit 1
 fi
 
+# Muat DATABASE_URL dari .env bila belum ada di environment shell.
+# (File .env dibaca dotenv oleh Node, bukan oleh bash — jadi harus diambil manual.)
+if [ -z "${DATABASE_URL:-}" ] && [ -f .env ]; then
+  DATABASE_URL="$(node -e "require('dotenv').config({quiet:true});process.stdout.write(process.env.DATABASE_URL||'')" 2>/dev/null)"
+  export DATABASE_URL
+fi
+if [ -z "${DATABASE_URL:-}" ] && [ -f ../Backend/.env ]; then
+  DATABASE_URL="$(cd .. && node -e "require('dotenv').config({path:'Backend/.env',quiet:true});process.stdout.write(process.env.DATABASE_URL||'')" 2>/dev/null)"
+  export DATABASE_URL
+fi
+
 if [ -z "${DATABASE_URL:-}" ]; then
-  echo "ERROR: DATABASE_URL belum di-set." >&2
+  echo "ERROR: DATABASE_URL tidak ditemukan." >&2
+  echo "Isi di Backend/.env, atau jalankan:" >&2
+  echo "  DATABASE_URL='postgresql://...' bash $0 <file-backup>" >&2
   exit 1
 fi
 
+# Sembunyikan kredensial saat menampilkan
+SAFE_URL=$(printf '%s' "$DATABASE_URL" | sed -E 's#://[^@]+@#://***@#')
+echo "Database tujuan: $SAFE_URL"
+
+echo ""
 echo "=== 1) Cek koneksi database tujuan ==="
 node <<'NODE'
+require('dotenv').config({ quiet: true });
 const { PrismaClient } = require('@prisma/client');
 const p = new PrismaClient();
 p.$queryRaw`SELECT 1`
@@ -53,6 +72,7 @@ echo ""
 echo "=== 4) Restore data dari backup ==="
 echo "PERINGATAN: semua data di database tujuan akan DIGANTI."
 node - "$BK_NAME" <<'NODE'
+require('dotenv').config({ quiet: true });
 const bkName = process.argv[2];
 const { restoreBackup } = require('./src/services/backupService');
 
