@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { computed, onMounted, ref, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
+import { useToast } from 'vue-toastification'
 import { Sidebar, SidebarContent, useSidebar } from '@/components/ui/sidebar'
 import { navSections } from './data'
 import AppSidebarHeader from './SidebarHeader.vue'
@@ -12,6 +13,7 @@ import type { MenuType, NavItem } from './types'
 
 const { user: authUser, load } = useAuthUser()
 const router = useRouter()
+const toast = useToast()
 
 const isAdmin = computed(
   () => authUser.value?.role === 'ADMIN' || authUser.value?.role === 'SUPERADMIN',
@@ -76,8 +78,14 @@ const isLoggingOut = ref(false)
 const handleLogout = async () => {
   if (isLoggingOut.value) return
   isLoggingOut.value = true
+  const nama = authUser.value?.name ?? authUser.value?.email ?? null
   try {
     await logout()
+    // Notifikasi setelah berhasil keluar.
+    toast.success(nama ? `Sampai jumpa, ${nama}. Anda telah keluar.` : 'Anda telah keluar.')
+  } catch {
+    // Logout tetap dianggap selesai: sesi lokal sudah dibersihkan.
+    toast.info('Sesi lokal dibersihkan. Anda telah keluar.')
   } finally {
     isLoggingOut.value = false
     router.push('/signin')

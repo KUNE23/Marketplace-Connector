@@ -53,10 +53,14 @@ async function authenticate(req, res, next) {
 /**
  * Role‑based authorization guard.
  * Usage: authorizeRoles('ADMIN', 'EMPLOYEE')
+ *
+ * SUPERADMIN selalu lolos: peran tertinggi tidak boleh terhalang pembatasan
+ * yang ditujukan untuk ADMIN/EMPLOYEE.
  */
 function authorizeRoles(...allowedRoles) {
   return (req, res, next) => {
     if (!req.user) return next(createError(401, 'Unauthenticated'));
+    if (req.user.role === 'SUPERADMIN') return next();
     if (!allowedRoles.includes(req.user.role)) {
       return next(createError(403, 'Forbidden: insufficient role'));
     }
@@ -87,6 +91,8 @@ function authorizeSuperAdmin() {
 function authorizeSelfOrRoles(...allowedRoles) {
   return (req, res, next) => {
     if (!req.user) return next(createError(401, 'Unauthenticated'));
+    // SUPERADMIN selalu lolos.
+    if (req.user.role === 'SUPERADMIN') return next();
     // If user has an allowed role, grant access immediately
     if (allowedRoles.includes(req.user.role)) return next();
     // Otherwise, allow only if the user is accessing their own resource

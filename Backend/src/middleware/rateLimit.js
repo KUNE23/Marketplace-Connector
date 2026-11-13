@@ -19,17 +19,26 @@ const apiLimiter = rateLimit({
 });
 
 /**
- * Limiter ketat untuk autentikasi (login/refresh).
- * Hanya menghitung permintaan yang GAGAL, supaya login normal tidak terkunci.
+ * Limiter khusus autentikasi (login/refresh).
+ *
+ * DEFAULT: NONAKTIF. Alasan: ini aplikasi internal, dan pegawai sering berganti
+ * akun sehingga pembatasan percobaan login justru mengganggu operasional.
+ * Lindungan tetap ada dari `apiLimiter` di atasnya (batas global /api).
+ *
+ * Aktifkan kembali bila perlu: AUTH_RATE_LIMIT_ENABLED=true
  */
-const authLimiter = rateLimit({
-  windowMs: Number(process.env.AUTH_RATE_LIMIT_WINDOW_MS || 15 * 60 * 1000),
-  max: Number(process.env.AUTH_RATE_LIMIT_MAX || 20),
-  standardHeaders: true,
-  legacyHeaders: false,
-  skipSuccessfulRequests: true,
-  skip: () => isTest,
-  message: json('Terlalu banyak percobaan login. Coba lagi beberapa menit lagi.'),
-});
+const AUTH_LIMIT_ENABLED = String(process.env.AUTH_RATE_LIMIT_ENABLED ?? 'false') === 'true';
+
+const authLimiter = AUTH_LIMIT_ENABLED
+  ? rateLimit({
+      windowMs: Number(process.env.AUTH_RATE_LIMIT_WINDOW_MS || 15 * 60 * 1000),
+      max: Number(process.env.AUTH_RATE_LIMIT_MAX || 20),
+      standardHeaders: true,
+      legacyHeaders: false,
+      skipSuccessfulRequests: true,
+      skip: () => isTest,
+      message: json('Terlalu banyak percobaan login. Coba lagi beberapa menit lagi.'),
+    })
+  : (req, res, next) => next();
 
 module.exports = { apiLimiter, authLimiter };
