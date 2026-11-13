@@ -82,7 +82,11 @@ async function refreshHandler(req, res, next) {
     setAuthCookies(res, result, true);
     res.json({ message: 'Token diperbarui' });
   } catch (err) {
-    clearAuthCookies(res);
+    // Hanya hapus cookie bila token MEMANG tidak valid (401).
+    // Error lain (DB sibuk, rate limit, jaringan) tidak boleh memaksa logout.
+    if (err.status === 401 || err.statusCode === 401) {
+      clearAuthCookies(res);
+    }
     next(err);
   }
 }

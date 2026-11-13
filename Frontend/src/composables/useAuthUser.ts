@@ -1,11 +1,11 @@
 import { ref } from 'vue'
-import { apiFetch } from '@/services/api'
+import { ApiError, apiFetch } from '@/services/api'
 
 export interface AuthUser {
   id: string
   email: string
   name: string | null
-  role: 'ADMIN' | 'EMPLOYEE' | string
+  role: 'ADMIN' | 'SUPERADMIN' | 'EMPLOYEE' | string
   active?: boolean
 }
 
@@ -22,9 +22,13 @@ export function useAuthUser() {
           user.value = res.user
           return res.user
         })
-        .catch(() => {
-          user.value = null
-          return null
+        .catch((err) => {
+          // Hanya kosongkan user bila server memastikan sesi tidak valid.
+          // Error 503/429/jaringan tidak boleh membuat UI "ter-logout".
+          if (err instanceof ApiError && err.status === 401) {
+            user.value = null
+          }
+          return user.value
         })
         .finally(() => {
           loading = null
@@ -37,5 +41,5 @@ export function useAuthUser() {
     user.value = null
   }
 
-  return { user, load, clear, isAdmin: () => user.value?.role === 'ADMIN' }
+  return { user, load, clear, isAdmin: () => user.value?.role === 'ADMIN' || user.value?.role === 'SUPERADMIN' }
 }

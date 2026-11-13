@@ -42,7 +42,11 @@ async function authenticate(req, res, next) {
     req.user = { id: user.id.toString(), role: user.role };
     next();
   } catch (err) {
-    return next(createError(401, 'Invalid token'));
+    // PENTING: kegagalan database BUKAN "token tidak valid".
+    // Kalau dibalas 401, frontend akan mengira sesi habis -> refresh -> gagal -> logout.
+    // Balas 503 agar frontend mencoba lagi tanpa menghapus sesi.
+    console.error('[auth] gagal mengambil user dari DB:', err.message || err);
+    return next(createError(503, 'Layanan sedang sibuk, coba lagi sebentar.'));
   }
 }
 

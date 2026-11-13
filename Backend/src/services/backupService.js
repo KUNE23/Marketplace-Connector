@@ -192,13 +192,54 @@ async function deleteBackup(fileName) {
 }
 
 /**
+ * Setel ulang sequence autoincrement setiap tabel agar cocok dengan MAX(id)
+ * yang baru di-restore. TANPA ini, insert berikutnya akan gagal
+ * "duplicate key value violates unique constraint".
+ */
+async function resetSequences() {
+  const results = {};
+  for (const table of TABLE_ORDER) {
+    try {
+      // Sebagian tabel tidak punya kolom `id` (mis. FieldMap memakai shopeeKey
+      // sebagai primary key). Cek dulu lewat information_schema agar tidak
+      // memicu error query.
+      // eslint-disable-next-line no-await-in-loop
+      const cols = await prisma.$queryRawUnsafe(
+        `SELECT 1 AS ada FROM information_schema.columns
+         WHERE table_schema = 'public' AND table_name = '${table}' AND column_name = 'id';`,
+      );
+      if (!cols?.length) {
+        results[table] = 'skip (tanpa kolom id)';
+        continue;
+      }
+
+      // setval(seq, nilai, is_called)
+      //  - tabel berisi  -> MAX(id), true  (berikutnya MAX+1)
+      //  - tabel kosong  -> 1, false       (berikutnya 1)
+      // eslint-disable-next-line no-await-in-loop
+      await prisma.$executeRawUnsafe(
+        `SELECT setval(
+           pg_get_serial_sequence('"${table}"', 'id'),
+           COALESCE((SELECT MAX("id") FROM "${table}"), 1),
+           (SELECT COUNT(*) > 0 FROM "${table}")
+         );`,
+      );
+      results[table] = 'ok';
+    } catch (err) {
+      results[table] = String(err.message || err).slice(0, 120);
+    }
+  }
+  return results;
+}
+
+/**
  * Restore dari file backup: HAPUS semua data lalu isi ulang (full replace).
  * Sebelum menghapus, otomatis membuat backup "pre-restore" sebagai jaring aman.
  *
  * Catatan: dijalankan dalam transaksi supaya gagal di tengah tidak meninggalkan
  * database setengah kosong.
  */
-async function restoreBackup(fileName, { createdBy = null } = {}) {
+async function restoreBackup(fileName, { createdBy = null, resetSeq = true } = {}) {
   const filePath = safePath(fileName);
   if (!fs.existsSync(filePath)) throw createError(404, 'File backup tidak ditemukan');
 
@@ -261,12 +302,16 @@ async function restoreBackup(fileName, { createdBy = null } = {}) {
     { timeout: 120000, maxWait: 20000 },
   );
 
+  // Setel ulang sequence agar insert berikutnya tidak bentrok dengan id hasil restore.
+  const sequences = resetSeq ? await resetSequences() : null;
+
   return {
     restoredFrom: fileName,
     safetyBackup: safety.fileName,
     backupCreatedAt: parsed.meta?.createdAt ?? null,
     deleted: stats.deleted,
     inserted: stats.inserted,
+    sequences,
   };
 }
 
@@ -311,6 +356,7 @@ module.exports = {
   restoreBackup,
   pruneBackups,
   backupStats,
+  resetSequences,
   BACKUP_DIR,
   TABLE_ORDER,
 };

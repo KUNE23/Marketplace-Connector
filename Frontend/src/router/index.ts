@@ -250,7 +250,9 @@ async function hasUsableSession(): Promise<boolean> {
     if (err instanceof ApiError && err.status === 401) {
       return tryRefreshSession()
     }
-    return false
+    // Server sibuk/DB bermasalah/jaringan putus: JANGAN anggap logout.
+    // Biarkan navigasi lanjut; request berikutnya akan menampilkan error.
+    return true
   }
 }
 

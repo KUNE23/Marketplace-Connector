@@ -15,21 +15,28 @@ export class ApiError extends Error {
 }
 
 // Satu proses refresh pada satu waktu (hindari race saat banyak request 401).
-let refreshPromise: Promise<boolean> | null = null
+let refreshPromise: Promise<{ ok: boolean; definitive: boolean }> | null = null
 
-async function performRefresh(): Promise<boolean> {
+/**
+ * Coba perbarui sesi.
+ * `definitive` = true hanya jika server MEMASTIKAN sesi tidak valid (401).
+ * Error lain (503/429/jaringan) bukan alasan untuk menghapus sesi di klien.
+ */
+async function performRefresh(): Promise<{ ok: boolean; definitive: boolean }> {
   try {
     const response = await fetch(`${API_BASE_URL}/auth/refresh`, {
       method: 'POST',
       credentials: 'include',
     })
-    return response.ok
+    if (response.ok) return { ok: true, definitive: false }
+    return { ok: false, definitive: response.status === 401 }
   } catch {
-    return false
+    // Gagal jaringan / server mati: jangan anggap sesi berakhir.
+    return { ok: false, definitive: false }
   }
 }
 
-function refreshOnce(): Promise<boolean> {
+function refreshOnce(): Promise<{ ok: boolean; definitive: boolean }> {
   if (!refreshPromise) {
     refreshPromise = performRefresh().finally(() => {
       refreshPromise = null
@@ -40,7 +47,7 @@ function refreshOnce(): Promise<boolean> {
 
 /** Dipakai router guard untuk mencoba memperbarui sesi sebelum redirect. */
 export function tryRefreshSession(): Promise<boolean> {
-  return refreshOnce()
+  return refreshOnce().then((r) => r.ok)
 }
 
 let onUnauthenticated: (() => void) | null = null
@@ -70,14 +77,17 @@ async function doFetch(path: string, options: RequestOptions) {
 
 export async function apiFetch<T>(path: string, options: RequestOptions = {}): Promise<T> {
   let response = await doFetch(path, options)
+  let refreshResult: { ok: boolean; definitive: boolean } | null = null
 
   // Access token kedaluwarsa -> coba refresh via cookie, lalu ulangi sekali.
   if (response.status === 401 && !options.skipAuthRefresh) {
-    const ok = await refreshOnce()
-    if (ok) response = await doFetch(path, options)
+    refreshResult = await refreshOnce()
+    if (refreshResult.ok) response = await doFetch(path, options)
   }
 
-  if (response.status === 401 && !options.skipAuthRefresh) {
+  // Logout HANYA bila server memastikan sesi tidak valid (401 definitif).
+  // Error 503/429/jaringan tidak boleh menghapus sesi user.
+  if (response.status === 401 && !options.skipAuthRefresh && refreshResult?.definitive) {
     onUnauthenticated?.()
   }
 
