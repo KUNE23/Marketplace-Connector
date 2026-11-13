@@ -8,6 +8,19 @@
 
 set -euo pipefail
 
+# Skrip ini butuh node_modules dari folder Backend. Pindah otomatis ke sana
+# supaya bisa dijalankan dari folder mana pun.
+SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
+BACKEND_DIR="${BACKEND_DIR:-$(cd "$SCRIPT_DIR/../../Backend" 2>/dev/null && pwd)}"
+
+if [ -z "$BACKEND_DIR" ] || [ ! -d "$BACKEND_DIR/node_modules" ]; then
+  echo "ERROR: folder Backend (dengan node_modules) tidak ditemukan." >&2
+  echo "Jalankan 'npm ci' di folder Backend terlebih dahulu." >&2
+  exit 1
+fi
+cd "$BACKEND_DIR"
+echo "Folder kerja: $(pwd)"
+
 # Muat DATABASE_URL dari .env bila belum ada di environment shell.
 if [ -z "${DATABASE_URL:-}" ] && [ -f .env ]; then
   DATABASE_URL="$(node -e "require('dotenv').config({quiet:true});process.stdout.write(process.env.DATABASE_URL||'')" 2>/dev/null)"
