@@ -15,7 +15,7 @@ export interface CategoryListResponse {
 export interface ResolvedCategory {
   path: string
   matchedKeyword?: string
-  source: 'manual' | 'keyword'
+  source: 'manual' | 'keyword' | 'category-name'
 }
 
 export interface ResolveResponse {

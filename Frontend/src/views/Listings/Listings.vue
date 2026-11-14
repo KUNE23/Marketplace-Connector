@@ -26,13 +26,14 @@ import ComponentCard from '@/components/common/ComponentCard.vue'
 import PageBreadcrumb from '@/components/common/PageBreadcrumb.vue'
 import AdminLayout from '@/components/layout/AdminLayout.vue'
 import { listAkulakuAccounts, type AkulakuAccount } from '@/services/akulakuAccounts'
-import { resolveCategory } from '@/services/categories'
+import { listCategories, resolveCategory } from '@/services/categories'
 import {
   bulkCreateListings,
   createListing,
   deleteListing,
   listListings,
   queueListing,
+  updateListing,
   type Listing,
   type ListingStatus,
   type MarkupType,
@@ -52,6 +53,15 @@ const search = ref('')
 const statusFilter = ref<ListingStatus | 'all'>('all')
 const loading = ref(false)
 const queueingId = ref<string | null>(null)
+
+// === Dialog kategori manual ===
+const isCategoryOpen = ref(false)
+const categoryTarget = ref<Listing | null>(null)
+const categorySearch = ref('')
+const categoryResults = ref<{ id: string; path: string; level: number }[]>([])
+const categoryLoading = ref(false)
+const categorySaving = ref(false)
+const autoResolved = ref<{ path: string; matchedKeyword?: string; source: string } | null>(null)
 
 const isDialogOpen = ref(false)
 const form = ref({
@@ -256,7 +266,12 @@ async function postToAkulaku(listing: Listing) {
     toast.success('Listing masuk antrian posting. Worker akan memprosesnya sebentar lagi.')
     await load()
   } catch (err) {
-    toast.error(err instanceof Error ? err.message : 'Gagal memasukkan listing ke antrian')
+    const msg = err instanceof Error ? err.message : 'Gagal memasukkan listing ke antrian'
+    toast.error(msg)
+    // Kategori tidak bisa ditentukan -> langsung tawarkan pilih manual.
+    if (/kategori/i.test(msg)) {
+      await openCategory(listing)
+    }
   } finally {
     queueingId.value = null
   }
@@ -271,6 +286,75 @@ async function removeListing(listing: Listing) {
   } catch (err) {
     toast.error(err instanceof Error ? err.message : 'Gagal menghapus listing')
   }
+}
+
+// === Kategori manual ===
+
+/** Buka dialog: tampilkan kategori otomatis + daftar untuk dipilih manual. */
+async function openCategory(listing: Listing) {
+  categoryTarget.value = listing
+  categorySearch.value = ''
+  categoryResults.value = []
+  autoResolved.value = null
+  isCategoryOpen.value = true
+
+  // Kategori yang sedang dipakai (manual atau hasil otomatis).
+  const manualPath = listing.categoryPath?.trim()
+  if (manualPath) {
+    autoResolved.value = { path: manualPath, source: 'manual' }
+  } else if (listing.product?.name) {
+    try {
+      const res = await resolveCategory({ productName: listing.product.name })
+      autoResolved.value = res.resolved
+    } catch {
+      autoResolved.value = null
+    }
+  }
+  await searchCategories('')
+}
+
+let searchTimer: ReturnType<typeof setTimeout> | null = null
+function onCategorySearchInput() {
+  if (searchTimer) clearTimeout(searchTimer)
+  searchTimer = setTimeout(() => searchCategories(categorySearch.value.trim()), 350)
+}
+
+async function searchCategories(q: string) {
+  categoryLoading.value = true
+  try {
+    // Kosong = tampilkan contoh kategori (biar user tahu formatnya).
+    const res = await listCategories({ search: q || 'Mascara', limit: 40 })
+    categoryResults.value = res.categories
+  } catch {
+    categoryResults.value = []
+  } finally {
+    categoryLoading.value = false
+  }
+}
+
+/** Simpan kategori manual (path) atau kembalikan ke otomatis (null). */
+async function saveCategory(path: string | null) {
+  if (!categoryTarget.value) return
+  categorySaving.value = true
+  try {
+    await updateListing(categoryTarget.value.id, { categoryPath: path })
+    toast.success(
+      path ? 'Kategori manual disimpan.' : 'Kategori dikembalikan ke otomatis.',
+    )
+    isCategoryOpen.value = false
+    await load()
+  } catch (err) {
+    toast.error(err instanceof Error ? err.message : 'Gagal menyimpan kategori')
+  } finally {
+    categorySaving.value = false
+  }
+}
+
+function sourceLabel(source?: string) {
+  if (source === 'manual') return 'Manual'
+  if (source === 'keyword') return 'Otomatis (kata kunci)'
+  if (source === 'category-name') return 'Otomatis (nama kategori)'
+  return 'Tidak terdeteksi'
 }
 
 onMounted(() => {
@@ -376,6 +460,7 @@ onMounted(() => {
                       >
                         Menunggu worker...
                       </span>
+                      <Button variant="outline" size="sm" @click="openCategory(listing)">Kategori</Button>
                       <Button variant="outline" size="sm" @click="removeListing(listing)">Hapus</Button>
                     </div>
                   </TableCell>
@@ -566,6 +651,90 @@ onMounted(() => {
               <Button type="submit" :disabled="bulkSaving">{{ bulkSaving ? 'Memproses...' : 'Mulai Massal' }}</Button>
             </DialogFooter>
           </form>
+        </DialogContent>
+      </Dialog>
+
+      <!-- Dialog kategori manual -->
+      <Dialog :open="isCategoryOpen" @update:open="isCategoryOpen = $event">
+        <DialogContent class="max-w-[calc(100%-2rem)] rounded-3xl p-6 sm:max-w-2xl sm:p-8">
+          <DialogHeader class="gap-2 pe-14 text-start">
+            <DialogTitle class="text-xl font-semibold text-gray-800 sm:text-2xl dark:text-white/90">
+              Kategori Akulaku
+            </DialogTitle>
+            <DialogDescription class="text-sm text-gray-500 dark:text-gray-400">
+              {{ categoryTarget?.product?.name ?? '-' }}
+            </DialogDescription>
+          </DialogHeader>
+
+          <div class="space-y-4">
+            <!-- Kategori yang sedang dipakai -->
+            <div class="rounded-lg border border-gray-200 bg-gray-50 p-3 dark:border-white/10 dark:bg-white/5">
+              <p class="text-xs text-gray-500 dark:text-gray-400">Kategori terpakai saat ini</p>
+              <p v-if="autoResolved" class="mt-1 break-words text-sm font-medium text-gray-800 dark:text-white/90">
+                {{ autoResolved.path }}
+              </p>
+              <p v-else class="mt-1 text-sm text-error-600 dark:text-error-400">
+                Tidak terdeteksi otomatis
+              </p>
+              <div class="mt-1 flex flex-wrap items-center gap-2">
+                <Badge size="sm" :color="autoResolved?.source === 'manual' ? 'success' : 'gray'">
+                  {{ sourceLabel(autoResolved?.source) }}
+                </Badge>
+                <span v-if="autoResolved?.matchedKeyword" class="text-xs text-gray-500 dark:text-gray-400">
+                  cocok: "{{ autoResolved.matchedKeyword }}"
+                </span>
+              </div>
+            </div>
+
+            <!-- Pencarian -->
+            <Field class="gap-1.5">
+              <FieldLabel>Cari kategori Akulaku</FieldLabel>
+              <Input
+                v-model="categorySearch"
+                type="text"
+                placeholder="cth: mascara, tas ransel, powerbank"
+                @input="onCategorySearchInput"
+              />
+              <p class="text-xs text-gray-500 dark:text-gray-400">
+                Pilih dari daftar resmi Akulaku. Kategori manual akan dipakai saat posting.
+              </p>
+            </Field>
+
+            <!-- Hasil -->
+            <div class="max-h-64 overflow-y-auto rounded-lg border border-gray-200 dark:border-white/10">
+              <p v-if="categoryLoading" class="px-3 py-4 text-center text-sm text-gray-500 dark:text-gray-400">
+                Mencari...
+              </p>
+              <p v-else-if="categoryResults.length === 0" class="px-3 py-4 text-center text-sm text-gray-500 dark:text-gray-400">
+                Tidak ada kategori cocok. Coba kata kunci lain.
+              </p>
+              <button
+                v-for="c in categoryResults"
+                v-else
+                :key="c.id"
+                type="button"
+                class="block w-full border-b border-gray-50 px-3 py-2 text-start text-sm text-gray-700 transition last:border-0 hover:bg-brand-50 dark:border-white/5 dark:text-gray-300 dark:hover:bg-brand-500/10"
+                :class="c.path === autoResolved?.path ? 'bg-brand-50 font-medium dark:bg-brand-500/10' : ''"
+                @click="saveCategory(c.path)"
+              >
+                {{ c.path }}
+              </button>
+            </div>
+          </div>
+
+          <DialogFooter class="mx-0 mb-0 gap-3 p-0 pt-2 sm:justify-between">
+            <Button
+              variant="outline"
+              type="button"
+              :disabled="categorySaving"
+              @click="saveCategory(null)"
+            >
+              Pakai Otomatis
+            </Button>
+            <DialogClose as-child>
+              <Button variant="outline" type="button" :disabled="categorySaving">Tutup</Button>
+            </DialogClose>
+          </DialogFooter>
         </DialogContent>
       </Dialog>
     </div>
