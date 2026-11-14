@@ -28,9 +28,33 @@ async function loadRules(force = false) {
   return cache;
 }
 
+/**
+ * Cache daftar kategori untuk pencocokan nama (fallback lapis kedua).
+ * Menyimpan pasangan { leaf, path } dengan leaf = segmen terakhir kategori.
+ */
+let leafCache = null;
+let leafCacheAt = 0;
+
+async function loadCategoryLeaves(force = false) {
+  const now = Date.now();
+  if (!force && leafCache && now - leafCacheAt < CACHE_TTL_MS) return leafCache;
+  const rows = await prisma.akulakuCategory.findMany({ select: { path: true } });
+  leafCache = rows
+    .map((r) => {
+      const leaf = String(r.path).split('/').pop().trim();
+      return { path: r.path, leaf, lower: leaf.toLowerCase() };
+    })
+    // Leaf terlalu pendek berisiko salah cocok (mis. "Tas", "Lain").
+    .filter((x) => x.lower.length >= 4);
+  leafCacheAt = now;
+  return leafCache;
+}
+
 function clearCategoryCache() {
   cache = null;
   cacheAt = 0;
+  leafCache = null;
+  leafCacheAt = 0;
 }
 
 /**
@@ -73,10 +97,61 @@ async function isKnownCategoryPath(path) {
 }
 
 /**
+ * Fallback lapis kedua: cocokkan NAMA KATEGORI (segmen terakhir) ke nama produk.
+ *
+ * Contoh: "mascara waterproof" mengandung "mascara"
+ *   -> Kecantikan & Kesehatan/Kosmetik/Bulu Mata/Mascara
+ *
+ * Nama kategori terpanjang yang cocok dipilih (lebih spesifik).
+ * Kata harus utuh (batas kata) supaya "tas" tidak cocok di dalam "atasan".
+ */
+async function resolveByCategoryName(productName) {
+  const name = String(productName || '').toLowerCase();
+  if (!name) return null;
+
+  const leaves = await loadCategoryLeaves();
+
+  // Kategori hewan peliharaan sering salah cocok (mis. "popok bayi" -> "Popok"
+  // milik Perawatan Hewan). Hanya izinkan bila produk memang soal hewan.
+  const animalContext = /(hewan|kucing|anjing|burung|ikan|hamster|kelinci|reptil|peliharaan)/.test(name);
+
+  let best = null;
+  let bestScore = -1;
+
+  for (const item of leaves) {
+    if (!animalContext && /Perawatan Hewan/i.test(item.path)) continue;
+
+    // Batas kata: karakter sebelum/sesudah bukan huruf/angka.
+    const re = new RegExp(`(^|[^a-z0-9])${escapeRegExp(item.lower)}([^a-z0-9]|$)`);
+    if (!re.test(name)) continue;
+
+    // Skor: panjang leaf + bonus bila segmen induk juga muncul di nama produk.
+    const segments = item.path.split('/').map((s) => s.toLowerCase().trim());
+    const parentHit = segments
+      .slice(0, -1)
+      .filter((s) => s.length >= 4 && name.includes(s)).length;
+    const score = item.lower.length + parentHit * 10;
+
+    if (score > bestScore) {
+      bestScore = score;
+      best = { path: item.path, leaf: item.leaf };
+    }
+  }
+
+  if (!best) return null;
+  return { path: best.path, matchedKeyword: `[kategori] ${best.leaf}`, source: 'category-name' };
+}
+
+function escapeRegExp(s) {
+  return String(s).replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+}
+
+/**
  * Resolve kategori untuk sebuah listing:
- *   - pakai `listing.categoryPath` bila diisi DAN valid;
- *   - kalau kosong -> coba otomatis dari nama produk.
- * Mengembalikan { path, source, matchedKeyword } atau null bila gagal semua.
+ *   1) `categoryPath` manual bila valid;
+ *   2) aturan kata kunci (CategoryRule);
+ *   3) fallback: cocokkan nama kategori ke nama produk.
+ * Mengembalikan { path, source, matchedKeyword } atau null.
  */
 async function resolveListingCategory({ productName, categoryPath } = {}) {
   if (categoryPath && (await isKnownCategoryPath(categoryPath))) {
@@ -84,6 +159,10 @@ async function resolveListingCategory({ productName, categoryPath } = {}) {
   }
   const auto = await resolveCategoryByKeyword(productName);
   if (auto) return auto;
+
+  const byName = await resolveByCategoryName(productName);
+  if (byName) return byName;
+
   return null;
 }
 
@@ -101,9 +180,11 @@ async function suggestCategoryPaths(query, limit = 5) {
 
 module.exports = {
   resolveCategoryByKeyword,
+  resolveByCategoryName,
   resolveListingCategory,
   isKnownCategoryPath,
   suggestCategoryPaths,
   loadRules,
+  loadCategoryLeaves,
   clearCategoryCache,
 };

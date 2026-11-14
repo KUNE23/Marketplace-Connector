@@ -100,6 +100,100 @@ const RULES = [
   // --- Rumah tangga ---
   { keyword: 'lampu', path: 'Elektronik Rumah', priority: 60 },
   { keyword: 'kipas', path: 'Elektronik Rumah', priority: 65 },
+
+  // --- Kecantikan: mata & bulu mata ---
+  { keyword: 'mascara', path: 'Kecantikan & Kesehatan/Kosmetik/Bulu Mata/Mascara', priority: 100 },
+  { keyword: 'maskara', path: 'Kecantikan & Kesehatan/Kosmetik/Bulu Mata/Mascara', priority: 100 },
+  { keyword: 'bulu mata palsu', path: 'Kecantikan & Kesehatan/Kosmetik/Bulu Mata/Bulu Mata Palsu', priority: 98 },
+  { keyword: 'pelentik bulu mata', path: 'Kecantikan & Kesehatan/Kosmetik/Alat Kecantikan/Pelentik Bulu Mata', priority: 98 },
+  { keyword: 'eyeliner', path: 'Kecantikan & Kesehatan/Kosmetik/Kosmetik Mata/Eyeliner', priority: 100 },
+  { keyword: 'eyeshadow', path: 'Kecantikan & Kesehatan/Kosmetik/Kosmetik Mata/Eyeshadow', priority: 100 },
+  { keyword: 'skot mata', path: 'Kecantikan & Kesehatan/Kosmetik/Kosmetik Mata/Skot Mata', priority: 98 },
+  { keyword: 'eyebrow gel', path: 'Kecantikan & Kesehatan/Kosmetik/Kosmetik Mata/Eyebrow Gel', priority: 96 },
+  { keyword: 'pensil alis', path: 'Kecantikan & Kesehatan/Kosmetik/Pensil Alis/Pensil Alis', priority: 98 },
+  { keyword: 'eyebrow powder', path: 'Kecantikan & Kesehatan/Kosmetik/Pensil Alis/Eyebrow Powder', priority: 96 },
+
+  // --- Kecantikan: wajah ---
+  { keyword: 'bb cream', path: 'Kecantikan & Kesehatan/Kosmetik/Foundation/BB Cream', priority: 98 },
+  { keyword: 'cushion', path: 'Kecantikan & Kesehatan/Kosmetik/Foundation/Air Cushion', priority: 94 },
+  { keyword: 'concealer', path: 'Kecantikan & Kesehatan/Kosmetik/Foundation/Concealer', priority: 98 },
+  { keyword: 'foundation', path: 'Kecantikan & Kesehatan/Kosmetik/Foundation/Alas Bedak Cair', priority: 92 },
+  { keyword: 'bedak tabur', path: 'Kecantikan & Kesehatan/Kosmetik/Contouring/Loose Powder', priority: 94 },
+  { keyword: 'loose powder', path: 'Kecantikan & Kesehatan/Kosmetik/Contouring/Loose Powder', priority: 94 },
+  { keyword: 'contour', path: 'Kecantikan & Kesehatan/Kosmetik/Contouring/Contour Powder', priority: 92 },
+  { keyword: 'highlighter', path: 'Kecantikan & Kesehatan/Kosmetik/Contouring/Highlighter', priority: 96 },
+  { keyword: 'blush on', path: 'Kecantikan & Kesehatan/Kosmetik/Blush', priority: 96 },
+  { keyword: 'blush', path: 'Kecantikan & Kesehatan/Kosmetik/Blush', priority: 88 },
+  { keyword: 'primer', path: 'Kecantikan & Kesehatan/Kosmetik/Primer/Primer', priority: 90 },
+
+  // --- Kecantikan: bibir ---
+  { keyword: 'lipstik', path: 'Kecantikan & Kesehatan/Kosmetik/Kosmetik Bibir/Pewarna Bibir', priority: 100 },
+  { keyword: 'lipstick', path: 'Kecantikan & Kesehatan/Kosmetik/Kosmetik Bibir/Pewarna Bibir', priority: 100 },
+  { keyword: 'lip cream', path: 'Kecantikan & Kesehatan/Kosmetik/Kosmetik Bibir/Pewarna Bibir', priority: 98 },
+  { keyword: 'lip tint', path: 'Kecantikan & Kesehatan/Kosmetik/Kosmetik Bibir/Pewarna Bibir', priority: 98 },
+  { keyword: 'lip gloss', path: 'Kecantikan & Kesehatan/Kosmetik/Kosmetik Bibir/Pewarna Bibir', priority: 98 },
+  { keyword: 'lip matte', path: 'Kecantikan & Kesehatan/Kosmetik/Kosmetik Bibir/Pewarna Bibir', priority: 96 },
+  { keyword: 'lip balm', path: 'Kecantikan & Kesehatan/Kosmetik/Kosmetik Bibir/Pelembab Bibir', priority: 98 },
+  { keyword: 'scrub bibir', path: 'Kecantikan & Kesehatan/Perawatan Diri/Perawatan Bibir/Scrub Bibir', priority: 96 },
+
+  // --- Kecantikan: pembersih & alat ---
+  { keyword: 'micellar', path: 'Kecantikan & Kesehatan/Kosmetik/Pembersih Make Up/Pembersih Make Up', priority: 98 },
+  { keyword: 'make up remover', path: 'Kecantikan & Kesehatan/Kosmetik/Pembersih Make Up/Pembersih Make Up', priority: 98 },
+  { keyword: 'pembersih makeup', path: 'Kecantikan & Kesehatan/Kosmetik/Pembersih Make Up/Pembersih Make Up', priority: 98 },
+  { keyword: 'beauty blender', path: 'Kecantikan & Kesehatan/Kosmetik/Alat Kecantikan/Beauty Blender', priority: 98 },
+  { keyword: 'kuas makeup', path: 'Kecantikan & Kesehatan/Kosmetik/Alat Kecantikan/Kuas Make Up', priority: 96 },
+  { keyword: 'brush makeup', path: 'Kecantikan & Kesehatan/Kosmetik/Alat Kecantikan/Kuas Make Up', priority: 96 },
+  { keyword: 'tas kosmetik', path: 'Kecantikan & Kesehatan/Kosmetik/Alat Kecantikan/Tas Kosmetik', priority: 96 },
+  { keyword: 'kapas kecantikan', path: 'Kecantikan & Kesehatan/Kosmetik/Pembersih Make Up/Kapas', priority: 80 },
+
+  // --- Perawatan kulit ---
+  { keyword: 'sunscreen', path: 'Kecantikan & Kesehatan/Perawatan Diri/Tabir surya/Krim Tabir Surya', priority: 100 },
+  { keyword: 'sunblock', path: 'Kecantikan & Kesehatan/Perawatan Diri/Tabir surya/Krim Tabir Surya', priority: 100 },
+  { keyword: 'tabir surya', path: 'Kecantikan & Kesehatan/Perawatan Diri/Tabir surya/Krim Tabir Surya', priority: 100 },
+  { keyword: 'spf', path: 'Kecantikan & Kesehatan/Perawatan Diri/Tabir surya/Krim Tabir Surya', priority: 80 },
+  { keyword: 'toner', path: 'Kecantikan & Kesehatan/Perawatan Diri/Perawatan Wajah/Penyegar Wajah', priority: 96 },
+  { keyword: 'penyegar wajah', path: 'Kecantikan & Kesehatan/Perawatan Diri/Perawatan Wajah/Penyegar Wajah', priority: 96 },
+  { keyword: 'serum wajah', path: 'Kecantikan & Kesehatan/Perawatan Diri/Perawatan Wajah/Essence', priority: 92 },
+  { keyword: 'essence', path: 'Kecantikan & Kesehatan/Perawatan Diri/Perawatan Wajah/Essence', priority: 90 },
+  { keyword: 'moisturizer', path: 'Kecantikan & Kesehatan/Perawatan Diri/Perawatan Wajah/Krim Wajah', priority: 96 },
+  { keyword: 'pelembab wajah', path: 'Kecantikan & Kesehatan/Perawatan Diri/Perawatan Wajah/Krim Wajah', priority: 96 },
+  { keyword: 'krim wajah', path: 'Kecantikan & Kesehatan/Perawatan Diri/Perawatan Wajah/Krim Wajah', priority: 94 },
+  { keyword: 'sheet mask', path: 'Kecantikan & Kesehatan/Perawatan Diri/Perawatan Wajah/Mask Sheet', priority: 96 },
+  { keyword: 'mask sheet', path: 'Kecantikan & Kesehatan/Perawatan Diri/Perawatan Wajah/Mask Sheet', priority: 96 },
+  { keyword: 'masker wajah', path: 'Kecantikan & Kesehatan/Perawatan Diri/Perawatan Wajah/Mask Sheet', priority: 88 },
+  { keyword: 'facial wash', path: 'Kecantikan & Kesehatan/Perawatan Diri/Perawatan Wajah/pembersih wajah', priority: 96 },
+  { keyword: 'pembersih wajah', path: 'Kecantikan & Kesehatan/Perawatan Diri/Perawatan Wajah/pembersih wajah', priority: 96 },
+  { keyword: 'cleanser', path: 'Kecantikan & Kesehatan/Perawatan Diri/Perawatan Wajah/pembersih wajah', priority: 92 },
+  { keyword: 'krim mata', path: 'Kecantikan & Kesehatan/Perawatan Diri/Perawatan Mata/Krim Mata', priority: 96 },
+  { keyword: 'masker mata', path: 'Kecantikan & Kesehatan/Perawatan Diri/Perawatan Mata/Masker Mata', priority: 96 },
+
+  // --- Perawatan diri ---
+  { keyword: 'sampo', path: 'Kecantikan & Kesehatan/Perawatan Diri/Perawatan Rambut/Shampoo', priority: 94 },
+  { keyword: 'shampoo', path: 'Kecantikan & Kesehatan/Perawatan Diri/Perawatan Rambut/Shampoo', priority: 94 },
+  { keyword: 'conditioner', path: 'Kecantikan & Kesehatan/Perawatan Diri/Perawatan Rambut/Conditioner Rambut', priority: 94 },
+  { keyword: 'masker rambut', path: 'Kecantikan & Kesehatan/Perawatan Diri/Perawatan Rambut/masker rambut', priority: 94 },
+  { keyword: 'sabun mandi', path: 'Kecantikan & Kesehatan/Perawatan Diri/Perawatan Badan/Sabun Mandi', priority: 94 },
+  { keyword: 'body wash', path: 'Kecantikan & Kesehatan/Perawatan Diri/Perawatan Badan/Sabun Mandi', priority: 94 },
+  { keyword: 'body lotion', path: 'Kecantikan & Kesehatan/Perawatan Diri/Perawatan Badan/Body Lotion', priority: 96 },
+  { keyword: 'scrub badan', path: 'Kecantikan & Kesehatan/Perawatan Diri/Perawatan Badan/Scrub Badan', priority: 94 },
+  { keyword: 'deodorant', path: 'Kecantikan & Kesehatan/Perawatan Diri/Perawatan Badan/Deodoran', priority: 96 },
+  { keyword: 'deodoran', path: 'Kecantikan & Kesehatan/Perawatan Diri/Perawatan Badan/Deodoran', priority: 96 },
+  { keyword: 'parfum wanita', path: 'Kecantikan & Kesehatan/Parfum/Parfum Wanita', priority: 96 },
+  { keyword: 'parfum pria', path: 'Kecantikan & Kesehatan/Parfum/Parfum Pria', priority: 96 },
+  { keyword: 'parfum', path: 'Kecantikan & Kesehatan/Parfum/Parfum Unisex', priority: 80 },
+  { keyword: 'pasta gigi', path: 'Kecantikan & Kesehatan/Perawatan Diri/Perawatan Gigi/Pasta Gigi', priority: 96 },
+  { keyword: 'sikat gigi', path: 'Kecantikan & Kesehatan/Perawatan Diri/Perawatan Gigi/Sikat Gigi', priority: 96 },
+
+  // --- Ibu & bayi ---
+  { keyword: 'popok bayi', path: 'Ibu & Bayi/Semua Popok Bayi', priority: 98 },
+  { keyword: 'diaper', path: 'Ibu & Bayi/Semua Popok Bayi', priority: 96 },
+  { keyword: 'botol dot', path: 'Ibu & Bayi/Peralatan Makan/Botol Dot Bayi', priority: 98 },
+  { keyword: 'dot bayi', path: 'Ibu & Bayi/Peralatan Makan/Botol Dot Bayi', priority: 96 },
+
+  // --- Otomotif & olahraga ---
+  { keyword: 'helm motor', path: 'Otomotif/Helm Motor', priority: 98 },
+  { keyword: 'helm', path: 'Otomotif/Helm Motor', priority: 70 },
+  { keyword: 'resistance band', path: 'Olahraga & Travel/Yoga & Pilates/Resistance Band', priority: 98 },
 ];
 
 /** Impor daftar kategori dari data/categories.json ke DB. */
