@@ -285,7 +285,76 @@ async function fillAllAttributes(page, specs = {}) {
     }
   }
 
-  return { filled, count, total: fields.length };
+  // === PASS 2: atribut WAJIB yang masih kosong ===
+  // Tiap kategori punya atribut wajib berbeda (mis. "Masa Penyimpanan" pada
+  // kosmetik, "Ukuran Tas" pada tas). Tanpa ini, Akulaku menolak submit walau
+  // atribut lain sudah terisi.
+  const autoRequired = await fillEmptyRequired(page);
+  for (const label of autoRequired) {
+    filled[label] = '(otomatis)';
+    count += 1;
+  }
+
+  const remaining = await listEmptyRequired(page);
+
+  return { filled, count, total: fields.length, autoRequired, remaining };
+}
+
+/**
+ * Isi atribut WAJIB yang masih kosong dengan opsi PERTAMA yang tersedia.
+ * Mengembalikan daftar label yang berhasil diisi.
+ */
+async function fillEmptyRequired(page) {
+  const targets = await listEmptyRequired(page);
+  const done = [];
+
+  for (const t of targets) {
+    const sel = idSelector(t.id);
+    // Mode 'direct': buka dropdown lalu pilih opsi pertama (nilai kosong ->
+    // pickOption memilih indeks 0).
+    // eslint-disable-next-line no-await-in-loop
+    await fillAntSelect(page, sel, '', { mode: 'direct' });
+    // eslint-disable-next-line no-await-in-loop
+    const confirmed = await page
+      .evaluate((s) => {
+        const el = document.querySelector(s);
+        const wrap = el?.closest('.ant-form-item');
+        const chips = wrap
+          ? [...wrap.querySelectorAll('.ant-select-selection-item')]
+              .map((c) => (c.innerText || '').trim())
+              .filter((x) => x && !x.startsWith('+'))
+          : [];
+        return chips.length > 0 || (el?.value || '').trim().length > 0;
+      }, sel)
+      .catch(() => false);
+    if (confirmed) done.push(t.label);
+  }
+
+  return done;
+}
+
+/** Daftar atribut wajib (bertanda *) yang belum terisi. */
+async function listEmptyRequired(page) {
+  return page
+    .evaluate(() => {
+      const out = [];
+      for (const fi of document.querySelectorAll('.ant-form-item')) {
+        if (!fi.querySelector('.ant-form-item-required')) continue;
+        const input = fi.querySelector('[id^="baseProp-"]');
+        if (!input) continue;
+        const chips = [...fi.querySelectorAll('.ant-select-selection-item')]
+          .map((c) => (c.innerText || '').trim())
+          .filter((t) => t && !t.startsWith('+'));
+        const val = (input.value || '').trim();
+        if (chips.length || val) continue; // sudah terisi
+        const label = (fi.querySelector('.ant-form-item-label')?.innerText || '')
+          .replace(/[:：]\s*$/, '')
+          .trim();
+        out.push({ id: input.id, label: label || input.id });
+      }
+      return out;
+    })
+    .catch(() => []);
 }
 
 /**
@@ -307,8 +376,12 @@ async function fillRequiredSpecs(page, specs = {}) {
   result.condition = await setCondition(page, specs.condition || 'Baru');
 
   // 3) Seluruh atribut Spesifikasi Produk.
-  const { filled, count, total } = await fillAllAttributes(page, specs);
-  return { brand: result.brand, condition: result.condition, attributes: { filled, count, total } };
+  const { filled, count, total, autoRequired, remaining } = await fillAllAttributes(page, specs);
+  return {
+    brand: result.brand,
+    condition: result.condition,
+    attributes: { filled, count, total, autoRequired, remaining },
+  };
 }
 
 /** Pilih Kondisi produk (Baru/Bekas) via radio. */
@@ -488,6 +561,19 @@ async function selectCategory(page, path, explicitSpecs) {
   // Isi field wajib (Merek, Negara Asal, Bahan) — wajib untuk submit.
   const specs = resolveSpecs(explicitSpecs);
   const filled = await fillRequiredSpecs(page, specs);
+
+  // Kalau masih ada atribut WAJIB yang kosong, hentikan di sini dengan pesan
+  // jelas. Lebih baik daripada submit lalu ditolak Akulaku dengan pesan panjang.
+  const remaining = filled?.attributes?.remaining ?? [];
+  if (remaining.length) {
+    throw createError(
+      422,
+      `Atribut wajib Akulaku belum bisa diisi otomatis: ${remaining
+        .map((r) => r.label)
+        .join(', ')}. Lengkapi lewat listing.specs atau isi manual di Seller Center.`,
+    );
+  }
+
   return filled;
 }
 
