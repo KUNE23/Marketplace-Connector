@@ -57,6 +57,7 @@ app.use('/api/chat', require('./src/routes/chat'));
 app.use('/api/recap', require('./src/routes/recap'));
 app.use('/api/monitor', require('./src/routes/monitor'));
 app.use('/api/backups', require('./src/routes/backups'));
+app.use('/api/balances', require('./src/routes/balances'));
 
 app.use(errorHandler);
 

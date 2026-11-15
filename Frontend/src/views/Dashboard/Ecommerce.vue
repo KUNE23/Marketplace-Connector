@@ -16,6 +16,7 @@ import {
   type RecentOrder,
 } from '@/services/dashboard'
 import { formatRupiah } from '@/services/products'
+import { formatSaldo, getBalanceSummary, type BalanceSummary } from '@/services/balances'
 import { orderStatusMeta } from '@/utils/labels'
 
 const toast = useToast()
@@ -24,20 +25,23 @@ const summary = ref<DashboardSummary | null>(null)
 const recap = ref<RecapEntry[]>([])
 const recent = ref<RecentOrder[]>([])
 const loading = ref(false)
+const balance = ref<BalanceSummary | null>(null)
 
 const maxRevenue = computed(() => Math.max(1, ...recap.value.map((r) => r.revenue)))
 
 async function load() {
   loading.value = true
   try {
-    const [sum, rec, orders] = await Promise.all([
+    const [sum, rec, orders, bal] = await Promise.all([
       getDashboardSummary(),
       getDashboardRecap(14),
       getRecentOrders(6),
+      getBalanceSummary().catch(() => null),
     ])
     summary.value = sum
     recap.value = rec.recap
     recent.value = orders.orders
+    balance.value = bal
   } catch (err) {
     toast.error(err instanceof Error ? err.message : 'Gagal memuat dashboard')
   } finally {
@@ -61,6 +65,35 @@ onMounted(load)
     <div>
       <PageBreadcrumb pageTitle="Dashboard" />
       <div class="space-y-5 sm:space-y-6">
+        <!-- Saldo Akulaku -->
+        <div class="rounded-2xl border border-brand-200 bg-brand-50/60 p-5 dark:border-brand-500/30 dark:bg-brand-500/5">
+          <div class="flex flex-wrap items-start justify-between gap-3">
+            <div>
+              <p class="text-sm text-gray-600 dark:text-gray-300">Saldo Akulaku (bisa ditarik)</p>
+              <p class="mt-1 text-3xl font-semibold text-brand-700 dark:text-brand-300">
+                {{ formatSaldo(balance?.available ?? 0) }}
+              </p>
+              <p class="mt-1 text-xs text-gray-500 dark:text-gray-400">
+                Tertahan: {{ formatSaldo(balance?.pending ?? 0) }}
+                · Total: {{ formatSaldo(balance?.total ?? 0) }}
+                · {{ balance?.accountCount ?? 0 }} akun aktif
+              </p>
+              <p v-if="balance?.lastSyncedAt" class="mt-0.5 text-[11px] text-gray-400">
+                Terakhir disinkron: {{ new Date(balance.lastSyncedAt).toLocaleString('id-ID') }}
+              </p>
+              <p v-else class="mt-0.5 text-[11px] text-warning-600 dark:text-warning-400">
+                Saldo belum pernah disinkron. Kelola di menu Akun Akulaku.
+              </p>
+            </div>
+            <RouterLink
+              to="/akun-akulaku"
+              class="rounded-lg border border-brand-300 px-3 py-2 text-xs font-medium text-brand-700 transition hover:bg-brand-100 dark:border-brand-500/40 dark:text-brand-300 dark:hover:bg-brand-500/10"
+            >
+              Kelola Saldo
+            </RouterLink>
+          </div>
+        </div>
+
         <!-- Kartu utama -->
         <div class="grid grid-cols-1 gap-5 sm:grid-cols-2 xl:grid-cols-3">
           <div class="rounded-2xl border border-gray-200 bg-white p-5 dark:border-gray-800 dark:bg-white/3">

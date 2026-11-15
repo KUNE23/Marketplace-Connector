@@ -80,6 +80,8 @@ model AkulakuAccount {
   violations Violation[]
   violationSummaries ViolationSummary[]
   chatConversations  ChatConversation[]
+  balance    AkulakuBalance?
+  balanceSnapshots BalanceSnapshot[]
   createdAt  DateTime  @default(now()) @db.Timestamptz
   updatedAt  DateTime  @updatedAt @db.Timestamptz
 
@@ -486,4 +488,37 @@ model WorkerLog {
   @@index([createdAt])
   @@index([worker])
   @@index([level])
+}
+
+// Saldo akun Akulaku (hasil sinkron dari menu Manajemen Keuangan).
+// Disimpan sebagai snapshot: satu baris per akun berisi kondisi terkini, dan
+// tabel BalanceSnapshot menyimpan riwayat untuk grafik tren.
+model AkulakuBalance {
+  id             BigInt   @id @default(autoincrement())
+  accountId      BigInt   @unique
+  account        AkulakuAccount @relation(fields: [accountId], references: [id], onDelete: Cascade)
+  // Nilai uang (Decimal agar tidak ada galat pembulatan).
+  available      Decimal  @default(0) @db.Decimal(16, 2) // saldo bisa dipakai/ditarik
+  pending        Decimal  @default(0) @db.Decimal(16, 2) // tertahan (belum settle)
+  total          Decimal  @default(0) @db.Decimal(16, 2) // available + pending
+  currency       String   @default("IDR") @db.VarChar(10)
+  note           String?  @db.VarChar(300)
+  rawPayload     Json?
+  lastSyncedAt   DateTime? @db.Timestamptz
+  syncError      String?  @db.VarChar(500)
+  createdAt      DateTime @default(now()) @db.Timestamptz
+  updatedAt      DateTime @updatedAt @db.Timestamptz
+}
+
+// Riwayat saldo per akun (untuk grafik & audit).
+model BalanceSnapshot {
+  id          BigInt   @id @default(autoincrement())
+  accountId   BigInt
+  account     AkulakuAccount @relation(fields: [accountId], references: [id], onDelete: Cascade)
+  available   Decimal  @db.Decimal(16, 2)
+  pending     Decimal  @default(0) @db.Decimal(16, 2)
+  total       Decimal  @db.Decimal(16, 2)
+  capturedAt  DateTime @default(now()) @db.Timestamptz
+
+  @@index([accountId, capturedAt])
 }

@@ -36,6 +36,13 @@ import {
   type AkulakuAccount,
 } from '@/services/akulakuAccounts'
 import { accountStatusMeta, accountStatusLabel, sessionStatusMeta, sessionStatusLabel } from '@/utils/labels'
+import {
+  formatSaldo,
+  listBalances,
+  setManualBalance,
+  syncBalance,
+  type AccountBalance,
+} from '@/services/balances'
 
 const toast = useToast()
 
@@ -45,6 +52,85 @@ const page = ref(1)
 const limit = 10
 const search = ref('')
 const loading = ref(false)
+
+// === Saldo ===
+const balances = ref<AccountBalance[]>([])
+const isBalanceOpen = ref(false)
+const balanceTarget = ref<AkulakuAccount | null>(null)
+const balanceForm = ref({ available: '', pending: '', note: '' })
+const balanceSaving = ref(false)
+const balanceSyncing = ref(false)
+
+function balanceOf(accountId: string) {
+  return balances.value.find((b) => b.accountId === accountId) ?? null
+}
+
+async function loadBalances() {
+  try {
+    const res = await listBalances()
+    balances.value = res.balances
+  } catch {
+    balances.value = []
+  }
+}
+
+function openBalance(account: AkulakuAccount) {
+  balanceTarget.value = account
+  const cur = balanceOf(account.id)
+  balanceForm.value = {
+    available: cur ? String(cur.available) : '',
+    pending: cur ? String(cur.pending) : '',
+    note: cur?.note ?? '',
+  }
+  isBalanceOpen.value = true
+}
+
+async function saveBalance() {
+  if (!balanceTarget.value) return
+  const available = Number(balanceForm.value.available)
+  if (!Number.isFinite(available) || available < 0) {
+    return toast.warning('Saldo tersedia harus angka >= 0')
+  }
+  const pending = Number(balanceForm.value.pending || 0)
+  if (!Number.isFinite(pending) || pending < 0) {
+    return toast.warning('Saldo tertahan harus angka >= 0')
+  }
+
+  balanceSaving.value = true
+  try {
+    await setManualBalance(balanceTarget.value.id, {
+      available,
+      pending,
+      note: balanceForm.value.note.trim() || undefined,
+    })
+    toast.success('Saldo disimpan.')
+    isBalanceOpen.value = false
+    await loadBalances()
+  } catch (err) {
+    toast.error(err instanceof Error ? err.message : 'Gagal menyimpan saldo')
+  } finally {
+    balanceSaving.value = false
+  }
+}
+
+async function doSyncBalance() {
+  if (!balanceTarget.value) return
+  balanceSyncing.value = true
+  try {
+    const res = await syncBalance(balanceTarget.value.id)
+    if (res.status === 'ok') {
+      toast.success('Saldo diperbarui dari Akulaku.')
+      isBalanceOpen.value = false
+      await loadBalances()
+    } else {
+      toast.info(res.message ?? 'Sinkron saldo belum tersedia. Isi manual dulu.')
+    }
+  } catch (err) {
+    toast.error(err instanceof Error ? err.message : 'Gagal sinkron saldo')
+  } finally {
+    balanceSyncing.value = false
+  }
+}
 
 // Dialog login Akulaku (isi kredensial otomatis + OTP)
 const isLoginOpen = ref(false)
@@ -232,7 +318,10 @@ async function closeLogin() {
   }
 }
 
-onMounted(load)
+onMounted(() => {
+  load()
+  loadBalances()
+})
 </script>
 
 <template>
@@ -256,6 +345,7 @@ onMounted(load)
                   <TableCell isHeader class="px-5 py-3 text-start text-xs font-medium text-gray-500 sm:px-6 dark:text-gray-400">Label</TableCell>
                   <TableCell isHeader class="px-5 py-3 text-start text-xs font-medium text-gray-500 sm:px-6 dark:text-gray-400">Username</TableCell>
                   <TableCell isHeader class="px-5 py-3 text-start text-xs font-medium text-gray-500 sm:px-6 dark:text-gray-400">Listing</TableCell>
+                  <TableCell isHeader class="px-5 py-3 text-start text-xs font-medium text-gray-500 sm:px-6 dark:text-gray-400">Saldo</TableCell>
                   <TableCell isHeader class="px-5 py-3 text-start text-xs font-medium text-gray-500 sm:px-6 dark:text-gray-400">Status</TableCell>
                   <TableCell isHeader class="px-5 py-3 text-start text-xs font-medium text-gray-500 sm:px-6 dark:text-gray-400">Sesi</TableCell>
                   <TableCell isHeader class="px-5 py-3 text-start text-xs font-medium text-gray-500 sm:px-6 dark:text-gray-400">Aksi</TableCell>
@@ -273,6 +363,14 @@ onMounted(load)
                   <TableCell class="px-5 py-4 text-start text-sm text-gray-500 sm:px-6 dark:text-gray-400">{{ account.username }}</TableCell>
                   <TableCell class="px-5 py-4 text-start text-sm text-gray-500 sm:px-6 dark:text-gray-400">{{ account.listingCount }}</TableCell>
                   <TableCell class="px-5 py-4 text-start text-sm sm:px-6">
+                    <div class="space-y-0.5">
+                      <p class="font-medium text-gray-800 dark:text-white/90">{{ formatSaldo(balanceOf(account.id)?.available ?? 0) }}</p>
+                      <p class="text-[11px] text-gray-400">
+                        {{ balanceOf(account.id)?.lastSyncedAt ? `Tertahan ${formatSaldo(balanceOf(account.id)?.pending ?? 0)}` : 'belum disinkron' }}
+                      </p>
+                    </div>
+                  </TableCell>
+                  <TableCell class="px-5 py-4 text-start text-sm sm:px-6">
                     <Badge size="sm" :color="accountStatusMeta[account.status]?.color ?? 'gray'">
                       {{ accountStatusLabel(account.status) }}
                     </Badge>
@@ -285,6 +383,7 @@ onMounted(load)
                   <TableCell class="px-5 py-4 text-start text-sm sm:px-6">
                     <div class="flex flex-wrap gap-2">
                       <Button size="sm" @click="openLogin(account)">Login Akulaku</Button>
+                      <Button variant="outline" size="sm" @click="openBalance(account)">Saldo</Button>
                       <Button variant="outline" size="sm" @click="openEdit(account)">Edit</Button>
                       <Button variant="outline" size="sm" @click="removeAccount(account)">Hapus</Button>
                     </div>
@@ -437,6 +536,77 @@ onMounted(load)
             <DialogClose as-child>
               <Button variant="ghost" type="button" @click="closeLogin">Tutup</Button>
             </DialogClose>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      <!-- Dialog saldo -->
+      <Dialog :open="isBalanceOpen" @update:open="isBalanceOpen = $event">
+        <DialogContent class="max-w-[calc(100%-2rem)] rounded-3xl p-6 sm:max-w-lg sm:p-8">
+          <DialogHeader class="gap-2 pe-14 text-start">
+            <DialogTitle class="text-xl font-semibold text-gray-800 sm:text-2xl dark:text-white/90">
+              Saldo Akulaku
+            </DialogTitle>
+            <DialogDescription class="text-sm text-gray-500 dark:text-gray-400">
+              {{ balanceTarget?.label ?? '-' }} · {{ balanceTarget?.username ?? '-' }}
+            </DialogDescription>
+          </DialogHeader>
+
+          <div class="space-y-4">
+            <div class="rounded-lg border border-gray-200 bg-gray-50 p-3 dark:border-white/10 dark:bg-white/5">
+              <p class="text-xs text-gray-500 dark:text-gray-400">Tersimpan saat ini</p>
+              <p class="mt-1 text-lg font-semibold text-gray-800 dark:text-white/90">
+                {{ formatSaldo(balanceOf(balanceTarget?.id ?? '')?.available ?? 0) }}
+              </p>
+              <p class="text-xs text-gray-500 dark:text-gray-400">
+                Tertahan: {{ formatSaldo(balanceOf(balanceTarget?.id ?? '')?.pending ?? 0) }}
+                · Total: {{ formatSaldo(balanceOf(balanceTarget?.id ?? '')?.total ?? 0) }}
+              </p>
+              <p class="mt-0.5 text-[11px] text-gray-400">
+                {{
+                  balanceOf(balanceTarget?.id ?? '')?.lastSyncedAt
+                    ? `Terakhir: ${new Date(balanceOf(balanceTarget?.id ?? '')!.lastSyncedAt!).toLocaleString('id-ID')}`
+                    : 'Belum pernah disinkron'
+                }}
+              </p>
+              <p v-if="balanceOf(balanceTarget?.id ?? '')?.syncError" class="mt-0.5 text-[11px] text-error-600 dark:text-error-400">
+                {{ balanceOf(balanceTarget?.id ?? '')?.syncError }}
+              </p>
+            </div>
+
+            <Field class="gap-1.5">
+              <FieldLabel>Saldo bisa ditarik (Rp)</FieldLabel>
+              <Input v-model="balanceForm.available" type="number" min="0" placeholder="cth: 95000" />
+            </Field>
+
+            <Field class="gap-1.5">
+              <FieldLabel>Saldo tertahan (Rp, opsional)</FieldLabel>
+              <Input v-model="balanceForm.pending" type="number" min="0" placeholder="cth: 0" />
+            </Field>
+
+            <Field class="gap-1.5">
+              <FieldLabel>Catatan (opsional)</FieldLabel>
+              <Input v-model="balanceForm.note" type="text" placeholder="cth: saldo per hari ini" />
+            </Field>
+
+            <p class="text-xs text-gray-500 dark:text-gray-400">
+              Sinkron otomatis ke Akulaku belum tersedia (endpoint belum dipetakan).
+              Isi manual dulu agar dashboard menampilkan saldo yang benar.
+            </p>
+          </div>
+
+          <DialogFooter class="mx-0 mb-0 gap-3 p-0 pt-2 sm:justify-between">
+            <Button variant="outline" type="button" :disabled="balanceSyncing || balanceSaving" @click="doSyncBalance">
+              {{ balanceSyncing ? 'Sinkron...' : 'Coba Sinkron dari Akulaku' }}
+            </Button>
+            <div class="flex gap-3">
+              <DialogClose as-child>
+                <Button variant="outline" type="button" :disabled="balanceSaving">Batal</Button>
+              </DialogClose>
+              <Button type="button" :disabled="balanceSaving" @click="saveBalance">
+                {{ balanceSaving ? 'Menyimpan...' : 'Simpan' }}
+              </Button>
+            </div>
           </DialogFooter>
         </DialogContent>
       </Dialog>
