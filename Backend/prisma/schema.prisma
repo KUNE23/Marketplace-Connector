@@ -453,3 +453,37 @@ model RequestMetric {
   @@index([path])
   @@index([statusCode])
 }
+
+// Detak jantung worker (proses terpisah dari API). Baris di-upsert tiap siklus
+// poll, sehingga Monitor bisa tahu worker masih hidup atau sudah mati.
+model WorkerHeartbeat {
+  id         BigInt   @id @default(autoincrement())
+  name       String   @unique @db.VarChar(50)
+  pid        Int?
+  hostname   String?  @db.VarChar(150)
+  status     String   @default("idle") @db.VarChar(20) // idle | working | stopped
+  currentJob BigInt?
+  polls      Int      @default(0)
+  jobsDone   Int      @default(0)
+  jobsFailed Int      @default(0)
+  version    String?  @db.VarChar(50)
+  startedAt  DateTime @default(now()) @db.Timestamptz
+  lastSeenAt DateTime @default(now()) @db.Timestamptz
+  updatedAt  DateTime @updatedAt @db.Timestamptz
+}
+
+// Catatan aktivitas worker (job mulai/selesai/gagal) agar bisa dipantau dari
+// halaman Monitor tanpa harus membaca berkas log server.
+model WorkerLog {
+  id        BigInt   @id @default(autoincrement())
+  worker    String   @default("worker") @db.VarChar(50)
+  level     String   @default("info") @db.VarChar(10) // info | warn | error
+  message   String   @db.VarChar(1000)
+  jobId     BigInt?
+  jobType   String?  @db.VarChar(50)
+  createdAt DateTime @default(now()) @db.Timestamptz
+
+  @@index([createdAt])
+  @@index([worker])
+  @@index([level])
+}

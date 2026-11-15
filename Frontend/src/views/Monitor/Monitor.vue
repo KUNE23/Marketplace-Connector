@@ -18,9 +18,14 @@ import {
   getAuditLog,
   getMonitorOverview,
   getRequestStats,
+  getWorkerLogFile,
+  getWorkerStatus,
+  LOG_FILE_OPTIONS,
+  pruneWorkerLogs,
   type AuditLogEntry,
   type MonitorOverview,
   type RequestStats,
+  type WorkerStatus,
 } from '@/services/monitor'
 import {
   backupDownloadUrl,
@@ -65,6 +70,13 @@ const isRestoreOpen = ref(false)
 const restoreTarget = ref<BackupItem | null>(null)
 const restoreConfirm = ref('')
 
+// === Worker ===
+const worker = ref<WorkerStatus | null>(null)
+const logFile = ref('worker.out')
+const logLines = ref<string[]>([])
+const logMeta = ref<{ exists: boolean; totalBytes: number; modifiedAt?: string } | null>(null)
+const logLoading = ref(false)
+
 const maxTimeline = computed(() => Math.max(1, ...(stats.value?.timeline ?? []).map((t) => t.requests)))
 
 async function load() {
@@ -103,7 +115,12 @@ function toggleAuto() {
 
 function setupTimer() {
   if (timer) clearInterval(timer)
-  if (autoRefresh.value) timer = setInterval(load, 15000)
+  if (autoRefresh.value) {
+    timer = setInterval(() => {
+      load()
+      loadWorker()
+    }, 15000)
+  }
 }
 
 function roleColor(role: string | null) {
@@ -118,6 +135,60 @@ function statusColor(s: string) {
 
 function formatTime(v: string) {
   return new Date(v).toLocaleString('id-ID')
+}
+
+async function loadWorker() {
+  try {
+    worker.value = await getWorkerStatus()
+  } catch (err) {
+    toast.error(err instanceof Error ? err.message : 'Gagal memuat status worker')
+  }
+}
+
+async function loadLogFile() {
+  logLoading.value = true
+  try {
+    const res = await getWorkerLogFile(logFile.value, 300)
+    logLines.value = res.lines
+    logMeta.value = { exists: res.exists, totalBytes: res.totalBytes, modifiedAt: res.modifiedAt }
+  } catch (err) {
+    logLines.value = []
+    logMeta.value = null
+    toast.error(err instanceof Error ? err.message : 'Gagal membaca berkas log')
+  } finally {
+    logLoading.value = false
+  }
+}
+
+async function doPruneWorkerLogs() {
+  if (!window.confirm('Hapus catatan aktivitas worker lama (sisakan 2000 terbaru)?')) return
+  try {
+    const r = await pruneWorkerLogs(2000)
+    toast.success(`Dihapus ${r.removed} catatan. Sisa ${r.remaining}.`)
+    await loadWorker()
+  } catch (err) {
+    toast.error(err instanceof Error ? err.message : 'Gagal membersihkan catatan')
+  }
+}
+
+function workerColor(w?: { alive: boolean; status: string }) {
+  if (!w) return 'gray' as const
+  if (w.alive && w.status === 'working') return 'info' as const
+  if (w.alive) return 'success' as const
+  return 'error' as const
+}
+
+function logLevelColor(level: string) {
+  if (level === 'error') return 'error' as const
+  if (level === 'warn') return 'warning' as const
+  return 'gray' as const
+}
+
+function formatBytes(n: number) {
+  if (!n) return '0 B'
+  if (n < 1024) return `${n} B`
+  if (n < 1024 * 1024) return `${(n / 1024).toFixed(1)} KB`
+  return `${(n / 1024 / 1024).toFixed(2)} MB`
 }
 
 async function loadBackups() {
@@ -198,6 +269,8 @@ function formatDate(v: string) {
 onMounted(() => {
   load()
   loadBackups()
+  loadWorker()
+  loadLogFile()
   setupTimer()
 })
 
@@ -443,6 +516,161 @@ onUnmounted(() => {
           </div>
         </div>
       </ComponentCard>
+      <!-- Worker & Log -->
+      <ComponentCard
+        title="Worker & Log Sistem"
+        desc="Status proses worker, antrean job, catatan aktivitas, dan ekor berkas log PM2."
+      >
+        <!-- Peringatan -->
+        <div v-if="(worker?.warnings?.length ?? 0) > 0" class="mb-3 space-y-1">
+          <p
+            v-for="w in worker!.warnings"
+            :key="w"
+            class="rounded-lg bg-error-50 px-3 py-2 text-xs text-error-700 dark:bg-error-500/10 dark:text-error-400"
+          >
+            {{ w }}
+          </p>
+        </div>
+
+        <!-- Kartu worker -->
+        <div class="grid grid-cols-1 gap-3 sm:grid-cols-2 xl:grid-cols-3">
+          <p
+            v-if="!worker?.workers?.length"
+            class="rounded-lg border border-dashed border-gray-200 p-4 text-center text-sm text-gray-500 sm:col-span-2 xl:col-span-3 dark:border-white/10 dark:text-gray-400"
+          >
+            Worker belum pernah melapor. Jalankan worker dengan kode terbaru
+            (<code>pm2 restart enzyy-worker</code>).
+          </p>
+          <div
+            v-for="w in worker?.workers ?? []"
+            :key="w.name"
+            class="rounded-xl border border-gray-200 bg-white p-4 dark:border-white/5 dark:bg-white/3"
+          >
+            <div class="flex items-center justify-between">
+              <span class="text-sm font-medium text-gray-800 dark:text-white/90">{{ w.name }}</span>
+              <Badge size="sm" :color="workerColor(w)">
+                {{ w.status === 'working' ? 'Bekerja' : w.alive ? 'Siap' : 'Mati' }}
+              </Badge>
+            </div>
+            <p class="mt-1 text-xs text-gray-500 dark:text-gray-400">
+              PID {{ w.pid ?? '-' }} · {{ w.hostname ?? '-' }} · Node {{ w.version ?? '-' }}
+            </p>
+            <p class="text-xs text-gray-500 dark:text-gray-400">
+              Detak terakhir: {{ w.staleSeconds }} detik lalu
+            </p>
+            <p v-if="w.currentJob" class="text-xs text-info-600 dark:text-info-400">
+              Sedang memproses job #{{ w.currentJob }}
+            </p>
+            <div class="mt-2 grid grid-cols-3 gap-2 text-xs">
+              <div>
+                <p class="text-gray-500 dark:text-gray-400">Poll</p>
+                <p class="font-semibold text-gray-800 dark:text-white/90">{{ w.polls }}</p>
+              </div>
+              <div>
+                <p class="text-gray-500 dark:text-gray-400">Sukses</p>
+                <p class="font-semibold text-success-600 dark:text-success-400">{{ w.jobsDone }}</p>
+              </div>
+              <div>
+                <p class="text-gray-500 dark:text-gray-400">Gagal</p>
+                <p class="font-semibold" :class="w.jobsFailed > 0 ? 'text-error-600 dark:text-error-400' : 'text-gray-800 dark:text-white/90'">
+                  {{ w.jobsFailed }}
+                </p>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Antrean job -->
+        <div class="mt-4 grid grid-cols-2 gap-3 sm:grid-cols-4">
+          <div class="rounded-lg border border-gray-200 p-3 dark:border-white/10">
+            <p class="text-xs text-gray-500 dark:text-gray-400">Menunggu</p>
+            <p class="text-lg font-semibold" :class="(worker?.queue.pending ?? 0) > 20 ? 'text-warning-600 dark:text-warning-400' : 'text-gray-800 dark:text-white/90'">
+              {{ worker?.queue.pending ?? 0 }}
+            </p>
+          </div>
+          <div class="rounded-lg border border-gray-200 p-3 dark:border-white/10">
+            <p class="text-xs text-gray-500 dark:text-gray-400">Dijalankan</p>
+            <p class="text-lg font-semibold text-info-600 dark:text-info-400">{{ worker?.queue.running ?? 0 }}</p>
+          </div>
+          <div class="rounded-lg border border-gray-200 p-3 dark:border-white/10">
+            <p class="text-xs text-gray-500 dark:text-gray-400">Selesai</p>
+            <p class="text-lg font-semibold text-success-600 dark:text-success-400">{{ worker?.queue.done ?? 0 }}</p>
+          </div>
+          <div class="rounded-lg border border-gray-200 p-3 dark:border-white/10">
+            <p class="text-xs text-gray-500 dark:text-gray-400">Gagal</p>
+            <p class="text-lg font-semibold" :class="(worker?.queue.failed ?? 0) > 0 ? 'text-error-600 dark:text-error-400' : 'text-gray-800 dark:text-white/90'">
+              {{ worker?.queue.failed ?? 0 }}
+            </p>
+          </div>
+        </div>
+
+        <p v-if="worker?.queue.oldestPending" class="mt-2 text-xs text-gray-500 dark:text-gray-400">
+          Job terlama menunggu: #{{ worker.queue.oldestPending.id }} ({{ worker.queue.oldestPending.type }})
+          · {{ worker.queue.oldestPending.waitingSeconds }} detik · percobaan ke-{{ worker.queue.oldestPending.attempts }}
+        </p>
+
+        <!-- Catatan aktivitas worker -->
+        <div class="mt-4 flex items-center justify-between">
+          <p class="text-sm font-medium text-gray-700 dark:text-white/90">Catatan Aktivitas Worker</p>
+          <Button variant="outline" size="sm" @click="doPruneWorkerLogs">Bersihkan Catatan</Button>
+        </div>
+        <div class="mt-2 overflow-hidden rounded-xl border border-gray-200 dark:border-white/10">
+          <div class="max-h-64 max-w-full overflow-auto">
+            <Table>
+              <TableHeader class="border-b border-gray-100 dark:border-white/5">
+                <TableRow>
+                  <TableCell isHeader class="px-3 py-2 text-start text-xs font-medium text-gray-500 dark:text-gray-400">Waktu</TableCell>
+                  <TableCell isHeader class="px-3 py-2 text-start text-xs font-medium text-gray-500 dark:text-gray-400">Level</TableCell>
+                  <TableCell isHeader class="px-3 py-2 text-start text-xs font-medium text-gray-500 dark:text-gray-400">Job</TableCell>
+                  <TableCell isHeader class="px-3 py-2 text-start text-xs font-medium text-gray-500 dark:text-gray-400">Pesan</TableCell>
+                </TableRow>
+              </TableHeader>
+              <TableBody class="divide-y divide-gray-100 dark:divide-white/5">
+                <TableRow v-if="!worker?.logs?.length">
+                  <TableCell colspan="4" class="px-3 py-4 text-center text-xs text-gray-400">
+                    Belum ada catatan. Jalankan worker dengan kode terbaru.
+                  </TableCell>
+                </TableRow>
+                <TableRow v-for="l in worker?.logs ?? []" v-else :key="l.id">
+                  <TableCell class="px-3 py-2 text-start text-[11px] text-gray-500 dark:text-gray-400">
+                    {{ formatTime(l.createdAt) }}
+                  </TableCell>
+                  <TableCell class="px-3 py-2 text-start text-xs">
+                    <Badge size="sm" :color="logLevelColor(l.level)">{{ l.level }}</Badge>
+                  </TableCell>
+                  <TableCell class="px-3 py-2 text-start text-[11px] text-gray-500 dark:text-gray-400">
+                    {{ l.jobId ? `#${l.jobId} ${l.jobType ?? ''}` : '-' }}
+                  </TableCell>
+                  <TableCell class="px-3 py-2 text-start text-xs text-gray-700 dark:text-gray-300">{{ l.message }}</TableCell>
+                </TableRow>
+              </TableBody>
+            </Table>
+          </div>
+        </div>
+
+        <!-- Ekor berkas log PM2 -->
+        <div class="mt-4 flex flex-wrap items-center gap-2">
+          <p class="text-sm font-medium text-gray-700 dark:text-white/90">Berkas Log PM2</p>
+          <Select v-model="logFile" @update:model-value="loadLogFile">
+            <SelectTrigger class="w-44">
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem v-for="f in LOG_FILE_OPTIONS" :key="f.value" :value="f.value">{{ f.label }}</SelectItem>
+            </SelectContent>
+          </Select>
+          <Button variant="outline" size="sm" :disabled="logLoading" @click="loadLogFile">
+            {{ logLoading ? 'Memuat...' : 'Muat Ulang' }}
+          </Button>
+          <span v-if="logMeta" class="text-xs text-gray-500 dark:text-gray-400">
+            {{ logMeta.exists ? `${formatBytes(logMeta.totalBytes)} · ${logMeta.modifiedAt ? formatTime(logMeta.modifiedAt) : '-'}` : 'berkas belum ada' }}
+          </span>
+        </div>
+        <pre
+          class="mt-2 max-h-64 overflow-auto rounded-xl border border-gray-200 bg-gray-50 p-3 text-[11px] leading-relaxed text-gray-800 dark:border-white/10 dark:bg-black/30 dark:text-gray-300"
+        >{{ logLines.length ? logLines.join('\n') : '(kosong — berkas hanya ada bila worker/API dijalankan lewat PM2)' }}</pre>
+      </ComponentCard>
+
       <!-- Backup & Restore -->
       <ComponentCard
         title="Backup & Restore Database"

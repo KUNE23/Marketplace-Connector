@@ -82,3 +82,83 @@ export function getAuditLog(params: { limit?: number; action?: string; userId?: 
   const qs = q.toString()
   return apiFetch<AuditResponse>(`/monitor/audit${qs ? `?${qs}` : ''}`)
 }
+
+// === Worker ===
+
+export interface WorkerInfo {
+  name: string
+  pid: number | null
+  hostname: string | null
+  status: string
+  alive: boolean
+  staleSeconds: number
+  currentJob: string | null
+  polls: number
+  jobsDone: number
+  jobsFailed: number
+  version: string | null
+  startedAt: string
+  lastSeenAt: string
+}
+
+export interface WorkerStatus {
+  staleAfterMs: number
+  workers: WorkerInfo[]
+  queue: {
+    pending: number
+    running: number
+    done: number
+    failed: number
+    byType: { type: string; count: number }[]
+    oldestPending: {
+      id: string
+      type: string
+      runAt: string
+      attempts: number
+      waitingSeconds: number
+    } | null
+  }
+  warnings: string[]
+  logs: {
+    id: string
+    worker: string
+    level: string
+    message: string
+    jobId: string | null
+    jobType: string | null
+    createdAt: string
+  }[]
+}
+
+export interface LogFileResponse {
+  file: string
+  exists: boolean
+  totalBytes: number
+  modifiedAt?: string
+  truncated?: boolean
+  lines: string[]
+}
+
+export function getWorkerStatus() {
+  return apiFetch<WorkerStatus>('/monitor/worker')
+}
+
+export function getWorkerLogFile(file: string, lines = 200) {
+  return apiFetch<LogFileResponse>(
+    `/monitor/worker/logs?file=${encodeURIComponent(file)}&lines=${lines}`,
+  )
+}
+
+export function pruneWorkerLogs(keep = 2000) {
+  return apiFetch<{ removed: number; remaining: number }>('/monitor/worker/prune-logs', {
+    method: 'POST',
+    body: { keep },
+  })
+}
+
+export const LOG_FILE_OPTIONS = [
+  { value: 'worker.out', label: 'worker.out.log' },
+  { value: 'worker.err', label: 'worker.err.log' },
+  { value: 'api.out', label: 'api.out.log' },
+  { value: 'api.err', label: 'api.err.log' },
+]

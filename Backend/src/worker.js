@@ -1,6 +1,6 @@
-﻿// Backend/src/worker.js
+// Backend/src/worker.js
 /**
- * Worker Enzyy â€” proses terpisah dari API server.
+ * Worker Enzyy — proses terpisah dari API server.
  *
  * Menjalankan antrian `Job`:
  *   - post_listing   : posting satu listing ke Akulaku (payload: { listingId })
@@ -13,6 +13,7 @@ require('dotenv').config();
 const { claimNextJob, markJobDone, markJobFailed, enqueueJobOnce } = require('./services/jobService');
 
 const prisma = require('./lib/prisma');
+const monitor = require('./lib/workerMonitor');
 const POLL_INTERVAL_MS = Number(process.env.WORKER_POLL_INTERVAL_MS || 5000);
 // Auto-sync pesanan: enqueue job sync_orders berkala (tanpa klik manual).
 const AUTO_SYNC_ENABLED = process.env.AUTO_SYNC_ORDERS !== 'false';
@@ -50,24 +51,42 @@ const handlers = {
 
 async function processOne() {
   const job = await claimNextJob(HANDLED_TYPES);
-  if (!job) return false;
+  if (!job) {
+    // Tetap kirim detak jantung saat menganggur.
+    await monitor.heartbeat({ status: 'idle' });
+    return false;
+  }
 
   console.log(`[worker] job #${job.id} type=${job.type} attempt=${job.attempts}`);
+  await monitor.heartbeat({ status: 'working', currentJob: job.id });
+  await monitor.info(`Job #${job.id} (${job.type}) dimulai`, { jobId: job.id, jobType: job.type });
+
   try {
     const handler = handlers[job.type];
     if (!handler) throw new Error(`Tipe job tidak dikenal: ${job.type}`);
     const result = await handler(job.payload || {});
     await markJobDone(job.id);
+    await monitor.countJob({ done: 1 });
+    await monitor.info(`Job #${job.id} (${job.type}) selesai`, { jobId: job.id, jobType: job.type });
     console.log(`[worker] job #${job.id} done`, result ?? '');
   } catch (err) {
     await markJobFailed(job.id, err.message || err);
+    await monitor.countJob({ failed: 1 });
+    await monitor.error(
+      `Job #${job.id} (${job.type}) gagal: ${String(err.message || err).slice(0, 500)}`,
+      { jobId: job.id, jobType: job.type },
+    );
     console.error(`[worker] job #${job.id} failed:`, err.message || err);
   }
+  await monitor.heartbeat({ status: 'idle' });
   return true;
 }
 
 async function loop() {
   console.log(`[worker] started, polling every ${POLL_INTERVAL_MS}ms`);
+  monitor.resetStart();
+  await monitor.heartbeat({ status: 'idle' });
+  await monitor.info(`Worker mulai (pid ${process.pid}, poll ${POLL_INTERVAL_MS}ms)`);
 
   if (AUTO_SYNC_ENABLED) {
     console.log(`[worker] auto-sync pesanan aktif setiap ${AUTO_SYNC_INTERVAL_MS}ms`);
@@ -88,6 +107,8 @@ async function loop() {
     }
   }
   if (autoSyncTimer) clearInterval(autoSyncTimer);
+  await monitor.markStopped();
+  await monitor.info('Worker berhenti');
   await prisma.$disconnect();
   console.log('[worker] stopped');
 }
