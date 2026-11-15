@@ -23,3 +23,7 @@ Backend/logs/
 
 # Backup database (berisi data sensitif)
 Backend/backups/
+
+# Berkas sementara unggahan shopee.db
+*.db.sebelum-upload
+*.db.upload-*.tmp

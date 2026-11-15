@@ -9,6 +9,7 @@ const {
   tailLogFile,
   pruneWorkerLogs,
 } = require('../services/monitorService');
+const shopeeDb = require('../services/shopeeDbService');
 
 /** GET /api/monitor — ringkasan + metrik server + status DB. */
 async function overviewHandler(req, res, next) {
@@ -65,6 +66,34 @@ async function pruneWorkerLogsHandler(req, res, next) {
   } catch (err) { next(err); }
 }
 
+/** GET /api/monitor/shopee-db — info berkas shopee.db di server. */
+async function shopeeDbInfoHandler(req, res, next) {
+  try {
+    res.json(await shopeeDb.getInfo());
+  } catch (err) { next(err); }
+}
+
+/**
+ * POST /api/monitor/shopee-db — unggah berkas shopee.db (biner mentah).
+ * Body: application/octet-stream. Maksimal SHOPEE_DB_MAX_MB (default 500 MB).
+ */
+async function shopeeDbUploadHandler(req, res, next) {
+  try {
+    const buffer = req.body;
+    if (!Buffer.isBuffer(buffer) || !buffer.length) {
+      return next(
+        Object.assign(new Error('Kirim berkas SQLite sebagai body biner (application/octet-stream)'), { status: 400 }),
+      );
+    }
+    const info = await shopeeDb.saveFromBuffer(buffer);
+    req.audit?.('shopee_db.upload', {
+      resource: 'shopee-db',
+      detail: { sizeMb: info.sizeMb, products: info.db?.products ?? null },
+    });
+    res.json({ ok: true, ...info });
+  } catch (err) { next(err); }
+}
+
 module.exports = {
   overviewHandler,
   requestStatsHandler,
@@ -72,4 +101,6 @@ module.exports = {
   workerStatusHandler,
   workerLogsHandler,
   pruneWorkerLogsHandler,
+  shopeeDbInfoHandler,
+  shopeeDbUploadHandler,
 };

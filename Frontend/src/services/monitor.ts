@@ -162,3 +162,110 @@ export const LOG_FILE_OPTIONS = [
   { value: 'api.out', label: 'api.out.log' },
   { value: 'api.err', label: 'api.err.log' },
 ]
+
+// === Berkas SQLite hasil scraping Shopee ===
+
+export interface ShopeeDbInfo {
+  path: string
+  exists: boolean
+  message?: string
+  sizeBytes?: number
+  sizeMb?: number
+  modifiedAt?: string
+  maxUploadMb?: number
+  db?: {
+    available: boolean
+    tables?: string[]
+    products?: number
+    lastSeen?: string | null
+    scrapeRuns?: number
+    lastRun?: { id: number; started_at: string; status: string } | null
+    progress?: Record<string, number>
+  } | null
+  dbError?: string | null
+}
+
+export function getShopeeDbInfo() {
+  return apiFetch<ShopeeDbInfo>('/monitor/shopee-db')
+}
+
+/**
+ * Unggah shopee.db sebagai biner mentah.
+ * `onProgress` dipanggil dengan persentase 0-100 bila didukung browser.
+ */
+export function uploadShopeeDb(
+  file: File,
+  onProgress?: (percent: number) => void,
+): Promise<ShopeeDbInfo & { ok: boolean }> {
+  const base = (import.meta.env.VITE_API_URL as string | undefined) ?? '/api'
+  return new Promise((resolve, reject) => {
+    const xhr = new XMLHttpRequest()
+    xhr.open('POST', `${base}/monitor/shopee-db`)
+    xhr.withCredentials = true
+    xhr.setRequestHeader('Content-Type', 'application/octet-stream')
+    xhr.upload.onprogress = (e) => {
+      if (e.lengthComputable && onProgress) {
+        onProgress(Math.round((e.loaded / e.total) * 100))
+      }
+    }
+    xhr.onload = () => {
+      let data: unknown = null
+      try {
+        data = xhr.responseText ? JSON.parse(xhr.responseText) : null
+      } catch {
+        data = null
+      }
+      if (xhr.status >= 200 && xhr.status < 300) {
+        resolve(data as ShopeeDbInfo & { ok: boolean })
+      } else {
+        const msg =
+          data && typeof data === 'object' && 'message' in data
+            ? String((data as { message: unknown }).message)
+            : `Unggahan gagal (status ${xhr.status})`
+        reject(new Error(msg))
+      }
+    }
+    xhr.onerror = () => reject(new Error('Unggahan gagal: koneksi terputus'))
+    xhr.send(file)
+  })
+}
+
+// === Import produk Shopee (background) ===
+
+export interface ImportRunnerStatus {
+  runner: {
+    running: boolean
+    stopRequested: boolean
+    startedAt: string | null
+    finishedAt: string | null
+    lastError: string | null
+    session: { processed: number; inserted: number; updated: number; skipped: number; failed: number }
+    batchCount: number
+    batchSize: number
+    delayMs: number
+  }
+  progress: {
+    total: number
+    maxRowId: number
+    remaining: number
+    state: { status: string; imported: number; updated: number; skipped: number; failed: number; lastError: string | null }
+  }
+}
+
+export function getImportRunnerStatus() {
+  return apiFetch<ImportRunnerStatus>('/products/scrape/runner')
+}
+
+export function startImportRunner(reset = false) {
+  return apiFetch<{ started: boolean; message: string }>('/products/scrape/start', {
+    method: 'POST',
+    body: { reset },
+  })
+}
+
+export function stopImportRunner() {
+  return apiFetch<{ stopped: boolean; message: string }>('/products/scrape/stop', {
+    method: 'POST',
+    body: {},
+  })
+}

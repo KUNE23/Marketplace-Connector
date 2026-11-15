@@ -16,15 +16,22 @@ import PageBreadcrumb from '@/components/common/PageBreadcrumb.vue'
 import AdminLayout from '@/components/layout/AdminLayout.vue'
 import {
   getAuditLog,
+  getImportRunnerStatus,
   getMonitorOverview,
   getRequestStats,
+  getShopeeDbInfo,
   getWorkerLogFile,
   getWorkerStatus,
   LOG_FILE_OPTIONS,
   pruneWorkerLogs,
+  startImportRunner,
+  stopImportRunner,
+  uploadShopeeDb,
   type AuditLogEntry,
+  type ImportRunnerStatus,
   type MonitorOverview,
   type RequestStats,
+  type ShopeeDbInfo,
   type WorkerStatus,
 } from '@/services/monitor'
 import {
@@ -77,6 +84,13 @@ const logLines = ref<string[]>([])
 const logMeta = ref<{ exists: boolean; totalBytes: number; modifiedAt?: string } | null>(null)
 const logLoading = ref(false)
 
+// === Berkas scraping Shopee ===
+const shopeeDb = ref<ShopeeDbInfo | null>(null)
+const uploadPercent = ref<number | null>(null)
+const importStatus = ref<ImportRunnerStatus | null>(null)
+const importBusy = ref(false)
+const importFileInput = ref<HTMLInputElement | null>(null)
+
 const maxTimeline = computed(() => Math.max(1, ...(stats.value?.timeline ?? []).map((t) => t.requests)))
 
 async function load() {
@@ -119,6 +133,7 @@ function setupTimer() {
     timer = setInterval(() => {
       load()
       loadWorker()
+      loadImportStatus()
     }, 15000)
   }
 }
@@ -189,6 +204,80 @@ function formatBytes(n: number) {
   if (n < 1024) return `${n} B`
   if (n < 1024 * 1024) return `${(n / 1024).toFixed(1)} KB`
   return `${(n / 1024 / 1024).toFixed(2)} MB`
+}
+
+async function loadShopeeDb() {
+  try {
+    shopeeDb.value = await getShopeeDbInfo()
+  } catch (err) {
+    toast.error(err instanceof Error ? err.message : 'Gagal memuat info shopee.db')
+  }
+}
+
+async function loadImportStatus() {
+  try {
+    importStatus.value = await getImportRunnerStatus()
+  } catch {
+    importStatus.value = null
+  }
+}
+
+async function onShopeeDbPicked(event: Event) {
+  const input = event.target as HTMLInputElement
+  const file = input.files?.[0]
+  if (!file) return
+
+  if (!file.name.toLowerCase().endsWith('.db')) {
+    toast.warning('Pilih berkas shopee.db (SQLite).')
+    input.value = ''
+    return
+  }
+  const maxMb = shopeeDb.value?.maxUploadMb ?? 500
+  if (file.size > maxMb * 1024 * 1024) {
+    toast.error(`Berkas ${(file.size / 1024 / 1024).toFixed(0)} MB melebihi batas ${maxMb} MB.`)
+    input.value = ''
+    return
+  }
+
+  uploadPercent.value = 0
+  try {
+    const res = await uploadShopeeDb(file, (p) => {
+      uploadPercent.value = p
+    })
+    shopeeDb.value = res
+    toast.success(`shopee.db terunggah (${res.sizeMb} MB, ${res.db?.products ?? '?'} produk).`)
+  } catch (err) {
+    toast.error(err instanceof Error ? err.message : 'Gagal mengunggah shopee.db')
+  } finally {
+    uploadPercent.value = null
+    input.value = ''
+  }
+}
+
+async function doStartImport(reset = false) {
+  importBusy.value = true
+  try {
+    const res = await startImportRunner(reset)
+    toast.success(res.message)
+    await loadImportStatus()
+  } catch (err) {
+    toast.error(err instanceof Error ? err.message : 'Gagal memulai import')
+  } finally {
+    importBusy.value = false
+  }
+}
+
+async function doStopImport() {
+  importBusy.value = true
+  try {
+    const res = await stopImportRunner()
+    toast.info(res.message)
+    await loadImportStatus()
+  } catch (err) {
+    toast.error(err instanceof Error ? err.message : 'Gagal menghentikan import')
+  } finally {
+    importBusy.value = false
+  }
 }
 
 async function loadBackups() {
@@ -271,6 +360,8 @@ onMounted(() => {
   loadBackups()
   loadWorker()
   loadLogFile()
+  loadShopeeDb()
+  loadImportStatus()
   setupTimer()
 })
 
@@ -669,6 +760,115 @@ onUnmounted(() => {
         <pre
           class="mt-2 max-h-64 overflow-auto rounded-xl border border-gray-200 bg-gray-50 p-3 text-[11px] leading-relaxed text-gray-800 dark:border-white/10 dark:bg-black/30 dark:text-gray-300"
         >{{ logLines.length ? logLines.join('\n') : '(kosong — berkas hanya ada bila worker/API dijalankan lewat PM2)' }}</pre>
+      </ComponentCard>
+
+      <!-- Scraping Shopee: unggah shopee.db + import -->
+      <ComponentCard
+        title="Data Scraping Shopee"
+        desc="Unggah shopee.db hasil scraping dari komputer Anda, lalu impor produknya ke database."
+      >
+        <div class="grid grid-cols-1 gap-4 lg:grid-cols-2">
+          <!-- Info berkas -->
+          <div class="rounded-xl border border-gray-200 p-4 dark:border-white/10">
+            <div class="flex items-center justify-between">
+              <p class="text-sm font-medium text-gray-800 dark:text-white/90">Berkas shopee.db</p>
+              <Badge size="sm" :color="shopeeDb?.exists ? 'success' : 'warning'">
+                {{ shopeeDb?.exists ? 'Ada' : 'Belum ada' }}
+              </Badge>
+            </div>
+            <p v-if="!shopeeDb?.exists" class="mt-2 text-xs text-gray-500 dark:text-gray-400">
+              {{ shopeeDb?.message ?? 'Berkas belum ada di server.' }}
+            </p>
+            <div v-else class="mt-2 space-y-1 text-xs text-gray-500 dark:text-gray-400">
+              <p>Ukuran: <strong class="text-gray-700 dark:text-gray-300">{{ shopeeDb.sizeMb }} MB</strong></p>
+              <p>Diubah: {{ shopeeDb.modifiedAt ? formatTime(shopeeDb.modifiedAt) : '-' }}</p>
+              <p>Produk di SQLite: <strong class="text-gray-700 dark:text-gray-300">{{ shopeeDb.db?.products?.toLocaleString('id-ID') ?? '?' }}</strong></p>
+              <p>Data terakhir: {{ shopeeDb.db?.lastSeen ?? '-' }}</p>
+              <p v-if="shopeeDb.db?.lastRun">
+                Scrape terakhir: #{{ shopeeDb.db.lastRun.id }} ({{ shopeeDb.db.lastRun.status }})
+                · {{ shopeeDb.db.lastRun.started_at }}
+              </p>
+              <div v-if="shopeeDb.db?.progress" class="flex flex-wrap gap-1 pt-1">
+                <Badge v-for="(v, k) in shopeeDb.db.progress" :key="String(k)" size="sm" color="gray">
+                  {{ k }}: {{ v }}
+                </Badge>
+              </div>
+              <p class="pt-1 text-[10px] break-all">{{ shopeeDb.path }}</p>
+            </div>
+
+            <div class="mt-3">
+              <input
+                ref="importFileInput"
+                type="file"
+                accept=".db"
+                class="hidden"
+                @change="onShopeeDbPicked"
+              />
+              <Button
+                size="sm"
+                :disabled="uploadPercent !== null"
+                @click="importFileInput?.click()"
+              >
+                {{ uploadPercent !== null ? `Mengunggah ${uploadPercent}%` : 'Unggah shopee.db' }}
+              </Button>
+              <p class="mt-1 text-[10px] text-gray-400">
+                Maksimal {{ shopeeDb?.maxUploadMb ?? 500 }} MB · berkas sebelumnya disimpan sebagai .sebelum-upload
+              </p>
+            </div>
+          </div>
+
+          <!-- Import -->
+          <div class="rounded-xl border border-gray-200 p-4 dark:border-white/10">
+            <div class="flex items-center justify-between">
+              <p class="text-sm font-medium text-gray-800 dark:text-white/90">Import ke Database</p>
+              <Badge size="sm" :color="importStatus?.runner.running ? 'info' : 'gray'">
+                {{ importStatus?.runner.running ? 'Berjalan' : 'Berhenti' }}
+              </Badge>
+            </div>
+
+            <div class="mt-2 space-y-1 text-xs text-gray-500 dark:text-gray-400">
+              <p>
+                Total di SQLite: <strong class="text-gray-700 dark:text-gray-300">{{ importStatus?.progress.total?.toLocaleString('id-ID') ?? '?' }}</strong>
+              </p>
+              <p>
+                Sudah diproses:
+                <strong class="text-gray-700 dark:text-gray-300">
+                  {{ ((importStatus?.progress.state.imported ?? 0) + (importStatus?.progress.state.updated ?? 0)).toLocaleString('id-ID') }}
+                </strong>
+                · Sisa:
+                <strong class="text-gray-700 dark:text-gray-300">{{ importStatus?.progress.remaining?.toLocaleString('id-ID') ?? '?' }}</strong>
+              </p>
+              <p v-if="importStatus?.runner.running" class="text-info-600 dark:text-info-400">
+                Sesi ini: +{{ importStatus.runner.session.inserted }} baru,
+                {{ importStatus.runner.session.updated }} update,
+                {{ importStatus.runner.batchCount }} batch
+              </p>
+              <p v-if="importStatus?.runner.lastError" class="text-error-600 dark:text-error-400">
+                Error terakhir: {{ importStatus.runner.lastError }}
+              </p>
+            </div>
+
+            <div class="mt-3 flex flex-wrap gap-2">
+              <Button
+                v-if="!importStatus?.runner.running"
+                size="sm"
+                :disabled="importBusy || !shopeeDb?.exists"
+                @click="doStartImport(false)"
+              >
+                {{ importBusy ? 'Memproses...' : 'Mulai Import' }}
+              </Button>
+              <Button v-else variant="outline" size="sm" :disabled="importBusy" @click="doStopImport">
+                Hentikan
+              </Button>
+              <Button variant="outline" size="sm" :disabled="importBusy || !shopeeDb?.exists" @click="doStartImport(true)">
+                Import Ulang dari Awal
+              </Button>
+            </div>
+            <p class="mt-1 text-[10px] text-gray-400">
+              Import berjalan di server — boleh ditinggal / tab ditutup. Lanjut otomatis setelah restart.
+            </p>
+          </div>
+        </div>
       </ComponentCard>
 
       <!-- Backup & Restore -->
