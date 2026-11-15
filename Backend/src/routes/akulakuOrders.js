@@ -8,6 +8,7 @@ const {
   getOrderHandler,
   updateOrderStatusHandler,
   exportOrdersHandler,
+  relinkOrdersHandler,
 } = require('../controllers/akulakuOrderController');
 
 router.use(authenticate);
@@ -16,6 +17,8 @@ router.use(authorizeRoles('ADMIN', 'EMPLOYEE'));
 // Read & update status boleh pegawai; create order hanya ADMIN (dari worker).
 router.get('/', listOrdersHandler);
 router.get('/export', exportOrdersHandler);
+// Rute statis sebelum dinamis: tautkan ulang item ke listing (modal profit).
+router.post('/relink', authorizeRoles('ADMIN'), relinkOrdersHandler);
 router.get('/:id', getOrderHandler);
 router.post('/', authorizeRoles('ADMIN'), createOrderHandler);
 router.patch('/:id/status', authorizeRoles('ADMIN', 'EMPLOYEE'), updateOrderStatusHandler);

@@ -127,30 +127,91 @@ async function fetchOrdersForAccount(accountId, { orderStatus = '', pageSize = O
 }
 
 /**
- * Bangun fungsi penaut item order -> Listing milik akun ini (untuk modal).
- * Pencocokan berbasis nama produk (case-insensitive) karena order Akulaku
- * hanya mengembalikan ID internal Akulaku, bukan SKU kita.
- * Mengembalikan (item) => listingId BigInt | null.
+ * Normalisasi nama produk agar pencocokan tahan perbedaan format:
+ * huruf kecil, tanda baca -> spasi, spasi ganda dirapikan.
  */
-async function buildListingLinker(accountId) {
+function normalizeName(s) {
+  return String(s || '')
+    .toLowerCase()
+    .normalize('NFKD')
+    .replace(/[^a-z0-9\s]/g, ' ')
+    .replace(/\s+/g, ' ')
+    .trim();
+}
+
+/** Skor kemiripan 0..1 berbasis irisan kata (Jaccard) + bonus awalan sama. */
+function nameSimilarity(a, b) {
+  const na = normalizeName(a);
+  const nb = normalizeName(b);
+  if (!na || !nb) return 0;
+  if (na === nb) return 1;
+
+  const wa = new Set(na.split(' ').filter((w) => w.length > 1));
+  const wb = new Set(nb.split(' ').filter((w) => w.length > 1));
+  if (!wa.size || !wb.size) return 0;
+
+  let inter = 0;
+  for (const w of wa) if (wb.has(w)) inter += 1;
+  const union = wa.size + wb.size - inter;
+  const jaccard = union ? inter / union : 0;
+
+  // Bonus bila 20 karakter pertama sama (nama produk biasanya dipotong di akhir).
+  const prefix = na.slice(0, 20) === nb.slice(0, 20) ? 0.15 : 0;
+  return Math.min(1, jaccard + prefix);
+}
+
+/**
+ * Bangun fungsi penaut item order -> Listing milik akun ini (untuk modal).
+ *
+ * Urutan pencocokan (dari paling pasti):
+ *   1) SKU persis
+ *   2) Nama ternormalisasi persis
+ *   3) Kemiripan nama >= AMBANG (default 0.75)
+ *
+ * Pencocokan berbasis nama diperlukan karena order Akulaku hanya mengembalikan
+ * ID internal Akulaku, bukan SKU kita.
+ */
+async function buildListingLinker(accountId, { threshold = 0.75 } = {}) {
   const listings = await prisma.listing.findMany({
     where: { accountId: BigInt(accountId) },
     select: { id: true, product: { select: { name: true, sku: true } } },
   });
-  const byName = new Map();
+
   const bySku = new Map();
+  const byNorm = new Map();
+  const candidates = [];
   for (const l of listings) {
-    const name = (l.product?.name || '').trim().toLowerCase();
+    const name = l.product?.name || '';
     const sku = String(l.product?.sku || '').trim();
-    if (name) byName.set(name, l.id);
+    const norm = normalizeName(name);
     if (sku) bySku.set(sku, l.id);
+    if (norm) {
+      byNorm.set(norm, l.id);
+      candidates.push({ id: l.id, name, norm });
+    }
   }
+
   return (item) => {
-    const name = (item.name || '').trim().toLowerCase();
-    if (name && byName.has(name)) return byName.get(name);
+    // 1) SKU persis
     const sku = String(item.sku || '').trim();
     if (sku && bySku.has(sku)) return bySku.get(sku);
-    return null;
+
+    // 2) Nama ternormalisasi persis
+    const norm = normalizeName(item.name);
+    if (norm && byNorm.has(norm)) return byNorm.get(norm);
+
+    // 3) Kemiripan nama
+    if (!norm) return null;
+    let best = null;
+    let bestScore = 0;
+    for (const c of candidates) {
+      const score = nameSimilarity(item.name, c.name);
+      if (score > bestScore) {
+        bestScore = score;
+        best = c.id;
+      }
+    }
+    return bestScore >= threshold ? best : null;
   };
 }
 
@@ -199,11 +260,72 @@ async function syncAllAccounts(options = {}) {
   return results;
 }
 
+/**
+ * Tautkan ulang item pesanan yang BELUM punya listing ke Listing, memakai
+ * pencocokan cerdas terbaru. Berguna untuk data lama yang tersinkron sebelum
+ * pencocokan diperbaiki.
+ *
+ * Mengembalikan { checked, linked, stillUnlinked, details }.
+ */
+async function relinkOrderItems({ accountId = null, threshold = 0.75 } = {}) {
+  const where = { listingId: null };
+  if (accountId) where.order = { accountId: BigInt(accountId) };
+
+  const items = await prisma.akulakuOrderItem.findMany({
+    where,
+    select: {
+      id: true,
+      sku: true,
+      name: true,
+      order: { select: { accountId: true } },
+    },
+  });
+
+  // Kelompokkan per akun agar linker dibangun sekali per akun.
+  const byAccount = new Map();
+  for (const it of items) {
+    const key = it.order.accountId.toString();
+    if (!byAccount.has(key)) byAccount.set(key, []);
+    byAccount.get(key).push(it);
+  }
+
+  let linked = 0;
+  const details = [];
+
+  for (const [accId, rows] of byAccount) {
+    // Linker perlu objek mirip item: { sku, name }
+    // eslint-disable-next-line no-await-in-loop
+    const linker = await buildListingLinker(accId, { threshold });
+
+    for (const row of rows) {
+      const listingId = linker({ sku: row.sku, name: row.name });
+      if (!listingId) continue;
+      // eslint-disable-next-line no-await-in-loop
+      await prisma.akulakuOrderItem.update({
+        where: { id: row.id },
+        data: { listingId },
+      });
+      linked += 1;
+      details.push({ itemId: row.id.toString(), accountId: accId, listingId: listingId.toString() });
+    }
+  }
+
+  return {
+    checked: items.length,
+    linked,
+    stillUnlinked: items.length - linked,
+    details: details.slice(0, 50),
+  };
+}
+
 module.exports = {
   fetchOrdersForAccount,
   syncOrdersForAccount,
   syncAllAccounts,
+  relinkOrderItems,
   mapOrderRecord,
   buildListingLinker,
+  normalizeName,
+  nameSimilarity,
   ORDERS,
 };

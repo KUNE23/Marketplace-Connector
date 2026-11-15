@@ -111,9 +111,28 @@ onMounted(load)
             <p class="mt-1 text-xs text-gray-400">
               Hari ini: {{ formatRupiah(summary?.profit.today ?? 0) }} · Modal: {{ formatRupiah(summary?.profit.modal ?? 0) }}
             </p>
-            <p v-if="(summary?.profit.unmatchedItems ?? 0) > 0" class="mt-1 text-xs text-warning-600 dark:text-warning-400">
-              Perhatian: {{ summary?.profit.unmatchedItems }} item tanpa modal (profit bisa lebih tinggi dari sebenarnya).
+            <p class="mt-1 text-[11px] text-gray-400">
+              Rumus: omzet − harga checkout Shopee − biaya iklan
             </p>
+            <div
+              v-if="(summary?.profit.unmatchedItems ?? 0) > 0"
+              class="mt-2 rounded-lg border border-warning-300 bg-warning-50 p-2 dark:border-warning-500/40 dark:bg-warning-500/10"
+            >
+              <p class="text-xs font-medium text-warning-700 dark:text-warning-400">
+                ⚠ Profit belum akurat
+              </p>
+              <p class="mt-0.5 text-[11px] text-warning-700/90 dark:text-warning-400/80">
+                {{ summary?.profit.unmatchedItems }} item pesanan belum tertaut ke listing,
+                jadi modalnya belum dihitung ({{ summary?.profit.matchedItems ?? 0 }} item sudah).
+                Profit di atas bisa lebih tinggi dari sebenarnya.
+              </p>
+              <RouterLink
+                to="/pesanan"
+                class="mt-1 inline-block text-[11px] font-medium text-warning-800 underline dark:text-warning-300"
+              >
+                Buka Pesanan untuk menautkan ulang
+              </RouterLink>
+            </div>
           </div>
           <div class="rounded-2xl border border-gray-200 bg-white p-5 dark:border-gray-800 dark:bg-white/3">
             <p class="text-sm text-gray-500 dark:text-gray-400">Biaya Iklan</p>

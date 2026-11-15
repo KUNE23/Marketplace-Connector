@@ -88,3 +88,16 @@ export function exportOrders(params: OrderListParams = {}) {
   const stamp = new Date().toISOString().slice(0, 10).replace(/-/g, '')
   return apiDownload(`/akulaku-orders/export${qs ? `?${qs}` : ''}`, `pesanan-akulaku-${stamp}.csv`)
 }
+
+/**
+ * Tautkan ulang item pesanan ke listing (untuk menghitung modal/profit).
+ * Memakai pencocokan cerdas: SKU -> nama ternormalisasi -> kemiripan nama.
+ */
+export function relinkOrderItems(accountId?: string) {
+  return apiFetch<{
+    checked: number
+    linked: number
+    stillUnlinked: number
+    details: { itemId: string; accountId: string; listingId: string }[]
+  }>('/akulaku-orders/relink', { method: 'POST', body: accountId ? { accountId } : {} })
+}

@@ -102,10 +102,27 @@ async function exportOrdersHandler(req, res, next) {
   } catch (err) { handleError(err, next); }
 }
 
+/** POST /api/akulaku-orders/relink — tautkan ulang item ke listing (modal). */
+async function relinkOrdersHandler(req, res, next) {
+  try {
+    const { relinkOrderItems } = require('../services/akulakuOrderSyncService');
+    const accountId = req.body?.accountId;
+    if (accountId) {
+      const { assertAccountAccess } = require('../utils/scope');
+      const prisma = require('../lib/prisma');
+      await assertAccountAccess(prisma, req.user, accountId);
+    }
+    const result = await relinkOrderItems({ accountId: accountId || null });
+    req.audit?.('orders.relink', { resource: 'order', detail: result });
+    res.json(result);
+  } catch (err) { handleError(err, next); }
+}
+
 module.exports = {
   listOrdersHandler,
-  createOrderHandler,
   getOrderHandler,
+  createOrderHandler,
   updateOrderStatusHandler,
   exportOrdersHandler,
+  relinkOrdersHandler,
 };

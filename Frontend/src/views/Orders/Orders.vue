@@ -15,7 +15,7 @@ import {
 import ComponentCard from '@/components/common/ComponentCard.vue'
 import PageBreadcrumb from '@/components/common/PageBreadcrumb.vue'
 import AdminLayout from '@/components/layout/AdminLayout.vue'
-import { exportOrders, listOrders, type AkulakuOrder, type OrderStatus } from '@/services/akulakuOrders'
+import { exportOrders, listOrders, relinkOrderItems, type AkulakuOrder, type OrderStatus } from '@/services/akulakuOrders'
 import { listAkulakuAccounts, type AkulakuAccount } from '@/services/akulakuAccounts'
 import { formatRupiah } from '@/services/products'
 import { orderStatusMeta } from '@/utils/labels'
@@ -32,6 +32,7 @@ const accountFilter = ref<string>('all')
 const accounts = ref<AkulakuAccount[]>([])
 const loading = ref(false)
 const exporting = ref(false)
+const relinking = ref(false)
 
 const totalPages = computed(() => Math.max(1, Math.ceil(total.value / limit)))
 
@@ -126,6 +127,26 @@ async function doExport() {
   }
 }
 
+async function doRelink() {
+  relinking.value = true
+  try {
+    const res = await relinkOrderItems()
+    if (res.linked > 0) {
+      toast.success(res.linked + ' item berhasil ditautkan ke listing (dari ' + res.checked + ' diperiksa).')
+    } else {
+      toast.info(res.checked + ' item diperiksa, tidak ada yang cocok dengan listing.')
+    }
+    if (res.stillUnlinked > 0) {
+      toast.info(res.stillUnlinked + ' item masih belum punya listing (produk belum di-listing).')
+    }
+    await load()
+  } catch (err) {
+    toast.error(err instanceof Error ? err.message : 'Gagal menautkan ulang')
+  } finally {
+    relinking.value = false
+  }
+}
+
 function openChat() {
   // Widget chat ada di kanan bawah (ChatWidget) — beri petunjuk lokasinya.
   toast.info('Chat buyer ada di tombol bulat kanan bawah.')
@@ -203,6 +224,9 @@ onMounted(() => {
             <Button variant="outline" size="sm" :disabled="loading" @click="load">Muat Ulang</Button>
             <Button variant="outline" size="sm" :disabled="exporting" @click="doExport">
               {{ exporting ? 'Mengunduh...' : 'Export CSV' }}
+            </Button>
+            <Button variant="outline" size="sm" :disabled="relinking" @click="doRelink">
+              {{ relinking ? 'Menautkan...' : 'Tautkan Ulang Modal' }}
             </Button>
           </div>
         </div>
