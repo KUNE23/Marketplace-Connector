@@ -14,7 +14,7 @@ const {
   deleteAkulakuAccount,
   getAkulakuSessionInfo,
 } = require('../services/akulakuAccountService');
-const { startLogin, submitOtp, cancelLogin } = require('../services/akulakuLoginFlow');
+const { startLogin, submitOtp, cancelLogin, resendOtp } = require('../services/akulakuLoginFlow');
 const { assertAccountAccess } = require('../utils/scope');
 const prisma = require('../lib/prisma');
 const { z } = require('zod');
@@ -112,6 +112,22 @@ async function sessionInfoHandler(req, res, next) {
   } catch (err) { handleError(err, next); }
 }
 
+/** POST /api/akulaku-accounts/:id/login/resend — kirim (ulang) kode OTP. */
+async function loginResendHandler(req, res, next) {
+  try {
+    const { id } = akulakuAccountIdParamSchema.parse(req.params);
+    await assertAccountAccess(prisma, req.user, id);
+    const channel = req.body?.channel === 'whatsapp' ? 'whatsapp' : 'sms';
+    const result = await resendOtp(id, channel);
+    req.audit?.('akulaku.otp_resend', {
+      resource: 'akulaku-account',
+      resourceId: String(id),
+      detail: { channel, clicked: result.clickedText ?? null },
+    });
+    res.json(result);
+  } catch (err) { handleError(err, next); }
+}
+
 module.exports = {
   listAkulakuAccountsHandler,
   createAkulakuAccountHandler,
@@ -120,6 +136,7 @@ module.exports = {
   deleteAkulakuAccountHandler,
   loginStartHandler,
   loginOtpHandler,
+  loginResendHandler,
   loginCancelHandler,
   sessionInfoHandler,
 };

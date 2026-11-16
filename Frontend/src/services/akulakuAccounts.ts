@@ -58,10 +58,20 @@ export function deleteAkulakuAccount(id: string) {
 }
 
 export interface LoginFlowResult {
-  state: 'success' | 'otp_required' | 'pending'
+  state: 'success' | 'otp_required' | 'pending' | 'cooldown'
   channels?: string[]
   phoneHint?: string | null
   message?: string
+  /** Pesan asli dari halaman Akulaku (mis. "Kode dikirim ke WhatsApp 08****03"). */
+  pageMessage?: string | null
+  /** Hitungan mundur yang ditampilkan Akulaku, bila ada. */
+  cooldownSeconds?: number | null
+  /** Kalimat galat dari Akulaku (mis. batas pengiriman). */
+  errorLine?: string | null
+  /** Teks tombol kanal yang diklik saat kirim ulang. */
+  clickedText?: string | null
+  requestedChannel?: 'whatsapp' | 'sms'
+  note?: string
 }
 
 /** Mulai login Akulaku lewat aplikasi (backend mengisi kredensial otomatis). */
@@ -74,6 +84,14 @@ export function submitAkulakuOtp(id: string, code: string, channel?: 'whatsapp' 
   return apiFetch<LoginFlowResult>(`/akulaku-accounts/${id}/login/otp`, {
     method: 'POST',
     body: { code, channel },
+  })
+}
+
+/** Kirim (ulang) kode OTP. Ada jeda agar tidak dianggap spam oleh Akulaku. */
+export function resendAkulakuOtp(id: string, channel: 'whatsapp' | 'sms' = 'sms') {
+  return apiFetch<LoginFlowResult>(`/akulaku-accounts/${id}/login/resend`, {
+    method: 'POST',
+    body: { channel },
   })
 }
 

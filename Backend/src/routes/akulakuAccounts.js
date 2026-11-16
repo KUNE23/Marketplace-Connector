@@ -10,6 +10,7 @@ const {
   deleteAkulakuAccountHandler,
   loginStartHandler,
   loginOtpHandler,
+  loginResendHandler,
   loginCancelHandler,
   sessionInfoHandler,
 } = require('../controllers/akulakuAccountController');
@@ -23,6 +24,8 @@ router.get('/', authorizeRoles('ADMIN', 'EMPLOYEE'), listAkulakuAccountsHandler)
 // Login Akulaku lewat aplikasi (ADMIN & EMPLOYEE, hanya untuk akun yang diizinkan).
 router.post('/:id/login', authorizeRoles('ADMIN', 'EMPLOYEE'), loginStartHandler);
 router.post('/:id/login/otp', authorizeRoles('ADMIN', 'EMPLOYEE'), loginOtpHandler);
+// Kirim (ulang) kode OTP — ada jeda agar tidak dianggap spam oleh Akulaku.
+router.post('/:id/login/resend', authorizeRoles('ADMIN', 'EMPLOYEE'), loginResendHandler);
 router.delete('/:id/login', authorizeRoles('ADMIN', 'EMPLOYEE'), loginCancelHandler);
 router.get('/:id/session', authorizeRoles('ADMIN', 'EMPLOYEE'), sessionInfoHandler);
 

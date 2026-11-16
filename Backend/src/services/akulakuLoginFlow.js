@@ -66,7 +66,45 @@ async function closeAllFlows() {
   for (const id of [...flows.keys()]) await closeFlow(id);
 }
 
-/** Baca kondisi halaman: sudah masuk? butuh OTP? */
+/**
+ * Baca informasi OTP dari teks halaman: kanal, nomor tersamar, pesan Akulaku,
+ * dan hitungan mundur bila ada.
+ *
+ * Penting: pesan Akulaku biasanya menyebut kanal yang BENAR dipakai
+ * (mis. "Kode dikirim ke WhatsApp 08****03"). Tanpa membacanya, pengguna tidak
+ * tahu harus menunggu SMS atau WhatsApp.
+ */
+function extractOtpInfo(bodyText) {
+  const text = String(bodyText || '');
+  const lower = text.toLowerCase();
+
+  const channels = [];
+  if (lower.includes(LOGIN.whatsappText)) channels.push('whatsapp');
+  if (lower.includes(LOGIN.smsText)) channels.push('sms');
+
+  const phoneMatch = text.match(/0[0-9*]{6,}/);
+
+  const lines = text.split('\n').map((s) => s.trim()).filter(Boolean);
+  const pageMessage =
+    lines.find((l) => /(kode|otp|verifikasi)/i.test(l) && /(kirim|dikirim|whatsapp|sms|nomor)/i.test(l)) ||
+    lines.find((l) => /(kirim|dikirim)/i.test(l)) ||
+    null;
+
+  const cd = text.match(/(\d{1,3})\s*(detik|sec\b|s\b)/i);
+  const cooldownSeconds = cd ? Number(cd[1]) : null;
+
+  // Pesan galat dari Akulaku (mis. batas pengiriman).
+  const errorLine =
+    lines.find((l) => /(terlalu banyak|batas|gagal|tidak terkirim|silakan coba lagi nanti)/i.test(l)) || null;
+
+  return {
+    channels,
+    phoneHint: phoneMatch ? phoneMatch[0] : null,
+    pageMessage,
+    cooldownSeconds,
+    errorLine,
+  };
+}
 async function detectState(page) {
   // page.url() ikut melempar bila page/context sudah ditutup.
   const url = (() => {
@@ -82,20 +120,19 @@ async function detectState(page) {
   const lower = bodyText.toLowerCase();
   const otpInputs = await page.locator(LOGIN.otpInput).count().catch(() => 0);
 
-  const channels = [];
-  if (lower.includes(LOGIN.whatsappText)) channels.push('whatsapp');
-  if (lower.includes(LOGIN.smsText)) channels.push('sms');
-
-  // Nomor HP yang ditampilkan (mis. 08*********03)
-  const phoneMatch = bodyText.match(/0[0-9*]{6,}/);
+  const info = extractOtpInfo(bodyText);
 
   if (!onLogin && !hasPasswordField) {
     return { state: 'success' };
   }
-  if (otpInputs > 0 || lower.includes(LOGIN.otpText) || channels.length > 0) {
-    return { state: 'otp_required', channels, phoneHint: phoneMatch ? phoneMatch[0] : null };
+  if (otpInputs > 0 || lower.includes(LOGIN.otpText) || info.channels.length > 0) {
+    return { state: 'otp_required', ...info };
   }
-  return { state: 'pending', message: 'Halaman login belum selesai. Coba lanjutkan / ulangi.' };
+  return {
+    state: 'pending',
+    message: 'Halaman login belum selesai. Coba lanjutkan / ulangi.',
+    ...info,
+  };
 }
 
 /**
@@ -138,6 +175,9 @@ async function startLogin(accountId) {
       return { state: 'success', message: `Login ${account.label} berhasil, sesi tersimpan.` };
     }
 
+    // Catat waktu permintaan OTP (jeda kirim ulang).
+    if (detected.state === 'otp_required') flow.lastOtpSentAt = Date.now();
+
     // state 'otp_required' / 'pending': PERTAHANKAN browser hidup supaya user
     // bisa mengirim OTP ke halaman yang sama. Jangan tandai sesi expired di sini.
     return detected;
@@ -159,6 +199,83 @@ function normalizeBrowserError(err) {
   return err;
 }
 
+/**
+ * Klik kontrol "kirim (ulang) OTP" untuk kanal tertentu.
+ *
+ * Sebelumnya kode mengklik elemen APA PUN yang teksnya mengandung "sms",
+ * yang bisa berarti tab, label, atau tautan "ganti nomor". Sekarang:
+ *  - hanya elemen button/a dengan teks pendek (<= 40 karakter),
+ *  - mengandung kata kanal,
+ *  - TIDAK mengandung kata yang menandakan aksi lain (ganti/ubah/nomor lain).
+ * Mengembalikan { clicked, text } agar bisa ditampilkan di UI.
+ */
+async function clickResendChannel(page, channel) {
+  const want = channel === 'whatsapp' ? 'whatsapp' : 'sms';
+  return page
+    .evaluate((wantChannel) => {
+      const els = [...document.querySelectorAll('button, a, [role="button"]')];
+      const bad = /(ganti|ubah|nomor lain|nomor baru|daftar|bantuan|lupa)/i;
+      for (const el of els) {
+        const t = (el.innerText || '').trim();
+        if (!t || t.length > 40) continue;
+        const lower = t.toLowerCase();
+        if (!lower.includes(wantChannel)) continue;
+        if (bad.test(lower)) continue;
+        el.click();
+        return { clicked: true, text: t };
+      }
+      return { clicked: false, text: null };
+    }, want)
+    .catch(() => ({ clicked: false, text: null }));
+}
+
+/** Jeda minimum antar permintaan OTP agar tidak dianggap spam oleh Akulaku. */
+const RESEND_COOLDOWN_MS = Number(process.env.AKULAKU_OTP_RESEND_COOLDOWN_MS || 60000);
+
+/**
+ * Kirim (ulang) OTP untuk kanal tertentu, dengan jeda.
+ * Mengembalikan { state, channels?, phoneHint?, pageMessage?, cooldownSeconds?, clickedText? }.
+ */
+async function resendOtp(accountId, channel = 'sms') {
+  const key = String(accountId);
+  const flow = flows.get(key);
+  if (!flow) throw createError(400, 'Tidak ada proses login yang berjalan. Klik Login Akulaku dulu.');
+  if (!isFlowAlive(flow)) {
+    await closeFlow(key);
+    throw browserGoneError();
+  }
+
+  const now = Date.now();
+  const last = flow.lastOtpSentAt || 0;
+  const sisa = Math.ceil((RESEND_COOLDOWN_MS - (now - last)) / 1000);
+  if (sisa > 0) {
+    return {
+      state: 'cooldown',
+      message: `Tunggu ${sisa} detik sebelum meminta kode lagi (batas pengiriman Akulaku).`,
+      cooldownSeconds: sisa,
+    };
+  }
+
+  const clickedRes = await clickResendChannel(page_(flow), channel);
+  flow.lastOtpSentAt = Date.now();
+  await page_(flow).waitForTimeout(3000);
+
+  const detected = await detectState(page_(flow));
+  return {
+    ...detected,
+    clickedText: clickedRes.text,
+    requestedChannel: channel,
+    // Bila tombol kanal tidak ditemukan, Akulaku mungkin hanya mendukung kanal lain.
+    note: clickedRes.clicked
+      ? `Permintaan kirim ulang via ${channel.toUpperCase()} dikirim.`
+      : `Tombol "${channel.toUpperCase()}" tidak ditemukan di halaman. Cek pesan Akulaku di bawah untuk kanal yang benar.`,
+  };
+}
+
+function page_(flow) {
+  return flow.page;
+}
+
 /** Ketik kode OTP ke halaman, lalu submit. */
 async function submitOtp(accountId, code, channel) {
   const key = String(accountId);
@@ -173,15 +290,8 @@ async function submitOtp(accountId, code, channel) {
 
   const { context, page } = flow;
   try {
-    // Opsional: pilih kanal pengiriman ulang (whatsapp/sms) kalau tombolnya ada.
-    if (channel === 'whatsapp' || channel === 'sms') {
-      const label = channel === 'whatsapp' ? /whatsapp/i : /sms/i;
-      const btn = page.locator('button, a').filter({ hasText: label }).first();
-      if (await btn.count().catch(() => 0)) {
-        await btn.click().catch(() => {});
-        await page.waitForTimeout(2000);
-      }
-    }
+    // Catat waktu permintaan OTP (untuk jeda kirim ulang).
+    if (!flow.lastOtpSentAt) flow.lastOtpSentAt = Date.now();
 
     const inputs = page.locator(LOGIN.otpInput);
     const count = await inputs.count().catch(() => 0);
@@ -231,4 +341,13 @@ async function cancelLogin(accountId) {
   return true;
 }
 
-module.exports = { startLogin, submitOtp, cancelLogin, closeAllFlows, LOGIN, isFlowAlive };
+module.exports = {
+  startLogin,
+  submitOtp,
+  resendOtp,
+  cancelLogin,
+  closeAllFlows,
+  LOGIN,
+  isFlowAlive,
+  extractOtpInfo,
+};

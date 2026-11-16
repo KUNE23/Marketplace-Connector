@@ -31,6 +31,7 @@ import {
   createAkulakuAccount,
   deleteAkulakuAccount,
   listAkulakuAccounts,
+  resendAkulakuOtp,
   startAkulakuLogin,
   submitAkulakuOtp,
   updateAkulakuAccount,
@@ -156,6 +157,10 @@ const otpChannels = ref<string[]>([])
 const otpCode = ref('')
 const otpChannel = ref<'whatsapp' | 'sms'>('whatsapp')
 const submittingOtp = ref(false)
+const resendingOtp = ref(false)
+/** Pesan asli dari halaman Akulaku (mis. "Kode dikirim ke WhatsApp 08****03"). */
+const otpPageMessage = ref<string | null>(null)
+const otpErrorLine = ref<string | null>(null)
 
 const isDialogOpen = ref(false)
 const editingId = ref<string | null>(null)
@@ -281,6 +286,8 @@ async function doStartLogin() {
       loginState.value = 'otp'
       otpChannels.value = res.channels ?? []
       phoneHint.value = res.phoneHint ?? null
+      otpPageMessage.value = res.pageMessage ?? null
+      otpErrorLine.value = res.errorLine ?? null
       if (res.channels?.includes('whatsapp')) otpChannel.value = 'whatsapp'
       else if (res.channels?.includes('sms')) otpChannel.value = 'sms'
       loginMessage.value = 'Akulaku meminta kode verifikasi. Masukkan kode OTP yang dikirim ke HP terdaftar.'
@@ -316,6 +323,36 @@ async function doSubmitOtp() {
     toast.error(loginMessage.value)
   } finally {
     submittingOtp.value = false
+  }
+}
+
+async function doResendOtp() {
+  if (!loginAccount.value) return
+  resendingOtp.value = true
+  try {
+    const res = await resendAkulakuOtp(loginAccount.value.id, otpChannel.value)
+    if (res.phoneHint) phoneHint.value = res.phoneHint
+    otpPageMessage.value = res.pageMessage ?? otpPageMessage.value
+    otpErrorLine.value = res.errorLine ?? null
+    if (res.channels?.length) otpChannels.value = res.channels
+
+    if (res.state === 'cooldown') {
+      toast.warning(res.message ?? 'Tunggu sebentar sebelum meminta kode lagi.')
+      return
+    }
+    const pesan =
+      res.note ??
+      res.pageMessage ??
+      res.message ??
+      `Permintaan kode via ${otpChannel.value.toUpperCase()} dikirim.`
+    loginMessage.value = pesan
+    toast.info(pesan)
+  } catch (err) {
+    const msg = err instanceof Error ? err.message : 'Gagal mengirim ulang OTP'
+    loginMessage.value = msg
+    toast.error(msg)
+  } finally {
+    resendingOtp.value = false
   }
 }
 
@@ -504,17 +541,20 @@ onMounted(() => {
             </div>
 
             <template v-if="loginState === 'otp'">
-              <Field v-if="otpChannels.length > 1" class="gap-1.5">
-                <FieldLabel>Kirim kode via</FieldLabel>
+              <Field class="gap-1.5">
+                <FieldLabel>Kanal pengiriman kode</FieldLabel>
                 <Select v-model="otpChannel">
                   <SelectTrigger>
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem v-if="otpChannels.includes('whatsapp')" value="whatsapp">WhatsApp</SelectItem>
-                    <SelectItem v-if="otpChannels.includes('sms')" value="sms">SMS</SelectItem>
+                    <SelectItem value="whatsapp">WhatsApp</SelectItem>
+                    <SelectItem value="sms">SMS</SelectItem>
                   </SelectContent>
                 </Select>
+                <p v-if="otpChannels.length" class="text-xs text-gray-500 dark:text-gray-400">
+                  Kanal yang ditawarkan Akulaku: {{ otpChannels.join(', ') }}
+                </p>
               </Field>
 
               <Field class="gap-1.5">
@@ -527,14 +567,27 @@ onMounted(() => {
                   placeholder="Masukkan kode dari HP"
                   @keyup.enter="doSubmitOtp"
                 />
+                <p v-if="otpPageMessage" class="text-xs text-gray-600 dark:text-gray-300">
+                  <strong>Kata Akulaku:</strong> {{ otpPageMessage }}
+                </p>
                 <p v-if="phoneHint" class="text-xs text-gray-500 dark:text-gray-400">
-                  Kode dikirim ke nomor: <strong>{{ phoneHint }}</strong>
+                  Nomor terdaftar: <strong>{{ phoneHint }}</strong>
+                </p>
+                <p v-if="otpErrorLine" class="text-xs text-error-600 dark:text-error-400">
+                  {{ otpErrorLine }}
+                </p>
+                <p class="text-[11px] text-gray-400">
+                  Kalau kode tidak masuk ke SMS, coba kanal lain di bawah — Akulaku sering
+                  mengirim ke WhatsApp, bukan SMS.
                 </p>
               </Field>
 
               <div class="flex flex-wrap gap-2">
                 <Button :disabled="submittingOtp" @click="doSubmitOtp">
                   {{ submittingOtp ? 'Memverifikasi...' : 'Kirim Kode' }}
+                </Button>
+                <Button variant="outline" :disabled="resendingOtp" @click="doResendOtp">
+                  {{ resendingOtp ? 'Mengirim...' : `Kirim Ulang via ${otpChannel === 'whatsapp' ? 'WhatsApp' : 'SMS'}` }}
                 </Button>
                 <Button variant="outline" :disabled="submittingOtp" @click="doStartLogin">Ulangi Login</Button>
               </div>
