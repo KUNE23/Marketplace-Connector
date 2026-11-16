@@ -25,6 +25,7 @@ import { Table, TableBody, TableCell, TableHeader, TableRow } from '@/components
 import ComponentCard from '@/components/common/ComponentCard.vue'
 import PageBreadcrumb from '@/components/common/PageBreadcrumb.vue'
 import AdminLayout from '@/components/layout/AdminLayout.vue'
+import RemoteAkulaku from '@/components/remote/RemoteAkulaku.vue'
 import {
   cancelAkulakuLogin,
   createAkulakuAccount,
@@ -52,6 +53,19 @@ const page = ref(1)
 const limit = 10
 const search = ref('')
 const loading = ref(false)
+
+// === Buka Akulaku langsung (browser remote) ===
+const isRemoteOpen = ref(false)
+const remoteAccount = ref<AkulakuAccount | null>(null)
+
+function openRemote(account: AkulakuAccount) {
+  remoteAccount.value = account
+  isRemoteOpen.value = true
+}
+
+async function onRemoteSaved() {
+  await load()
+}
 
 // === Saldo ===
 const balances = ref<AccountBalance[]>([])
@@ -382,7 +396,8 @@ onMounted(() => {
                   </TableCell>
                   <TableCell class="px-5 py-4 text-start text-sm sm:px-6">
                     <div class="flex flex-wrap gap-2">
-                      <Button size="sm" @click="openLogin(account)">Login Akulaku</Button>
+                      <Button size="sm" @click="openRemote(account)">Buka Akulaku</Button>
+                      <Button variant="outline" size="sm" @click="openLogin(account)">Login Akulaku</Button>
                       <Button variant="outline" size="sm" @click="openBalance(account)">Saldo</Button>
                       <Button variant="outline" size="sm" @click="openEdit(account)">Edit</Button>
                       <Button variant="outline" size="sm" @click="removeAccount(account)">Hapus</Button>
@@ -610,6 +625,15 @@ onMounted(() => {
           </DialogFooter>
         </DialogContent>
       </Dialog>
+
+      <!-- Buka Akulaku langsung (browser remote yang sudah login) -->
+      <RemoteAkulaku
+        v-if="remoteAccount"
+        v-model="isRemoteOpen"
+        :account-id="remoteAccount.id"
+        :account-label="remoteAccount.label"
+        @saved="onRemoteSaved"
+      />
     </div>
   </AdminLayout>
 </template>
