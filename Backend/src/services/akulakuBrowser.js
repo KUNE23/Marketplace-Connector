@@ -1,4 +1,4 @@
-﻿// Backend/src/services/akulakuBrowser.js
+// Backend/src/services/akulakuBrowser.js
 /**
  * Sesi browser Playwright ke Akulaku Seller Center.
  *
@@ -100,6 +100,21 @@ async function saveSessionState(accountId, state, status = 'valid') {
 }
 
 /**
+ * Ubah HANYA status sesi tanpa menyentuh storage state.
+ *
+ * Dipakai saat sesi terdeteksi kedaluwarsa. Menghapus state di sini berbahaya:
+ * worker menjalankan sync berkala, sehingga state yang baru disimpan lewat
+ * "Simpan Sesi" akan terhapus lagi pada siklus berikutnya.
+ */
+async function markSessionStatus(accountId, status) {
+  await prisma.akulakuSession.upsert({
+    where: { accountId: BigInt(accountId) },
+    create: { accountId: BigInt(accountId), status },
+    update: { status },
+  });
+}
+
+/**
  * Buka browser + context dengan storage state akun (kalau ada), lalu login bila perlu.
  * Mengembalikan { browser, context, page }.
  */
@@ -151,8 +166,11 @@ async function openLoggedInContext(accountId) {
       (await page.locator(CONFIG.passwordSelector).count().catch(() => 0)) > 0;
 
     if (stillOnLogin) {
-      // Gagal masuk: tandai expired agar UI/job tahu sesi perlu login ulang.
-      await saveSessionState(accountId, {}, 'expired').catch(() => {});
+      // Gagal masuk: tandai status saja, JANGAN hapus state tersimpan.
+      // State berisi cookie yang mungkin masih berguna (atau baru saja disimpan
+      // lewat login manual). Menghapusnya membuat "Simpan Sesi" tampak tidak
+      // berefek karena worker menghapusnya lagi tiap siklus sync.
+      await markSessionStatus(accountId, 'expired').catch(() => {});
       throw createError(
         401,
         'Sesi Akulaku tidak valid dan login otomatis gagal (kemungkinan butuh OTP). ' +
@@ -170,7 +188,7 @@ async function openLoggedInContext(accountId) {
     // login benar-benar sudah disubmit (attemptedLogin) DAN errornya memang
     // kegagalan autentikasi (mis. masih berakhir di halaman login).
     if (attemptedLogin && isAuthFailure(err)) {
-      await saveSessionState(accountId, {}, 'expired').catch(() => {});
+      await markSessionStatus(accountId, 'expired').catch(() => {});
     }
     throw err;
   }
@@ -250,6 +268,7 @@ module.exports = {
   getAccountCredentials,
   getSessionState,
   saveSessionState,
+  markSessionStatus,
   openLoggedInContext,
   loginInteractively,
   loadPlaywright,
