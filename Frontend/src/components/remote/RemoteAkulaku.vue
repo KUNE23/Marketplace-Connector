@@ -30,6 +30,7 @@ const currentUrl = ref('')
 const loading = ref(false)
 const errorMsg = ref('')
 const needsLogin = ref(false)
+const credentialsFilled = ref(false)
 const saving = ref(false)
 const imageEl = ref<HTMLImageElement | null>(null)
 const surfaceEl = ref<HTMLElement | null>(null)
@@ -121,9 +122,14 @@ async function open() {
     viewport.value = res.viewport
     currentUrl.value = res.url
     needsLogin.value = res.needsLogin
+    credentialsFilled.value = Boolean(res.credentialsFilled)
 
     if (res.needsLogin) {
-      toast.info('Sesi Akulaku sudah berakhir. Silakan login (termasuk OTP) di jendela Akulaku ini.')
+      toast.info(
+        res.credentialsFilled
+          ? 'Sesi Akulaku berakhir. Email & password sudah terisi — klik "Masuk", lalu masukkan OTP.'
+          : 'Sesi Akulaku berakhir. Silakan login (termasuk OTP) di jendela Akulaku ini.',
+      )
     }
 
     unsubscribe = subscribeRemoteStream(res.sessionId, {
@@ -279,7 +285,12 @@ onBeforeUnmount(() => {
           <p class="text-[11px] text-gray-500 dark:text-gray-400">
             Klik & ketik langsung di layar di atas. Sesi otomatis ditutup setelah tidak aktif.
             <span v-if="needsLogin" class="text-warning-600 dark:text-warning-400">
-              Sesi Akulaku berakhir — login dulu, lalu klik "Simpan Sesi".
+              <template v-if="credentialsFilled">
+                Email & password sudah terisi — klik "Masuk", masukkan OTP, lalu klik "Simpan Sesi".
+              </template>
+              <template v-else>
+                Sesi Akulaku berakhir — login dulu, lalu klik "Simpan Sesi".
+              </template>
             </span>
           </p>
         </div>

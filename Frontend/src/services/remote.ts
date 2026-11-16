@@ -22,6 +22,8 @@ export interface StartRemoteResult {
   url: string
   needsLogin: boolean
   loginError: string | null
+  /** true bila email & password sudah diisi otomatis di halaman login Akulaku. */
+  credentialsFilled?: boolean
 }
 
 export function listRemoteSessions() {

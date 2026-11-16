@@ -72,7 +72,14 @@ async function startSession(accountId, { user, allowLoginFallback = true } = {})
     });
   }
 
-  const { openLoggedInContext, CONFIG, loadPlaywright, assertBrowserInstalled } = require('./akulakuBrowser');
+  const {
+    CONFIG,
+    loadPlaywright,
+    assertBrowserInstalled,
+    getSessionState,
+    getAccountCredentials,
+    saveSessionState,
+  } = require('./akulakuBrowser');
   const prisma = require('../lib/prisma');
 
   const account = await prisma.akulakuAccount.findUnique({
@@ -86,36 +93,66 @@ async function startSession(accountId, { user, allowLoginFallback = true } = {})
   let page;
   let needsLogin = false;
   let loginError = null;
+  let session_credentialsFilled = false;
 
+  // PENTING: JANGAN memakai openLoggedInContext() di sini.
+  // Fungsi itu mencoba login otomatis lalu memverifikasi ulang, yang memakan
+  // sampai ~2 menit sebelum akhirnya gagal. Untuk browser remote kita hanya
+  // perlu TAHU apakah sesi masih hidup, lalu langsung tampilkan halaman login
+  // bila sudah berakhir.
+  assertBrowserInstalled();
+  const { chromium } = loadPlaywright();
+  const storedState = await getSessionState(accountId).catch(() => null);
+
+  browser = await chromium.launch({ headless: CONFIG.headless });
+  context = await browser.newContext({
+    locale: 'id-ID',
+    timezoneId: 'Asia/Jakarta',
+    viewport: VIEWPORT,
+    ...(storedState ? { storageState: storedState } : {}),
+  });
+  page = await context.newPage();
+
+  // Cek cepat: buka halaman utama, lihat apakah dilempar ke login.
   try {
-    // Jalur normal: sesi tersimpan masih valid.
-    const ctx = await openLoggedInContext(accountId);
-    browser = ctx.browser;
-    context = ctx.context;
-    page = ctx.page;
-  } catch (err) {
-    if (!allowLoginFallback) throw err;
-    // Sesi kedaluwarsa / butuh OTP: buka halaman login supaya bisa masuk manual.
-    needsLogin = true;
-    loginError = String(err.message || err).slice(0, 300);
+    await page.goto(CONFIG.baseUrl, { waitUntil: 'domcontentloaded', timeout: 45000 });
+    await page.waitForLoadState('networkidle', { timeout: 15000 }).catch(() => {});
+  } catch {
+    /* tetap lanjut; dianggap perlu login */
+  }
 
-    assertBrowserInstalled();
-    const { chromium } = loadPlaywright();
-    browser = await chromium.launch({ headless: CONFIG.headless });
-    context = await browser.newContext({
-      locale: 'id-ID',
-      timezoneId: 'Asia/Jakarta',
-      viewport: VIEWPORT,
-    });
-    page = await context.newPage();
+  const onLogin =
+    page.url().includes(CONFIG.loginPath) ||
+    (await page.locator(CONFIG.passwordSelector).count().catch(() => 0)) > 0;
+
+  if (onLogin) {
+    needsLogin = true;
+    if (storedState) loginError = 'Sesi tersimpan sudah kedaluwarsa.';
+
     try {
       await page.goto(`${CONFIG.baseUrl}${CONFIG.loginPath}`, {
         waitUntil: 'domcontentloaded',
-        timeout: 60000,
+        timeout: 45000,
       });
     } catch {
-      await page.goto(CONFIG.baseUrl, { waitUntil: 'domcontentloaded', timeout: 60000 }).catch(() => {});
+      /* abaikan */
     }
+
+    // Isi otomatis kredensial agar pengguna hanya perlu menangani OTP.
+    // Tidak disubmit otomatis: biar pengguna yang memilih kapan meminta kode
+    // (menghindari permintaan OTP berulang yang membuat Akulaku memblokir).
+    try {
+      const cred = await getAccountCredentials(accountId);
+      await page.waitForSelector(CONFIG.passwordSelector, { state: 'visible', timeout: 20000 });
+      await page.fill(CONFIG.usernameSelector, cred.username);
+      await page.fill(CONFIG.passwordSelector, cred.password);
+      session_credentialsFilled = true;
+    } catch {
+      session_credentialsFilled = false;
+    }
+  } else {
+    // Sesi masih hidup: simpan pembaruan cookie agar tetap dipakai otomasi.
+    await saveSessionState(accountId, await context.storageState(), 'valid').catch(() => {});
   }
 
   await page.setViewportSize(VIEWPORT).catch(() => {});
@@ -138,6 +175,7 @@ async function startSession(accountId, { user, allowLoginFallback = true } = {})
     currentUrl: page.url(),
     needsLogin,
     loginError,
+    credentialsFilled: session_credentialsFilled,
     CONFIG,
   };
 
@@ -182,6 +220,7 @@ async function startSession(accountId, { user, allowLoginFallback = true } = {})
     url: session.currentUrl,
     needsLogin,
     loginError,
+    credentialsFilled: session_credentialsFilled,
   };
 }
 
